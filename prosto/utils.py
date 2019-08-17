@@ -4,6 +4,7 @@ import types
 import inspect
 import importlib
 import importlib.util
+import functools
 
 import pandas as pd
 import numpy as np
@@ -116,7 +117,7 @@ def all_columns_exist(names, df):
 # Function resolution
 #
 
-def resolve_full_name(full_name: str):
+def resolve_full_name(full_name):
     """
     Resolve the specified name or definition of the function to a reference.
     Fully qualified name consists of module name and function name separated by a colon, for example:  'mod1.mod2.mod3:class1.class2.func1.func2'.
@@ -124,6 +125,9 @@ def resolve_full_name(full_name: str):
 
     if not full_name:
         return None
+
+    elif isinstance(full_name, (types.FunctionType, types.BuiltinFunctionType, functools.partial)):
+        return full_name
 
     elif full_name.strip().startswith('lambda '):
         try:
