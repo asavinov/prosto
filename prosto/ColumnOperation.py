@@ -221,13 +221,15 @@ class ColumnOperation(Operation):
             else:
                 ser = data
 
-            if isinstance(model, dict):
-                # Pass model by flattening dict (alternative: arbitrary Python object as positional or key argument). UDF has to declare the expected arguments
-                out = pd.Series.apply(ser, func, **model)  # Model as keyword arguments
+            if model is None:
+                out = pd.Series.apply(ser, func)  # Do not pass model to the function
             elif isinstance(model, (list, tuple)):
                 out = pd.Series.apply(ser, func, *model)  # Model as positional arguments
+            elif isinstance(model, dict):
+                # Pass model by flattening dict (alternative: arbitrary Python object as positional or key argument). UDF has to declare the expected arguments
+                out = pd.Series.apply(ser, func, **model)  # Model as keyword arguments
             else:
-                out = pd.Series.apply(ser, func, model)  # Model as an arbitrary object
+                out = pd.Series.apply(ser, func, args=(model,))  # Model as an arbitrary object
 
         #
         # Multiple inputs: Apply to a frame. UDF will get a row of values
@@ -240,7 +242,14 @@ class ColumnOperation(Operation):
             if data_type == 'ndarray':
                 out = pd.DataFrame.apply(data, func, axis=1, raw=True, **model)
             else:
-                out = pd.DataFrame.apply(data, func, axis=1, raw=False, **model)
+                if model is None:
+                    out = pd.DataFrame.apply(data, func, axis=1, raw=False)  # Do not pass model to the function
+                elif isinstance(model, (list, tuple)):
+                    out = pd.DataFrame.apply(data, func, axis=1, raw=False, *model)  # Model as positional arguments
+                elif isinstance(model, dict):
+                    out = pd.DataFrame.apply(data, func, axis=1, raw=False, **model)  # Model as keyword arguments
+                else:
+                    out = pd.DataFrame.apply(data, func, axis=1, raw=False, args=(model,))  # Model as an arbitrary object
 
         else:
             log.error(f"Unknown input data type '{type(data_type).__name__}'")
