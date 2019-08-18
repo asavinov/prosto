@@ -1,79 +1,87 @@
-# Prosto column-oriented data processing toolkit
+<img src="https://github.com/prostodata/prostopy/raw/master/docs/images/ProstoLogo.png" height="64" width="64" align="absmiddle"> Prosto Data
+=============================================================================================================================================
 
-Prosto is a data processing toolkit which significantly simplifies data processing and analysis. 
+# Prosto data processing toolkit
+
+`Prosto` is a data processing toolkit which significantly simplifies data processing and analysis. 
 It radically changes the way data is processed by relying on a novel *column-oriented* data processing paradigm which treats columns as first-class elements of the data processing pipeline having the same rights as tables.
 
-In Prosto, a workflow consists of two sorts of operations
+In `Prosto`, a workflow consists of two categories of operations
 
 * *Table population* operations produce new sets of tuples (tables) from existing sets. A set is a collection of values.
 * *Column evaluation* operations produce new functions (columns) from existing functions. A function is a mapping of values from one set to another set.
 
-How exactly the operations process data is specified in *user-defined functions* (in Python) which can be as simple as format conversion and as complex as deep neural networks.
+How exactly the operations process data is specified in *user-defined functions* (in Python) which can be as simple as format conversion and as complex as as a machine learning model like deep neural network.
 
 # Getting started with Prosto
 
 ## Importing Prosto
 
-Prosto is a toolkit and it is intended to be used from another (Python) application:
+`Prosto` is a toolkit and it is intended to be used from another (Python) application. Before its function can be used, the module has to be imported:
 
 ```python
-from prosto.Workflow import *
+import prosto as prst
 ```
 
 ## Defining a workflow
 
-A workflow consists of a number of table and column operations. Before these operations can be added, a Prosto workflow has to be created:
+A workflow consists of a number of table and column operations. Before these operations can be added, a `Prosto` workflow has to be created:
 
 ```python
-workflow = Workflow("My Workflow")
+workflow = prst.Workflow("My Workflow")
 ```
 
-Prosto provides two types of operations which can be added to a workflow:
+`Prosto` provides two categories of operations which can be added to a workflow:
 
-* Table population operation adds records to the table given records from one or more input tables
-* Column evaluation operation generates values of the column given values of one or more input columns
+* A *table population* operation adds new records to the table given records from one or more input tables
+* A *column evaluation* operation generates values of the column given values of one or more input columns
 
 ## Defining tables
+
+Each table has some structure which is defined by its *attributes*. Table attributes define the structure of tuple this table consists of as a set. (In contrast, table columns are thought of as functions which map tuples of this set to tuples of another set.)
 
 One of the simplest table operations is `population` by means of a *user-defined function* which is supposed to *know* how to populate the table:
 
 ```python
 table = workflow.create_populate_table(
-    "My Table", ["A", "B"],
+    name="My Table", attributes=["A", "B"],
     function="lambda x: xxx"
     )
 ```
 
-Here we use a lambda function passed as a string for simplicity but it could be a reference to an arbitrary Python function. This function returns a `pandas` data frame with the table data. In more realistic cases, the function could read data from some data source or process data from input tables.
+Here we use a lambda function passed as a string for simplicity but it could be a reference to an arbitrary other Python function. This function returns a `pandas` data frame with the table data. This data frame has to contain all attributes declared for this table (`A` and `B` in this example). In more realistic cases, the function could read data from some data source or process data from input tables.
 
-Other table operation types like `project`, `product` and `filter` allow for generating table data from already existing input tables.
+Other table operation like `project`, `product` and `filter` allow for processing table data from already existing input tables.
 
 ## Defining columns
 
-One of the simplest column operations is a `calculate` column which computes each its output value from the values of the input columns:
+A column is interpreted formally as a function which maps tuples (defined by the table attributes) of this table to tuples of another table.
+
+One of the simplest column operations is a `calculate` column which *computes* output values of the mapping from the values of the input columns of the same table:
 
 ```python
 column = workflow.create_calculate_column(
-    "My Column", "My Table",
+    name="My Column", table_name="My Table",
     function="lambda x: x['A'] + x['B']", columns=["A", "B"]
     )
 ```
 
-In this example, the new column will compute the sum of columns "A" and "B".
+In this example, the new column will compute the sum of columns `A` and `B`.
 
-Other column operation types like `link`, `grouping` or `rolling` allow for producing link columns referencing records in other tables and aggregate data.
+Other column operations like `link`, `grouping` or `rolling` allow for producing link columns referencing records in other tables and aggregate data.
 
 ## Executing a workflow
 
-When a workflow is defined it is not executed by storing only operation definitions. In order to really process data, it is necessary to execute the workflow:
+When a workflow is defined it is not executed - it stores only operation definitions. In order to really process data, it has to be executed:
 
 ```python
 workflow.run()
 ```
 
-Prosto translates the workflow into a graph of operations taking into account their dependencies and then executes each operation: table operations will populate tables and column operations will evaluate columns.
+`Prosto` translates the workflow into a graph of operations (topology) taking into account their dependencies and then executes each operation: table operations will populate tables and column operations will evaluate columns.
 
 Now we can explore the result:
+
 ```python
 df = table.get_data()
 print(df)
@@ -97,21 +105,15 @@ Or alternatively:
 $ python setup.py install
 ```
 
-## Install from package
+## Install from repository
 
-Create wheel package:
-
-```console
-$ python setup.py bdist_wheel
-```
-
-The `whl` package will be stored in the `dist` folder and can then be installed using `pip`.
-
-Execute this command by specifying the `whl` file as a parameter:
+Install from repository:
 
 ```console
-$ pip install dist\prosto-0.1.0-py3-none-any.whl
+$ pip install prosto
 ```
+
+This command will install the latest version of `Prosto` from repository.
 
 # How to test
 
