@@ -163,7 +163,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.error("Not all columns available. Skip column definition.".format())
+                log.error("Not all input columns available. Skip column definition.".format())
                 return
 
             data = data[columns]  # Select only the specified input columns
@@ -451,6 +451,20 @@ class ColumnOperation(Operation):
         definition = self.definition
 
         #
+        # Determine input columns
+        #
+        columns = self.get_columns()
+        columns = get_columns(columns, data)
+        if columns is None:
+            log.warning("Error reading input column list. Skip column definition.")
+            return
+
+        # Validation: check if all explicitly specified columns available
+        if not all_columns_exist(columns, data):
+            log.warning("Not all input columns available. Skip column definition.".format())
+            return
+
+        #
         # Determine window size. The window parameter can be string, number or object (many arguments for rolling object)
         #
         window = definition.get('window')
@@ -461,9 +475,9 @@ class ColumnOperation(Operation):
         #
         # Single input. Moving aggregation of one input column. Function will get a sub-series as a data argument
         #
-        if len(data.columns) == 1:
+        if len(columns) == 1:
 
-            in_column = data.columns[0]
+            in_column = columns[0]
 
             # Create a rolling object with windowing (row-based windowing independent of the number of columns)
             by_window = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
@@ -524,12 +538,12 @@ class ColumnOperation(Operation):
         columns = self.get_columns()
         columns = get_columns(columns, data)
         if columns is None:
-            log.warning("Error reading column list. Skip column definition.")
+            log.warning("Error reading input column list. Skip column definition.")
             return
 
         # Validation: check if all explicitly specified columns available
         if not all_columns_exist(columns, data):
-            log.warning("Not all columns available. Skip column definition.".format())
+            log.warning("Not all input columns available. Skip column definition.".format())
             return
 
         data = data[columns]  # Select only the specified input columns
