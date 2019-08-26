@@ -1,7 +1,12 @@
-<img src="https://github.com/prostodata/prostopy/raw/master/docs/images/ProstoLogo.png" height="64" width="64" align="absmiddle"> Prosto Data
-=============================================================================================================================================
+```
+ ____                _        
+|  _ \ _ __ ___  ___| |_ ___   _______________________
+| |_) | '__/ _ \/ __| __/ _ \ 
+|  __/| | | (_) \__ \ || (_) | Data Processing Toolkit
+|_|   |_|  \___/|___/\__\___/  _______________________
+```
 
-# Prosto data processing toolkit
+# What is Prosto?
 
 `Prosto` is a data processing toolkit which significantly simplifies data processing and analysis. It radically changes the way data is processed by relying on a novel data processing paradigm which treats columns as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two kinds of operations:
 
@@ -9,6 +14,18 @@
 * *Column (evaluation) operations* produce new functions (columns) from existing functions. A function is treated as a mapping of values from one set to another set.
 
 How exactly the operations process data is normally specified via a *user-defined functions* (in Python) which can be as simple as format conversion and as complex as as a machine learning algorithm.
+
+## Why Prosto?
+
+Prosto provides the following unique features and benefits:
+
+* *Processing data in multiple tables.* Of course, we could easily implemented calculate columns (as demonstrated in examples) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` makes it easy to process data stored in many tables by adding new calculated columns and using interconnections between them.
+
+* *Getting rid of joins.* We could process data in multiple tables using relational join. However, it tedious and error prone approach requiring high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are part of one workflow.
+
+* *Getting rid of group-by.* Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially describing complex analytical workflows.
+
+* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are minimal units of data processing.
 
 # Getting started with Prosto
 
@@ -110,14 +127,6 @@ print(df)
 3  beer         2        15.0  30.0
 4  chips        1        4.0   4.0
 ```
-
-## Benefits
-
-* Processing data in multiple tables. Of course, we could easily implemented a calculate column (as shown in the example) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` makes it easy to process data stored in many tables.
-
-* Getting rid of joins. We could process data in multiple tables using relational join. However, it tedious and error prone approach requiring high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are part of one workflow.
-
-* Getting rid of group-by. Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially describing complex analytical workflows.
 
 # How to install
 
