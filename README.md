@@ -25,7 +25,7 @@ Prosto provides the following unique features and benefits:
 
 * *Getting rid of group-by.* Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially describing complex analytical workflows.
 
-* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are minimal units of data processing.
+* *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing.
 
 # Getting started with Prosto
 
@@ -58,9 +58,9 @@ There exist many different ways to populate a table with tuples (attribute value
 
 ```python
 sales_data = {
-    'product_name': ["beer", "chips", "chips", "beer", "chips"],
-    'quantity': [1, 2, 3, 2, 1],
-    'price': [10.0, 5.0, 6.0, 15.0, 4.0]
+    "product_name": ["beer", "chips", "chips", "beer", "chips"],
+    "quantity": [1, 2, 3, 2, 1],
+    "price": [10.0, 5.0, 6.0, 15.0, 4.0]
 }
 
 sales = workflow.create_populate_table(
@@ -71,7 +71,7 @@ sales = workflow.create_populate_table(
     func=lambda **m: pd.DataFrame(sales_data), tables=[], model={},
 
     # This parameter says that UDF returns a complete data frame
-    input_length='table'
+    input_length="table"
 )
 ```
 
@@ -91,10 +91,10 @@ calc_column = workflow.create_calculate_column(
     name="amount", table=sales.id,
 
     # Column operation is UDF, list of input columns and model (parameters for UDF)
-    func=lambda x: x['quantity'] * x['price'], columns=["quantity", "price"], model=None,
+    func=lambda x: x["quantity"] * x["price"], columns=["quantity", "price"], model=None,
 
     # This parameter says that the UDF returns one value (not a whole column)
-    input_length='value'
+    input_length="value"
 )
 ```
 
