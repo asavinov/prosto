@@ -13,17 +13,17 @@
 * *Table (population) operations* produce new sets of tuples (tables) from existing sets. A set is treated as a collection of values (tuples).
 * *Column (evaluation) operations* produce new functions (columns) from existing functions. A function is treated as a mapping of values from one set to another set.
 
-How exactly the operations process data is normally specified via a *user-defined functions* (in Python) which can be as simple as format conversion and as complex as as a machine learning algorithm.
+The data processing logic is provided via *user-defined functions* (in Python) which can be as simple as format conversion and as complex as as a machine learning algorithm.
 
 ## Why Prosto?
 
 Prosto provides the following unique features and benefits:
 
-* *Processing data in multiple tables.* Of course, we could easily implemented calculate columns (as demonstrated in examples) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` makes it easy to process data stored in many tables by adding new calculated columns and using interconnections between them.
+* *Processing data in multiple tables.* Of course, we could easily implemented calculate columns (as demonstrated in examples) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` makes it easy to process data stored in many tables by adding new calculated columns and using links between them.
 
-* *Getting rid of joins.* We could process data in multiple tables using relational join. However, it tedious and error prone approach requiring high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are part of one workflow.
+* *Getting rid of joins.* We could process data in multiple tables using the relational join operation. However, this tedious and error prone approach requires high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are part of one workflow.
 
-* *Getting rid of group-by.* Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially describing complex analytical workflows.
+* *Getting rid of group-by.* Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially in describing complex analytical workflows.
 
 * *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing.
 
@@ -31,7 +31,7 @@ Prosto provides the following unique features and benefits:
 
 ## Importing Prosto
 
-`Prosto` is a toolkit and it is intended to be used from another (Python) application. Before its data processing function can be used, the module has to be imported:
+`Prosto` is a toolkit and it is intended to be used from another (Python) application. Before its data processing functions can be used, the module has to be imported:
 
 ```python
 import prosto as prst
@@ -42,7 +42,7 @@ import prosto as prst
 A workflow contains definitions of data elements (tables and columns) as well as operations for data generation. Before data processing operations can be defined, a `Prosto` workflow has to be created:
 
 ```python
-workflow = prst.Workflow("My Workflow")
+workflow = prst.Schema("My workflow")
 ```
 
 `Prosto` provides two types of operations which can be used in a workflow:
@@ -52,7 +52,7 @@ workflow = prst.Workflow("My Workflow")
 
 ## Defining tables
 
-Each table has some structure which is defined by its *attributes*. Table data is defined by the tuple it consists of and each tuple is a combination of some attribute values.
+Each table has some structure which is defined by its *attributes*. Table data is defined by the tuples it consists of and each tuple is a combination of some attribute values.
 
 There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `population` operation. It relies on a *user-defined function* which is supposed to *know* how to populate the table by returning a `pandas` data frame with the data:
 
@@ -75,7 +75,7 @@ sales = workflow.create_populate_table(
 )
 ```
 
-The user-defined function in this example returns a `pandas` data frame with in-memory sales data. In the general case, the data could be loaded from a CSV file or database. This data frame has to contain all attributes declared for this table.
+The user-defined function in this example returns a `pandas` data frame with in-memory sales data. In a more realistic case, the data could be loaded from a CSV file or database. This data frame has to contain all attributes declared for this table.
 
 Other table operations like `project`, `product` and `filter` allow for processing table data from already existing input tables which in turn could be populated using other operations.
 
@@ -83,7 +83,7 @@ Other table operations like `project`, `product` and `filter` allow for processi
 
 A column is formally interpreted as a mathematical function which maps tuples (defined by table attributes) of this table to tuples in another table.
 
-There exist many different ways to compute a mapping form one table to another table. One of the simplest column operations is a `calculate` column which *computes* output values of the mapping from the values of the specified input columns of the same table:
+There exist many different ways to compute a mapping form one table to another table. One of the simplest column operations is a `calculate` column which *computes* output values of the mapping using the values of the specified input columns of the same table:
 
 ```python
 calc_column = workflow.create_calculate_column(
@@ -127,6 +127,8 @@ print(df)
 3  beer         2        15.0  30.0
 4  chips        1        4.0   4.0
 ```
+
+Although it looks like a normal table, the last column was derived from the data in other columns. In more realistic cases, column data and table data will be derived from columns in many other tables.
 
 # How to install
 
