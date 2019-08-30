@@ -1,10 +1,10 @@
 # Change Log
 
-* v0.1.0-SNAPSHOT
-  * package setup configuration
+* v0.1.0 (2019-08-30)
+  * setup configuration
   * simple notebooks
   * tests for main operations
-  * methods for simultaneously defining data elements and operations
+  * implementing functions for simultaneously defining data elements and operations
   * representation of operations, tables and columns
 
 * v0.0.0 (2019-07-20)
