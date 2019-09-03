@@ -17,8 +17,8 @@ class TablePopulateTestCase(unittest.TestCase):
 
         tbl.evaluate()
 
-        self.assertEqual(len(tbl.data.columns), 2)
-        self.assertEqual(len(tbl.data), 3)
+        self.assertEqual(len(tbl.get_data().columns), 2)
+        self.assertEqual(len(tbl.get_data()), 3)
 
     def test_populate2(self):
         sch = Schema("My schema")
@@ -34,8 +34,8 @@ class TablePopulateTestCase(unittest.TestCase):
 
         tbl.evaluate()
 
-        self.assertEqual(len(tbl.data.columns), 2)
-        self.assertEqual(len(tbl.data), 3)
+        self.assertEqual(len(tbl.get_data().columns), 2)
+        self.assertEqual(len(tbl.get_data()), 3)
 
 
 if __name__ == '__main__':

@@ -55,7 +55,7 @@ class ColumnGroupingTestCase(unittest.TestCase):
         # Test topology
         #
         topology = Topology(sch)
-        topology.translate()
+        topology.translate()  # All data will be reset
         layers = topology.elem_layers
 
         self.assertEqual(len(layers), 3)
@@ -63,9 +63,6 @@ class ColumnGroupingTestCase(unittest.TestCase):
         self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups"]))
         self.assertTrue(set([x.id for x in layers[1]]) == set(["Link"]))
         self.assertTrue(set([x.id for x in layers[2]]) == set(["Aggregate"]))
-
-        a_clm_data = g_tbl.get_column_data('Aggregate')
-        a_clm_data.values.fill(0.0)
 
         sch.run()
 

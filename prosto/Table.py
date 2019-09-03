@@ -5,6 +5,7 @@ from prosto.utils import *
 from prosto.Schema import *
 from prosto.Table import *
 from prosto.Column import *
+from prosto.Data import *
 
 import logging
 log = logging.getLogger('prosto.table')
@@ -33,16 +34,17 @@ class Table:
         self.schema = schema
         self.definition = definition
 
-        self.data = None
+        # Here we store the real (physical) data for this table (all its attributes and columns)
+        self.data = Data(self)
 
     def __repr__(self):
         return '['+self.id+']'
 
     def get_data(self):
-        return self.data
+        return self.data.get_df()
 
     def get_column_data(self, column_name):
-        return self.data[column_name]
+        return self.get_data()[column_name]
 
     #
     # Column getters

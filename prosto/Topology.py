@@ -8,6 +8,7 @@ from prosto.Table import *
 from prosto.Column import *
 from prosto.TableOperation import *
 from prosto.ColumnOperation import *
+from prosto.Data import *
 
 import logging
 log = logging.getLogger('prosto.topology')
@@ -18,7 +19,7 @@ class Topology:
 
     def __init__(self, schema):
 
-        self.schema = schema  # If schema can be mofied then make a copy: copy.deepcopy(schema)
+        self.schema = schema  # If schema can be modified then make a copy: copy.deepcopy(schema)
 
         self.layers = []  # Graph of operations
         self.elem_layers = []  # Graph of elements
@@ -98,6 +99,11 @@ class Topology:
                 if isinstance(op, TableOperation):  # Find table
                     tables = self.schema.get_tables(outputs)
                     elem_layer.extend(tables)
+
+                    # Allocate/initialize data and other resources
+                    for tab in tables:
+                        tab.data = Data(tab)
+
                 elif isinstance(op, ColumnOperation):  # Find column
                     table_name = op.definition.get("table")
                     columns = self.schema.get_columns(table_name, outputs)

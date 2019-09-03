@@ -44,7 +44,8 @@ class Column:
         else:  # Primitive type
             self.type = None
 
-        self.groupby = None  # Link columns store here a groupby objects which is then (re)used by multiple aggregate columns
+        # Link columns store here a groupby object which is then (re)used by aggregate columns
+        self.groupby = None
 
 
     def __repr__(self):

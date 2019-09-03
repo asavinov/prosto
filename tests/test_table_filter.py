@@ -31,9 +31,9 @@ class TableFilterTestCase(unittest.TestCase):
 
         tbl.evaluate()
 
-        self.assertEqual(len(tbl.data.columns), 1)  # Only one link-attribute is created
-        self.assertEqual(len(tbl.data), 1)
-        self.assertEqual(tbl.data['super'][0], 1)
+        self.assertEqual(len(tbl.get_data().columns), 1)  # Only one link-attribute is created
+        self.assertEqual(len(tbl.get_data()), 1)
+        self.assertEqual(tbl.get_data()['super'][0], 1)
 
         #
         # Test topology
