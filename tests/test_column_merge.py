@@ -51,7 +51,7 @@ class ColumnMergeTestCase(unittest.TestCase):
         # Test topology
         #
         topology = Topology(sch)
-        topology.translate()
+        topology.translate()  # All data will be reset
         layers = topology.elem_layers
 
         self.assertEqual(len(layers), 3)
@@ -59,9 +59,6 @@ class ColumnMergeTestCase(unittest.TestCase):
         self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups"]))
         self.assertTrue(set([x.id for x in layers[1]]) == set(["Link"]))
         self.assertTrue(set([x.id for x in layers[2]]) == set(["Merge"]))
-
-        m_data = f_tbl.get_column_data("Merge")
-        m_data.values.fill(0.0)
 
         sch.run()
 
@@ -121,7 +118,7 @@ class ColumnMergeTestCase(unittest.TestCase):
         # Test topology
         #
         topology = Topology(sch)
-        topology.translate()
+        topology.translate()  # All data will be reset
         layers = topology.elem_layers
 
         self.assertEqual(len(layers), 3)
@@ -129,9 +126,6 @@ class ColumnMergeTestCase(unittest.TestCase):
         self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups", "SuperGroups"]))
         self.assertTrue(set([x.id for x in layers[1]]) == set(["Link", "SuperLink"]))
         self.assertTrue(set([x.id for x in layers[2]]) == set(["Merge"]))
-
-        m_data = f_tbl.get_column_data("Merge")
-        m_data.values.fill(None)
 
         sch.run()
 

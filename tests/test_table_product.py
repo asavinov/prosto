@@ -29,10 +29,10 @@ class TableProductTestCase(unittest.TestCase):
         t2.evaluate()
         product.evaluate()
 
-        self.assertEqual(len(product.data.columns), 2)
-        self.assertEqual(len(product.data), 9)
+        self.assertEqual(len(product.get_data().columns), 2)
+        self.assertEqual(len(product.get_data()), 9)
 
-        self.assertEqual(product.data.columns.to_list(), ["t1", "t2"])
+        self.assertEqual(product.get_data().columns.to_list(), ["t1", "t2"])
 
 
 if __name__ == '__main__':

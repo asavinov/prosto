@@ -120,7 +120,7 @@ class TableOperation(Operation):
             return
 
         if new_data is not None:
-            output_table.data = new_data
+            output_table.data.set_df(new_data)
 
         log.info(f"<=== Finish populating table '{output_table.id}'")
 
@@ -346,7 +346,7 @@ class TableOperation(Operation):
         df = df.groupby(by=['C1', 'C2', 'C3'], as_index=False).first()  # Using groupby
         np.unique(df[['col1', 'col2']], axis=0)  # Not for object data (error for object types)
         """
-        out = source_table.data.drop_duplicates(subset=source_keys)  # Really do projection
+        out = source_table.data.get_df().drop_duplicates(subset=source_keys)  # Really do projection
 
         #
         # Stage 5. Index and renamings

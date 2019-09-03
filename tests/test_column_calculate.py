@@ -61,16 +61,13 @@ class ColumnCalculateTestCase(unittest.TestCase):
         # Test topology
         #
         topology = Topology(sch)
-        topology.translate()
+        topology.translate()  # All data will be reset
         layers = topology.elem_layers
 
         self.assertEqual(len(layers), 2)
 
         self.assertTrue(set([x.id for x in layers[0]]) == set(["My table"]))
         self.assertTrue(set([x.id for x in layers[1]]) == set(["My column"]))
-
-        clm_data = tbl.get_column_data('My column')
-        clm_data.values.fill(0.0)
 
         sch.run()
 

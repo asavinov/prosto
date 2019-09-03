@@ -296,7 +296,7 @@ class ColumnOperation(Operation):
         output_column = self.schema.get_column(main_table_name, column_name)
 
         main_keys = self.get_columns()
-        if not all_columns_exist(main_keys, main_table.data):
+        if not all_columns_exist(main_keys, main_table.get_data()):
             log.error("Not all key columns available in the link column definition.".format())
             return
 
@@ -309,7 +309,7 @@ class ColumnOperation(Operation):
         linked_columns = definition.get('linked_columns', [])
         if len(linked_columns) == 0:
             linked_columns = linked_table.definition.get("attributes", [])  # By default (e.g., for projection), we link to target table attributes
-        if not all_columns_exist(linked_columns, linked_table.data):
+        if not all_columns_exist(linked_columns, linked_table.get_data()):
             log.error("Not all linked key columns available in the link column definition.".format())
             return
 
@@ -317,7 +317,7 @@ class ColumnOperation(Operation):
         # 1. In the target (linked) table, convert its index into a normal column (because we can only merge normal columns and index)
         #
         index_column_name = '__row_id__' # It could be 'id', 'index' or whatever other convention
-        linked_table.data[index_column_name] = linked_table.data.index
+        linked_table.get_data()[index_column_name] = linked_table.get_data().index
         # df.reset_index(inplace=True).set_index('index', drop=False, inplace=True)  ä Alternative 1: reset will convert index to column, and then again create index
         # df = df.rename_axis('index1').reset_index() # Alternative 2: New index1 column will be created
 
@@ -328,8 +328,8 @@ class ColumnOperation(Operation):
         linked_prefix = column_name+'::'  # It will be prepended to each linked (secondary) column name
 
         out_df = pd.merge(
-            main_table.data,  # This table
-            linked_table.data.rename(columns=lambda x: linked_prefix + x, inplace=False),  # Target table to link to. We rename columns (not in place - the original frame preserves column names)
+            main_table.get_data(),  # This table
+            linked_table.get_data().rename(columns=lambda x: linked_prefix + x, inplace=False),  # Target table to link to. We rename columns (not in place - the original frame preserves column names)
             how='left',  # This (main) table is not changed - we attach target records
             left_on=main_keys,  # List of main table key columns
             right_on= [linked_prefix + x for x in linked_columns],  # List of target table key columns. Note that we renamed them above so we use modified names.
@@ -340,7 +340,7 @@ class ColumnOperation(Operation):
         )
 
         # We do not need this column anymore - it was merged into the result as a link column
-        linked_table.data.drop(columns=[index_column_name], inplace=True)
+        linked_table.get_data().drop(columns=[index_column_name], inplace=True)
 
         #
         # 3. Rename according to our convention and store the result
@@ -533,7 +533,7 @@ class ColumnOperation(Operation):
         #
         # Build input fact frame to pass to the function
         #
-        data = source_table.data
+        data = source_table.get_data()
 
         columns = self.get_columns()
         columns = get_columns(columns, data)
@@ -582,7 +582,7 @@ class ColumnOperation(Operation):
 
         # Use link column (with target row ids) to build a groupby object (it will build a group for each target row id)
         try:
-            gb = source_table.data.groupby(link_column_name, as_index=True)
+            gb = source_table.get_data().groupby(link_column_name, as_index=True)
             # Alternatively, we could use target keys or main keys
         except Exception as e:
             log.error("Error grouping input table using the specified column(s).".format())
@@ -605,6 +605,8 @@ class ColumnOperation(Operation):
 
         fillna_value = definition.get('fillna_value')
 
+        data = output_table.get_data()
+
         #
         # Post-process the result by renaming the output columns accordingly (some convention is needed to know what output to expect)
         #
@@ -612,20 +614,20 @@ class ColumnOperation(Operation):
         out = pd.DataFrame(out)  # Result can be ndarray so we convert to data frame
         for i, c in enumerate(out.columns):
 
+            #
             # Determine column name for this result
-            if outputs and i < len(outputs):  # Explicitly specified output column name
+            #
+            if outputs and i < len(outputs):  # Column name is explicitly specified as part of the operation definition
                 attached_column_name = outputs[i]
             else:  # Same name - overwrite input column
                 columns = self.get_columns()
-                columns = get_columns(columns, output_table.data)
+                columns = get_columns(columns, data)
                 attached_column_name = columns[i]
 
             #
             # Attach this new column name to the output table data frame
             #
-            data = output_table.get_data()
             data[attached_column_name] = out[c]  # A column is attached by matching indexes so indexes have to be consistent (the same)
-
             if fillna_value is not None:
                 data[attached_column_name].fillna(fillna_value, inplace=True)
 

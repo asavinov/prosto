@@ -47,7 +47,7 @@ class ColumnLinkTestCase(unittest.TestCase):
         # Test topology
         #
         topology = Topology(sch)
-        topology.translate()
+        topology.translate()  # All data will be reset
         layers = topology.elem_layers
 
         self.assertEqual(len(layers), 2)
@@ -82,8 +82,8 @@ class ColumnLinkTestCase(unittest.TestCase):
         l_clm.evaluate()
 
         f_tbl_data = f_tbl.get_data()
-        self.assertEqual(len(f_tbl.data), 4)  # Same number of rows
-        self.assertEqual(len(f_tbl.data.columns), 3)
+        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
+        self.assertEqual(len(f_tbl_data.columns), 3)
 
         l_data = f_tbl.get_column_data("Link")
         self.assertEqual(l_data[0], 0)
@@ -95,16 +95,13 @@ class ColumnLinkTestCase(unittest.TestCase):
         # Test topology
         #
         topology = Topology(sch)
-        topology.translate()
+        topology.translate()  # All data will be reset
         layers = topology.elem_layers
 
         self.assertEqual(len(layers), 2)
 
         self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups"]))
         self.assertTrue(set([x.id for x in layers[1]]) == set(["Link"]))
-
-        l_data = f_tbl.get_column_data("Link")
-        l_data.values.fill(0)
 
         sch.run()
 
