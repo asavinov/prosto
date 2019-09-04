@@ -120,20 +120,100 @@ class Data:
         return True
 
     #
-    # Table operations
+    # Add rows
+    #
+    # TODO: We need to use current field for last/first row ids (or dirty/added/removed ranges) and also update them after adding record(s)
+
+    def add(self):
+        """Add one row and return its id. All attributes and columns will have empty values (None)."""
+        empty_value = None
+        first_id = self._get_next_id()
+
+        # Approach 1. Specify new index value explicitly
+        self.df.loc[first_id, :] = empty_value
+
+        # Approach 2. Series name will be used as new index value
+        #self.df = self.df.append(pd.Series(name=first_id, data=[empty_value]))
+
+        return first_id
+
+    def add(self, count):
+        """Add several rows."""
+        empty_value = None
+        first_id = self._get_next_id()
+
+        # Empty data frame with new (added) row ids in the index
+        new_ids = range(first_id, first_id + count)
+        table = pd.DataFrame(index=new_ids)
+
+        # Approach 1
+        self.df = self.df.append(table)
+
+        # Approach 2
+        #self.df = pd.concat([self.df, table])
+
+        return first_id
+
+    def add(self, record):
+        """Add one new row with the specified attribute values passed as a dictionary or series"""
+        empty_value = None
+        first_id = self._get_next_id()
+
+        # Approach 1. Specify new index value explicitly
+        self.df.loc[first_id, :] = record  # We can assign both Series and dict types
+
+        # Approach 2. Series name will be used as new index value
+        #if isinstance(record, dict):
+        #    record = pd.Series(record, name=first_id)
+        #self.df = self.df.append(record)
+
+        return first_id
+
+    def add(self, table):
+        """Add multiple new rows with the specified attribute values passed as a structured which is a dataframe or can be used to instantiate a data frame."""
+        empty_value = None
+        first_id = self._get_next_id()
+
+        # Data frame with new (added) row ids in the index and data to be appended
+        count = len(table)
+        new_ids = range(first_id, first_id + count)
+        table = pd.DataFrame(table, index=new_ids)  # Even if it is already a data frame, we want to explicitly set its index
+
+        # Approach 1
+        self.df = self.df.append(table)
+
+        # Approach 2
+        #self.df = pd.concat([self.df, table])
+
+        return first_id
+
+    #
+    # Remove rows
     #
 
-    # Add rows
+    def remove(self):
+        """Remove all records"""
 
-    # Add set of rows
+        self.df = self.df.iloc[0:0]
+        #self.df = pd.DataFrame(columns=self.df.columns)
+        #self.df.drop(self.df.index, inplace=True)
 
-    # Remove rows
-
-    # Remove range of rows
+        self.df.name = self.table.id  # name is not copied for some reason
 
     #
     # Column operations
     #
+
+    def _get_next_id(self):
+        if len(self.df) > 0:
+            max_id = self.df.iloc[-1].name
+            #max_id = self.df.index.max()
+            #max_id = self.df.last_valid_index()
+        else:
+            max_id = -1
+
+        return max_id + 1
+
 
 if __name__ == "__main__":
     pass
