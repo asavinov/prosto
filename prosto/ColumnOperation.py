@@ -605,13 +605,14 @@ class ColumnOperation(Operation):
 
         fillna_value = definition.get('fillna_value')
 
-        data = output_table.get_data()
-
         #
         # Post-process the result by renaming the output columns accordingly (some convention is needed to know what output to expect)
         #
-        # TODO: The result can be Series/listndarray(1d or 2d) and we need to convert it to DataFrame by using the original index.
-        out = pd.DataFrame(out)  # Result can be ndarray so we convert to data frame
+
+        if not isinstance(out, pd.DataFrame):  # For example, if it is ndarray or Series or list (of values or Series or whatever)
+            # TODO: Here we create a new index (if it is not Series) which will be invalid so we need to somehow restore a correct index
+            out = pd.DataFrame(out)
+
         for i, c in enumerate(out.columns):
 
             #
@@ -620,16 +621,15 @@ class ColumnOperation(Operation):
             if outputs and i < len(outputs):  # Column name is explicitly specified as part of the operation definition
                 attached_column_name = outputs[i]
             else:  # Same name - overwrite input column
+                data = output_table.get_data()
                 columns = self.get_columns()
                 columns = get_columns(columns, data)
                 attached_column_name = columns[i]
 
             #
-            # Attach this new column name to the output table data frame
+            # Store the result by overwriting old values
             #
-            data[attached_column_name] = out[c]  # A column is attached by matching indexes so indexes have to be consistent (the same)
-            if fillna_value is not None:
-                data[attached_column_name].fillna(fillna_value, inplace=True)
+            output_table.data.set_values(attached_column_name, out[c], fillna_value)  # A column is attached by matching indexes so indexes have to be valid (the same as in the table)
 
 
 if __name__ == "__main__":
