@@ -120,7 +120,7 @@ class TableOperation(Operation):
             return
 
         if new_data is not None:
-            output_table.data.remove()
+            output_table.data.remove_all()
             output_table.data.add(new_data)
 
         log.info(f"<=== Finish populating table '{output_table.id}'")
