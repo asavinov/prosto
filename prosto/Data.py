@@ -1,9 +1,13 @@
 import json
+from collections import namedtuple
 
 from prosto.utils import *
 
 import logging
 log = logging.getLogger('prosto.data')
+
+
+Range = namedtuple('Range', 'start end')
 
 
 class Data:
@@ -32,9 +36,9 @@ class Data:
         self.df = pd.DataFrame()
         self.df.name = table.id
 
-        # Added range
-
-        # Deleted range
+        # Track changes
+        self.added_range = Range(0, 0)
+        self.removed_range = Range(0, 0)
 
     def __repr__(self):
         return '['+self.id+']'
@@ -57,9 +61,26 @@ class Data:
         return True
 
     #
+    # Read column data
+    #
+    def get_values(self, column_name):
+        """Read column values"""
+        return self.df[column_name]
+
+    #
+    # Write column data
+    #
+    def set_values(self, column_name, values, fillna_value):
+        """Write column values by overwriting existing values and creating a new column if it does not exist."""
+
+        self.df[column_name] = values
+
+        if fillna_value is not None:
+            self.df[column_name].fillna(fillna_value, inplace=True)
+
+    #
     # Add rows
     #
-    # TODO: We need to use current field for last/first row ids (or dirty/added/removed ranges) and also update them after adding record(s)
 
     def add(self):
         """Add one row and return its id. All attributes and columns will have empty values (None)."""
@@ -71,6 +92,9 @@ class Data:
 
         # Approach 2. Series name will be used as new index value
         #self.df = self.df.append(pd.Series(name=first_id, data=[empty_value]))
+
+        # Track changes
+        self.extend_added(1)
 
         return first_id
 
@@ -89,6 +113,9 @@ class Data:
         # Approach 2
         #self.df = pd.concat([self.df, table])
 
+        # Track changes
+        self.extend_added(count)
+
         return first_id
 
     def add(self, record):
@@ -103,6 +130,9 @@ class Data:
         #if isinstance(record, dict):
         #    record = pd.Series(record, name=first_id)
         #self.df = self.df.append(record)
+
+        # Track changes
+        self.extend_added(1)
 
         return first_id
 
@@ -122,38 +152,85 @@ class Data:
         # Approach 2
         #self.df = pd.concat([self.df, table])
 
+        # Track changes
+        self.extend_added(count)
+
         return first_id
 
     #
-    # Remove rows
+    # Physically delete records and manage allocated space
     #
 
-    def remove(self):
-        """Remove all records"""
+    def gc(self):
+        """Physically delete all records which are not used, that is, their removal was already propagated."""
 
-        self.df = self.df.iloc[0:0]
-        #self.df = pd.DataFrame(columns=self.df.columns)
+        to_delete = range(0, self.removed_range.start)
+        self.df.drop(to_delete, inplace=True)
+        #self.df = self.df.iloc[len(to_delete):]
+
+    def reset(self):
+        """Physically remove all records and start from new empty table with no tracking."""
+
         #self.df.drop(self.df.index, inplace=True)
+        #self.df = pd.DataFrame(columns=self.df.columns)
+        self.df = self.df.iloc[0:0]
 
         self.df.name = self.table.id  # name is not copied for some reason
 
-    #
-    # Read columns
-    #
-    def get_values(self, column_name):
-        """Read column values"""
-        return self.df[column_name]
+        # Track changes
+        self.added_range = Range(0, 0)
+        self.removed_range = Range(0, 0)
 
     #
-    # Write columns
+    # Track changes
     #
-    def set_values(self, column_name, values, fillna_value):
-        """Write column values by overwriting existing values and creating a new column if it does not exist."""
 
-        self.df[column_name] = values
+    def id_range(self):
+        return Range(self.removed_range.end, self.added_range.end)
 
-        if fillna_value is not None:
-            self.df[column_name].fillna(fillna_value, inplace=True)
+    def length(self):
+        return self.added_range.end - self.removed_range.end  # All non-removed records
+
+    def extend_added(self, count=1):
+        self.added_range = Range(self.added_range.start, self.added_range.end + count)
+
+    def extend_removed(self, count=1):
+        self.removed_range = Range(self.removed_range.start, self.removed_range.end + count)
+
+    def shrink_added(self):
+        self.added_range = Range(self.added_range.end, self.added_range.end)
+
+    def shrink_removed(self):
+        self.removed_range = Range(self.removed_range.end, self.removed_range.end)
+
+    #
+    # Remove rows (mark for removal)
+    #
+
+    def remove(self):
+        """Mark one oldest record as removed."""
+
+        if self.length() > 0:
+            # Extend removed range by 1
+            self.removed_range.end = Range(self.removed_range.start, self.removed_range.end + 1)
+
+    def remove(self, count):
+        """Mark the specified number of oldest records as removed."""
+
+        to_remove = min(count, self.length())
+        if to_remove > 0:
+            # Extend removed range by count
+            self.removed_range.end = Range(self.removed_range.start, self.removed_range.end + to_remove)
+
+        return Range(self.removed_range.end - to_remove, self.removed_range.end)
+
+    def remove_all(self):
+        """Mark all records as removed."""
+
+        # Track changes
+        if self.length() > 0:
+            # Extend removed range till the end of added range (added records are also removed)
+            self.removed_range = Range(self.removed_range.start, self.added_range.end)
 
     #
     # Convenience methods
