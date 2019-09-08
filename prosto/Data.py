@@ -164,7 +164,7 @@ class Data:
     def gc(self):
         """Physically delete all records which are not used, that is, their removal was already propagated."""
 
-        to_delete = range(0, self.removed_range.start)
+        to_delete = range(self._get_first_physical_id(), self.removed_range.start)
         self.df.drop(to_delete, inplace=True)
         #self.df = self.df.iloc[len(to_delete):]
 
@@ -191,6 +191,12 @@ class Data:
     def length(self):
         return self.added_range.end - self.removed_range.end  # All non-removed records
 
+    def added_length(self):
+        return self.added_range.end - self.added_range.start
+
+    def removed_length(self):
+        return self.removed_range.end - self.removed_range.start
+
     def extend_added(self, count=1):
         self.added_range = Range(self.added_range.start, self.added_range.end + count)
 
@@ -198,10 +204,18 @@ class Data:
         self.removed_range = Range(self.removed_range.start, self.removed_range.end + count)
 
     def shrink_added(self):
+        added = self.added_range.end - self.added_range.start
         self.added_range = Range(self.added_range.end, self.added_range.end)
+        return added
 
     def shrink_removed(self):
+        removed = self.removed_range.end - self.removed_range.start
         self.removed_range = Range(self.removed_range.end, self.removed_range.end)
+        return removed
+
+    def clear_change_status(self):
+        added = self.shrink_added()
+        removed = self.shrink_removed()
 
     #
     # Remove rows (mark for removal)
@@ -236,7 +250,33 @@ class Data:
     # Convenience methods
     #
 
+    # TODO: Here we assume that new records are added by extending df physically.
+    #   In the general case, we could first extend df physically with empty records by allocating the space (more than we now need)
+    #   and then assign df cells to the values. Then we need to use an operation of assignment rather than append/concat.
     def _get_next_id(self):
+        if len(self.df) > 0:
+            max_id = self.df.iloc[-1].name
+            #max_id = self.df.index.max()
+            #max_id = self.df.last_valid_index()
+        else:
+            max_id = -1
+
+        return max_id + 1
+
+    def _get_first_physical_id(self):
+        if len(self.df) > 0:
+            id = self.df.iloc[0].name
+            #id = self.df.index.min()
+            #id = self.df.first_valid_index()
+        else:
+            # TODO: It is a problem. We need to introduce a field with: next id to be allocated, last used id, etc.
+            #   Then we need to use whenever possible, especially, if the dataframe is empty
+            #   Alternative solution: never empty df physically (empty df means 0 row id)
+            id = -1
+
+        return id + 1
+
+    def _get_last_physical_id(self):
         if len(self.df) > 0:
             max_id = self.df.iloc[-1].name
             #max_id = self.df.index.max()
