@@ -25,12 +25,27 @@ class Schema:
         self.columns = []
         self.operations = []
 
+        self.topology = None
+
     def __repr__(self):
         return '['+self.id+']'
 
     #
-    # Table getters
+    # Table methods
     #
+
+    def create_table(self, table_name, attributes):
+        """Create a new table with no operation that populates it. The table is supposed to be populated using API."""
+
+        # Create a table definition
+        table_def = {
+            "id": table_name,
+            "attributes": attributes,
+        }
+        table = Table(self, table_def)
+        self.tables.append(table)
+
+        return table
 
     def get_table(self, table_name):
         """Find a table with the specified name"""
@@ -67,20 +82,12 @@ class Schema:
         return list(columns)
 
     #
-    # Operation getters
+    # Table operation methods
     #
 
     def get_table_operations(self, table_name):
         """Find operations which generate the specified table. Such operations have this table name in its outputs."""
         return [x for x in self.operations if isinstance(x, TableOperation) and table_name in x.definition.get("outputs", [])]
-
-    def get_column_operations(self, table_name, column_name):
-        """Find operations which generate the specified column. Such operations have this column name in its outputs as well as the specified table name (each column operation has a table field)."""
-        return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.definition.get("outputs", []) and table_name == x.definition.get("table")]
-
-    #
-    # Table operations
-    #
 
     def create_populate_table(
             self,
@@ -205,8 +212,12 @@ class Schema:
         return table
 
     #
-    # Column operations
+    # Column operation methods
     #
+
+    def get_column_operations(self, table_name, column_name):
+        """Find operations which generate the specified column. Such operations have this column name in its outputs as well as the specified table name (each column operation has a table field)."""
+        return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.definition.get("outputs", []) and table_name == x.definition.get("table")]
 
     def create_calculate_column(
             self,
@@ -393,15 +404,21 @@ class Schema:
     # Execution
     #
 
+    def translate(self):
+        self.topology = Topology(self)
+        self.topology.translate()
+        return self.topology
+
     def run(self):
         """
         Execute the whole schema.
         """
         log.info("Start executing schema '{0}'.".format(self.id))
 
-        topology = Topology(self)
-        topology.translate()
-        for layer in topology.layers:
+        if self.topology is None:
+            self.translate()
+
+        for layer in self.topology.layers:
             # Execute operations in one layer
             for op in layer:
                 if isinstance(op, TableOperation):

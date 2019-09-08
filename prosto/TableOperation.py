@@ -96,6 +96,8 @@ class TableOperation(Operation):
 
         log.info(f"===> Start populating '{operation}' table '{output_table.id}'")
 
+        if operation.lower().startswith('noop'):
+            new_data = None
         if operation.lower().startswith('popu'):
 
             if input_length == 'row':

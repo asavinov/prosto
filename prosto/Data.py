@@ -9,7 +9,6 @@ log = logging.getLogger('prosto.data')
 
 Range = namedtuple('Range', 'start end')
 
-
 class Data:
     """The class represents data physically stored as a pandas data frame."""
 
@@ -33,7 +32,8 @@ class Data:
         self.table = table
 
         # Data frame which store the real data for this table (all its attributes and columns)
-        self.df = pd.DataFrame()
+        columns = table.definition.get("attributes", [])
+        self.df = pd.DataFrame(columns=columns)
         self.df.name = table.id
 
         # Track changes
@@ -91,7 +91,7 @@ class Data:
         self.df.loc[first_id, :] = empty_value
 
         # Approach 2. Series name will be used as new index value
-        #self.df = self.df.append(pd.Series(name=first_id, data=[empty_value]))
+        #self.df = self.df.append(pd.Series(name=first_id, data=[empty_value]), sort=False)
 
         # Track changes
         self.extend_added(1)
@@ -108,7 +108,7 @@ class Data:
         table = pd.DataFrame(index=new_ids)
 
         # Approach 1
-        self.df = self.df.append(table)
+        self.df = self.df.append(table, sort=False)
 
         # Approach 2
         #self.df = pd.concat([self.df, table])
@@ -129,7 +129,7 @@ class Data:
         # Approach 2. Series name will be used as new index value
         #if isinstance(record, dict):
         #    record = pd.Series(record, name=first_id)
-        #self.df = self.df.append(record)
+        #self.df = self.df.append(record, sort=False)
 
         # Track changes
         self.extend_added(1)
@@ -147,7 +147,7 @@ class Data:
         table = pd.DataFrame(table, index=new_ids)  # Even if it is already a data frame, we want to explicitly set its index
 
         # Approach 1
-        self.df = self.df.append(table)
+        self.df = self.df.append(table, sort=False)
 
         # Approach 2
         #self.df = pd.concat([self.df, table])
@@ -220,7 +220,7 @@ class Data:
         to_remove = min(count, self.length())
         if to_remove > 0:
             # Extend removed range by count
-            self.removed_range.end = Range(self.removed_range.start, self.removed_range.end + to_remove)
+            self.removed_range = Range(self.removed_range.start, self.removed_range.end + to_remove)
 
         return Range(self.removed_range.end - to_remove, self.removed_range.end)
 
