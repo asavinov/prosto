@@ -410,14 +410,14 @@ class Schema:
         return self.topology
 
     def run(self):
-        """
-        Execute the whole schema.
-        """
+        """Execute the whole schema."""
         log.info("Start executing schema '{0}'.".format(self.id))
 
+        # Translate if necessary
         if self.topology is None:
             self.translate()
 
+        # Execute operations in the graph
         for layer in self.topology.layers:
             # Execute operations in one layer
             for op in layer:
@@ -427,6 +427,11 @@ class Schema:
                     op.evaluate()
                 else:
                     log.warning("Unknown element '{0}' in the topology '{1}'.".format(op.id, self.id))
+
+        # Clear change status of all elements
+        for tbl in self.tables:
+            tbl.data.clear_change_status()
+            tbl.data.gc()
 
         log.info("Finish executing schema '{0}'.".format(self.id))
 
