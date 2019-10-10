@@ -15,6 +15,8 @@
 
 The data processing logic is provided via *user-defined functions* (in Python) which can be as simple as format conversion and as complex as as a machine learning algorithm.
 
+Conceptually, it is an alternative (and opposed) to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based techniques like Python pandas.
+
 ## Why Prosto?
 
 Prosto provides the following unique features and benefits:
