@@ -26,6 +26,7 @@ class Schema:
         self.operations = []
 
         self.topology = None
+        self.incremental = False
 
     def __repr__(self):
         return '['+self.id+']'

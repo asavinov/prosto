@@ -11,6 +11,13 @@ Range = namedtuple('Range', 'start end')
 
 class Data:
     """The class represents data physically stored as a pandas data frame."""
+    # INFO:
+    # d = self.df.iloc[0].name
+    # d = self.df.index[0]
+    # id = self.df.index.min()
+    # id = self.df.first_valid_index()
+    # max_id = self.df.index.max()
+    # max_id = self.df.last_valid_index()
 
     data_no = 0
 
@@ -32,13 +39,14 @@ class Data:
         self.table = table
 
         # Data frame which store the real data for this table (all its attributes and columns)
-        columns = table.definition.get("attributes", [])
-        self.df = pd.DataFrame(columns=columns)
+        attributes = table.definition.get("attributes", [])
+        self.df = pd.DataFrame(columns=attributes, index=pd.Int64Index([]))
         self.df.name = table.id
+        self.df.index.astype(int)
 
         # Track changes
-        self.added_range = Range(0, 0)
         self.removed_range = Range(0, 0)
+        self.added_range = Range(0, 0)
 
     def __repr__(self):
         return '['+self.id+']'
@@ -67,16 +75,76 @@ class Data:
         """Read column values"""
         return self.df[column_name]
 
+    def get_full_slice(self, columns):
+        """Get a slice with all rows (without removed) and specified columns"""
+
+        start_id = self.removed_range.end
+        end_id = self.added_range.end
+
+        ret = self.df.loc[start_id:end_id, columns]
+
+        return ret
+
+    def get_added_slice(self, columns):
+        """Get a slice with added rows and specified columns"""
+
+        start_id = self.added_range.start
+        end_id = self.added_range.end
+
+        ret = self.df.loc[start_id:end_id, columns]
+
+        return ret
+
     #
     # Write column data
     #
-    def set_values(self, column_name, values, fillna_value):
-        """Write column values by overwriting existing values and creating a new column if it does not exist."""
 
-        self.df[column_name] = values
+    def set_column_values_for_range(self, update, range, default_value):
+        """
+        Impose columns from the specified data frame onto this data by overwriting existing cells using index for both columns and rows.
+        Set new values for the specified range by overwriting existing values by those from the update frame or (if they are absent) by default value (which can be NaN).
+        It is guaranteed that values in the specified range will be changed, that is, old values from the specified range will be removed.
+        New values are taken either from the update frame or default value.
+        If a column is absent in the target then, it will be added.
+        If a row is absent in the target then, it will NOT be added.
+        If a row absent in the source, then it will not be updated.
+        """
 
-        if fillna_value is not None:
-            self.df[column_name].fillna(fillna_value, inplace=True)
+        # TODO: Shorten update frame to the specified range if necessary (or at least check that it is inside the range and warn if not)
+
+        #
+        # Update columns by ensuring that new columns exist
+        #
+        for col in update.columns.to_list():
+            if col not in self.df.columns.to_list():
+                self.df[col] = default_value
+
+        #
+        # Update values
+        #
+
+        if range is None:
+            range = self.id_range()  # Full range
+
+        # Approach 1:
+        # 1) Assign default value to the data in the specified full range (essentially do reset)
+        self.df.loc[range.start:range.end, update.columns.to_list()] = default_value
+        # 2) Impose values from the update frame on the data. Missing values will not be changed and hence will be equal to default value.
+        self.df.update(update, overwrite=True)
+        # INFO: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.update.html
+        # - if source is NA, then it is ignored (independent of the target)
+        # - if target is NA: if overwrite=True then overwrite, elif overwrite=False then leave NA
+
+        # Approach 2:
+        # 1) Extend the update index to the specified (full) range by setting added rows to the default value
+        # 2) Assign this extended update frame to the data using its index (which has full necessary range)
+
+        #
+        # Theoretically, since we change the values, we need to mark this range as changed/dirty
+        # Yet, tracking value updates is currently not supported
+        #
+
+        return range.end - range.start
 
     #
     # Add rows
@@ -163,8 +231,11 @@ class Data:
 
     def gc(self):
         """Physically delete all records which are not used, that is, their removal was already propagated."""
-
-        to_delete = range(self._get_first_physical_id(), self.removed_range.start)
+        if self.df.empty:
+            return
+        start = self.df.index[0]
+        end = self.removed_range.start
+        to_delete = range(start, end)
         self.df.drop(to_delete, inplace=True)
         #self.df = self.df.iloc[len(to_delete):]
 
@@ -250,41 +321,16 @@ class Data:
     # Convenience methods
     #
 
-    # TODO: Here we assume that new records are added by extending df physically.
-    #   In the general case, we could first extend df physically with empty records by allocating the space (more than we now need)
-    #   and then assign df cells to the values. Then we need to use an operation of assignment rather than append/concat.
     def _get_next_id(self):
-        if len(self.df) > 0:
-            max_id = self.df.iloc[-1].name
-            #max_id = self.df.index.max()
-            #max_id = self.df.last_valid_index()
-        else:
-            max_id = -1
+        return self.added_range.end
 
-        return max_id + 1
+    def _get_start_offset(self):
+        """Physically existing records"""
+        return 0
 
-    def _get_first_physical_id(self):
-        if len(self.df) > 0:
-            id = self.df.iloc[0].name
-            #id = self.df.index.min()
-            #id = self.df.first_valid_index()
-        else:
-            # TODO: It is a problem. We need to introduce a field with: next id to be allocated, last used id, etc.
-            #   Then we need to use whenever possible, especially, if the dataframe is empty
-            #   Alternative solution: never empty df physically (empty df means 0 row id)
-            id = -1
-
-        return id + 1
-
-    def _get_last_physical_id(self):
-        if len(self.df) > 0:
-            max_id = self.df.iloc[-1].name
-            #max_id = self.df.index.max()
-            #max_id = self.df.last_valid_index()
-        else:
-            max_id = -1
-
-        return max_id + 1
+    def _get_end_offset(self):
+        """Physically existing records"""
+        return len(self.df)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 # Change Log
 
 * v0.2.0-SNAPSHOT
+  * basic incremental evaluation for calculate columns
   * data object implementation with data operations and dirty/up-to-date status
 
 * v0.1.0 (2019-08-30)

@@ -99,7 +99,20 @@ class ColumnOperation(Operation):
         return dependencies
 
     def evaluate(self):
-        """Execute this column operation and evaluate the output column(s)."""
+        """
+        Execute this column operation and evaluate the output column(s).
+
+        A generic sequence of operations:
+        - prepare the input slice by selecting input columns and input rows
+        - convert the selected slice to the necessary data format expected by UDF
+        - process input data by calling UDF or operation and returning some result
+        - convert the result to our standard format
+        - impose the result to our current data by overwriting the output columns and output values
+
+        Notes:
+        - There are two types of definitions: relying on UDFs (calc, roll, aggr), and not using UDFs (link, merge)
+        - There are UDFs of two types: value or row based (returning a value or row), and column or table based (returning a whole column or table)
+        """
         definition = self.definition
         operation = definition.get('operation', 'UNKNOWN')
 
@@ -123,18 +136,22 @@ class ColumnOperation(Operation):
         # Operations without UDF
         #
 
-        # Link columns use their own definition schema different from compuational (functional) definitions
+        # Link columns use their own definition schema different from computational (functional) definitions
         if operation.lower().startswith('link'):
             out = self._evaluate_link()
 
-            self._append_output_columns(out)
+            self._impose_output_columns(out)
+
+            log.info(f"<--- Finish evaluating column '{self.id}'")
             return
 
-        # Compose columns use their own definition schema different from computaional (functional) definitions
+        # Compose columns use their own definition schema different from computational (functional) definitions
         if operation.lower().startswith('merg'):
             out = self._evaluate_merge()
 
-            self._append_output_columns(out)
+            self._impose_output_columns(out)
+
+            log.info(f"<--- Finish evaluating column '{self.id}'")
             return
 
         #
@@ -152,9 +169,7 @@ class ColumnOperation(Operation):
             return
 
         if operation.lower().startswith('calc'):
-            #
-            # Prepare input data for the function
-            #
+            # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
             if columns is None:
@@ -166,7 +181,13 @@ class ColumnOperation(Operation):
                 log.error("Not all input columns available. Skip column definition.".format())
                 return
 
-            data = data[columns]  # Select only the specified input columns
+            # Slice input according to the change status
+            if self.schema.incremental:
+                data = output_table.data.get_added_slice(columns)
+                range = output_table.data.added_range
+            else:
+                data = output_table.data.get_full_slice(columns)
+                range = output_table.data.id_range()
 
             if input_length == 'value':
                 out = self._evaluate_calc_value(func, data, data_type, model)
@@ -177,6 +198,21 @@ class ColumnOperation(Operation):
                 return
 
         elif operation.lower().startswith('roll'):
+            # Determine input columns
+            columns = self.get_columns()
+            columns = get_columns(columns, data)
+            if columns is None:
+                log.warning("Error reading input column list. Skip column definition.")
+                return
+
+            # Validation: check if all explicitly specified columns available
+            if not all_columns_exist(columns, data):
+                log.warning("Not all input columns available. Skip column definition.".format())
+                return
+
+            # Slice input according to the change status (incremental not implemented)
+            data = output_table.data.get_full_slice(columns)
+            range = output_table.data.id_range()
 
             if input_length == 'value':
                 log.error(f"Accumulation is not implemented.")
@@ -188,12 +224,48 @@ class ColumnOperation(Operation):
                 return
 
         elif operation.lower().startswith('group'):
+            #
+            # Get parameters
+            #
+            tables = definition.get('tables')
+            source_table_name = tables[0]
+            source_table = self.schema.get_table(source_table_name)
+            if source_table is None:
+                log.error("Cannot find the fact table '{0}'.".format(source_table_name))
+                return
+
+            link_column_name = definition.get('link')
+            link_column = source_table.get_column(link_column_name)
+            if link_column is None:
+                log.error("Cannot find the link column '{0}'.".format(link_column_name))
+                return
+
+            data = source_table.get_data()  # Data (to be processed) is a (source) table which is different from the output table
+
+            # Determine input columns
+            columns = self.get_columns()
+            columns = get_columns(columns, data)
+            if columns is None:
+                log.warning("Error reading input column list. Skip column definition.")
+                return
+
+            # Validation: check if all explicitly specified columns available
+            if not all_columns_exist(columns, data):
+                log.warning("Not all input columns available. Skip column definition.".format())
+                return
+
+            data = data[columns]  # Select only the specified *input* columns
+
+            data_type = definition.get('data_type')
+
+            # No incremental. Select full *output* range
+            range = output_table.data.id_range()
 
             if input_length == 'value':
                 log.error(f"Accumulation is not implemented.")
                 return
             elif input_length == 'column':
-                out = self._evaluate_group_column(func, model)
+                out = self._evaluate_group_column(func, data, data_type, model)
             else:
                 log.error(f"Unknown input_type parameter '{input_length}'.")
                 return
@@ -205,7 +277,7 @@ class ColumnOperation(Operation):
         #
         # Append the newly generated column(s) to this table
         #
-        self._append_output_columns(out)
+        self._impose_output_columns(out, range)
 
         log.info(f"<--- Finish evaluating column '{self.id}'")
 
@@ -451,20 +523,6 @@ class ColumnOperation(Operation):
         definition = self.definition
 
         #
-        # Determine input columns
-        #
-        columns = self.get_columns()
-        columns = get_columns(columns, data)
-        if columns is None:
-            log.warning("Error reading input column list. Skip column definition.")
-            return
-
-        # Validation: check if all explicitly specified columns available
-        if not all_columns_exist(columns, data):
-            log.warning("Not all input columns available. Skip column definition.".format())
-            return
-
-        #
         # Determine window size. The window parameter can be string, number or object (many arguments for rolling object)
         #
         window = definition.get('window')
@@ -475,9 +533,9 @@ class ColumnOperation(Operation):
         #
         # Single input. Moving aggregation of one input column. Function will get a sub-series as a data argument
         #
-        if len(columns) == 1:
+        if len(data.columns) == 1:
 
-            in_column = columns[0]
+            in_column = data.columns.to_list()[0]
 
             # Create a rolling object with windowing (row-based windowing independent of the number of columns)
             by_window = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
@@ -509,63 +567,26 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_group_column(self, func, model):
+    def _evaluate_group_column(self, func, data, data_type, model):
         """Group column. Apply aggregate function to each group of records of the fact table."""
         definition = self.definition
 
         #
-        # Get parameters
-        #
-
-        tables = definition.get('tables')
-        source_table_name = tables[0]
-        source_table = self.schema.get_table(source_table_name)
-        if source_table is None:
-            log.error("Cannot find the fact table '{0}'.".format(source_table_name))
-            return
-
-        link_column_name = definition.get('link')
-        link_column = source_table.get_column(link_column_name)
-        if link_column is None:
-            log.error("Cannot find the link column '{0}'.".format(link_column_name))
-            return
-
-        #
-        # Build input fact frame to pass to the function
-        #
-        data = source_table.get_data()
-
-        columns = self.get_columns()
-        columns = get_columns(columns, data)
-        if columns is None:
-            log.warning("Error reading input column list. Skip column definition.")
-            return
-
-        # Validation: check if all explicitly specified columns available
-        if not all_columns_exist(columns, data):
-            log.warning("Not all input columns available. Skip column definition.".format())
-            return
-
-        data = data[columns]  # Select only the specified input columns
-
-        data_type = definition.get('data_type')
-
-        #
         # Group by the values (ids) of the link column. All facts with the same id in the link column belong to one group
         #
-        gb = self._get_groupby()
+        gb = self._get_or_create_groupby()
 
-        if len(columns) == 0:  # Special case: no input columns (or function is size()
+        if len(data.columns) == 0:  # Special case: no input columns (or function is size()
             out = gb.size()
-        if len(columns) == 1:  # Single input: udf will get a sub-series with fact values
-            out = gb[columns[0]].agg(func, **model)  # Apply function to all groups
+        if len(data.columns) == 1:  # Single input: udf will get a sub-series with fact values
+            out = gb[data.columns[0]].agg(func, **model)  # Apply function to all groups
         else:  # Multiple inputs. Function will get a sub-dataframe as a data argument
             # TODO:
             pass
 
         return out
 
-    def _get_groupby(self):
+    def _get_or_create_groupby(self):
         """Each link column stores a pandas groupby object. Return or build such a groupby object for the (already evaluated) link column specified in this definition."""
 
         definition = self.definition
@@ -595,8 +616,14 @@ class ColumnOperation(Operation):
 
         return gb
 
-    def _append_output_columns(self, out):
-        """Append the specified column(s) to the dataframe of their table."""
+    def _impose_output_columns(self, out, range=None):
+        """
+        Append the specified column(s) to the data frame of the output table.
+        This function will impose the input data frame onto the existing data.
+        It will overwrite existing values with the same ids and columns as in input data frame
+        Other values in this table which are not present in the input data frame will be not changed.
+        None range means full id range.
+        """
         definition = self.definition
 
         outputs = self.get_outputs()
@@ -606,30 +633,37 @@ class ColumnOperation(Operation):
         fillna_value = definition.get('fillna_value')
 
         #
-        # Post-process the result by renaming the output columns accordingly (some convention is needed to know what output to expect)
+        # Change format to dataframe
         #
+        if isinstance(out, pd.DataFrame):
+            pass
+        elif isinstance(out, pd.Series):
+            out = pd.DataFrame(out)  # Series name will be column name
+        elif isinstance(out, (list,tuple)):
+            # TODO: Convert a list of series or data frames into one data frame. They all have to have same index.
+            log.error(f"List (of series) as a result of evaluation is currently not supported.")
+            return
+        elif isinstance(out, np.ndarray):
+            # TODO: Convert ndarray into dataframe. Main problem is that we need to know the index and then assume that the values in ndarray are sequential.
+            log.error(f"NumPy array as a result of evaluation is currently not supported.")
+            return
 
-        if not isinstance(out, pd.DataFrame):  # For example, if it is ndarray or Series or list (of values or Series or whatever)
-            # TODO: Here we create a new index (if it is not Series) which will be invalid so we need to somehow restore a correct index
-            out = pd.DataFrame(out)
+        #
+        # Assign (custom) column names
+        #
+        if len(out.columns) > len(outputs):
+            log.error(f"An operation returned {len(out.columns)} columns, which is more than specified in its definition for its output'.")
+            return
 
-        for i, c in enumerate(out.columns):
+        if len(out.columns) < len(outputs):
+            log.warning(f"An operation returned {len(out.columns)} columns, which is less than specified in its definition for its output'.")
 
-            #
-            # Determine column name for this result
-            #
-            if outputs and i < len(outputs):  # Column name is explicitly specified as part of the operation definition
-                attached_column_name = outputs[i]
-            else:  # Same name - overwrite input column
-                data = output_table.get_data()
-                columns = self.get_columns()
-                columns = get_columns(columns, data)
-                attached_column_name = columns[i]
+        out.columns = outputs[0:len(out.columns)]
 
-            #
-            # Store the result by overwriting old values
-            #
-            output_table.data.set_values(attached_column_name, out[c], fillna_value)  # A column is attached by matching indexes so indexes have to be valid (the same as in the table)
+        #
+        # Write the result to the data by overwriting cells
+        #
+        output_table.data.set_column_values_for_range(out, range, fillna_value)
 
 
 if __name__ == "__main__":
