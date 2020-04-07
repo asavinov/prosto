@@ -130,7 +130,98 @@ print(df)
 4  chips        1        4.0   4.0
 ```
 
-Although it looks like a normal table, the last column was derived from the data in other columns. In more realistic cases, column data and table data will be derived from columns in many other tables.
+Although it looks like a normal table, the last column was derived from the data in other columns. In more realistic cases, column data and table data will be derived from columns in other tables.
+
+# Concepts
+
+## Matrix operations vs. set operations
+
+It is important to understand the following crucial difference between matrixes and sets:
+
+> A cell of a matrix is a point in the multidimensional space defined by the matrix axes - the space has as many dimensions as the matrix has axes. Values are defined for all points of the space.
+> A tuple of a set is a point in the space defined by the table columns - the space has as many dimensions as the table has column. Values are defined only for a subset of all points of the space.
+
+Obviously, this difference makes it extremely difficult to combine these two semantics in one framework.
+
+`prosto` is an implementation of the set-oriented approach where a table represents a set and its rows represent tuples.
+Note however that `prosto` supports an extended version of the set-oriented approach which includes also function as first-class elements of the model.
+
+## `pandas` vs. `prosto`
+
+`pandas` is very powerful toolkit which relies on the notion of matrix for data representation. In other words, a matrix is the main unit of data representation in `pandas`.
+Yet, `pandas` supports not only matrix operations (in this case, having `numpy` would be enough) but also set operations and relational operations as well as map-reduce and OLAP and some other conceptions. In this sense, `pandas` is a quite eclectic toolkit. 
+
+In contrast, `prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model.
+Yet, `prosto` relies on `pandas` in its implementation just because `pandas` provides a really powerful set of various highly optimized operations with data. Yet, these operations are used as one possible iplementation method by essentially changing their semantics when wrapped into `prosto` operations.
+
+## Operations
+
+### Calculate columns (instead of map operation)
+
+Probably the simplest and most frequent operation in `prosto` is computing a new column of the table which is done by defining a `calculate` column. The main computational part of the definition is a (Python) function which returns a single value computed from one or more input values in its arguments. 
+```
+TODO: Examples of calculate function
+```
+
+This function will be evaluated for each row of the table and its outputs will be stored as a new column. 
+
+It is precisely how `apply` works in `pandas` (and actually it relies on it in its implementation) but it is different from how `map` operation works because a calculated column does not add any new table while `map` computes a new collection (which makes computations less efficient). 
+
+The `prosto` approach is somewhat similar to spreadsheets with the difference that new columns depend on only one coordinate - other columns - while cells in spreadsheets depend on two coordinates - row and column addresses. The both however are equally simple and natural.   
+
+```
+TODO: Examples of new cell definition and new column definition usign pseudo-code
+```
+
+### Link columns (instead of join)
+
+We can define and evaluate new columns only in individual tables but we cannot define a new column which depends on the data in another table. Link columns solve this problem. A link column stores values which uniquely represent rows of a target (linked) table. In this sense, it is a normal column with some values which are computed using some definition. The difference is how these values are computed and their semantics. They do not have a domain-specific semantics but rather they are understood only by the system. More specificially, each value of a link column is a reference to a row in the linked table or None in the case it does not reference anything. 
+
+The main part of the definition is a criterion for finding a target row which matching this row. The most most wide spread criterion is based on equality of some values in two rows and the definition includes lists of the columns which have to be equal in order for this row to reference the target row.
+```
+TODO: Examples of calculate function
+```
+
+Link columns have several major uses:
+* Data in other (linked) tables can be accessed when doing something in this table, say, when defining its calculate columns
+* Data can be grouped using lined rows interpreted as groups, that is, all rows of this table referencing the same row of the target table are interpreted as one group 
+* Link columns are used when defining aggregate columns
+
+There could be other criteria for matching rows and defining link columns which will be implemented in future versions.
+
+### Merge columns (instead of join)
+
+Once we have defined link columns and interlinked our (initially isolated) set of tables, the question is how we can use these links?
+Currently, the only way is to move data between table by copying linked columns performed by the merge operation. It copies a column from the target linked table into this table. In this sense, it simply copies data between tables.
+Its definition is very simple: we need to specify only the link column and the target column. 
+
+The copied (merged) columns can be then used in other operations like calculate columns or aggregate columns.   
+
+Note that the merge operation (as an explicit operation) is planned to become obsolete in future versions (but can still be used behind the scenes). Yet, currently it is the only way to access data in other tables using link columns. 
+
+### Rolling columns (instead of over-partition)
+
+TBD
+
+### Aggregate columns (instead of groupby)
+
+TBD
+
+### Filtering tables (instead of select-where)
+
+It is one of the most frequently used operations. The main difference form conventional implementations is that the result never includes the source table columns. Instead, the result (filtered) table references the selected source rows using an automatically created link column.
+If it is necessary to use the source table data (and it is almost always the case) then they are accessible via the created link column. 
+
+### Projecting tables (instead of select-distinct)
+
+This operation has these important uses:
+* Creating a table with group elements for aggregation because (in contrast to other approaches) it must exist
+* Creating a dimension table for multi-dimensional analysis in the case it does not exist
+
+### Product of tables (instead of join)
+
+Uses:
+* Creating a cube table from dimension tables for multi-dimensional analysis. It is typically followed by aggregating data in the fact table. 
 
 # How to install
 
