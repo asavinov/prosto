@@ -102,7 +102,7 @@ calc_column = workflow.create_calculate_column(
 
 This new column will store the amount computed for each record as a product of quantity and price. Note that the input columns could be also derived columns computed from some other data in this or other tables.
 
-Other column operations like `link`, `grouping` or `rolling` allow for producing link columns referencing records in other tables and aggregate data.
+Other column operations like `link`, `aggregate` or `rolling` allow for producing link columns referencing records in other tables and aggregate data.
 
 ## Executing a workflow
 
@@ -154,6 +154,14 @@ Yet, `pandas` supports not only matrix operations (in this case, having `numpy` 
 In contrast, `prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model.
 Yet, `prosto` relies on `pandas` in its implementation just because `pandas` provides a really powerful set of various highly optimized operations with data. Yet, these operations are used as one possible iplementation method by essentially changing their semantics when wrapped into `prosto` operations.
 
+## Sets and functions
+
+A *set* is a collection of *tuples*. A set is a formal representation of a collection of values. Tuples (data values) can be only added to or removed from a set. In `prosto`, we refer to sets as tables, that is, tables implement sets. 
+
+A tuple has structure declared by its *attributes*. Tuples are a formal representation of data values.
+
+A *function* is a mapping from an input set to an output set. Given an input value, the output value can be read from the function or set for the function. In `prosto`, we refer to functions as columns, that is, columns are implementations of functions.
+
 ## Operations
 
 ### Calculate columns (instead of map operation)
@@ -184,7 +192,7 @@ TODO: Examples of calculate function
 
 Link columns have several major uses:
 * Data in other (linked) tables can be accessed when doing something in this table, say, when defining its calculate columns
-* Data can be grouped using lined rows interpreted as groups, that is, all rows of this table referencing the same row of the target table are interpreted as one group 
+* Data can be grouped using linked rows interpreted as groups, that is, all rows of this table referencing the same row of the target table are interpreted as one group 
 * Link columns are used when defining aggregate columns
 
 There could be other criteria for matching rows and defining link columns which will be implemented in future versions.
@@ -222,6 +230,23 @@ This operation has these important uses:
 
 Uses:
 * Creating a cube table from dimension tables for multi-dimensional analysis. It is typically followed by aggregating data in the fact table. 
+
+# Reference
+
+## Column operations
+
+* create_calculate_column
+* create_link_column
+* create_merge_column
+* create_rolling_column
+* create_aggregate_column
+
+## Table operations
+
+* create_populate_table
+* create_product_table
+* create_filter_table
+* create_project_table
 
 # How to install
 

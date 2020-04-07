@@ -361,13 +361,13 @@ class Schema:
 
         return column
 
-    def create_grouping_column(
+    def create_aggregate_column(
             self,
             name, table,
             tables, link,
             func, columns=None, model=None, input_length='column'
     ) -> Column:
-        """Create a new grouping aggregation column."""
+        """Create a new aggregate column."""
 
         # Create a column definition
         definition = {
@@ -380,7 +380,7 @@ class Schema:
         # Create an operation definition
         operation_def = {
             "id": None,
-            "operation": 'grouping',
+            "operation": 'aggregate',
 
             "table": table,
             "outputs": [name],
