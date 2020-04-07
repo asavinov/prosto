@@ -1,3 +1,4 @@
+from typing import Union, Any, List, Set, Dict, Tuple, Optional
 import json
 from collections import namedtuple
 
@@ -51,17 +52,17 @@ class Data:
     def __repr__(self):
         return '['+self.id+']'
 
-    def get_df(self):
+    def get_df(self) -> pd.DataFrame:
         return self.df
 
-    def set_df(self, df):
+    def set_df(self, df) -> None:
         self.df = df
         self.df.name = self.table.id
 
-    def get_series(self, column_name):
+    def get_series(self, column_name) -> pd.Series:
         return self.df[column_name]
 
-    def all_columns_exist(self, names):
+    def all_columns_exist(self, names) -> bool:
         columns = self.df.columns
         for col in names:
             if col not in columns:
@@ -71,11 +72,11 @@ class Data:
     #
     # Read column data
     #
-    def get_values(self, column_name):
+    def get_values(self, column_name) -> pd.Series:
         """Read column values"""
         return self.df[column_name]
 
-    def get_full_slice(self, columns):
+    def get_full_slice(self, columns) -> pd.DataFrame:
         """Get a slice with all rows (without removed) and specified columns"""
 
         start_id = self.removed_range.end
@@ -85,7 +86,7 @@ class Data:
 
         return ret
 
-    def get_added_slice(self, columns):
+    def get_added_slice(self, columns) -> pd.DataFrame:
         """Get a slice with added rows and specified columns"""
 
         start_id = self.added_range.start
@@ -99,7 +100,7 @@ class Data:
     # Write column data
     #
 
-    def set_column_values_for_range(self, update, range, default_value):
+    def set_column_values_for_range(self, update, range, default_value) -> int:
         """
         Impose columns from the specified data frame onto this data by overwriting existing cells using index for both columns and rows.
         Set new values for the specified range by overwriting existing values by those from the update frame or (if they are absent) by default value (which can be NaN).
@@ -150,7 +151,7 @@ class Data:
     # Add rows
     #
 
-    def add(self):
+    def add(self) -> int:
         """Add one row and return its id. All attributes and columns will have empty values (None)."""
         empty_value = None
         first_id = self._get_next_id()
@@ -166,7 +167,7 @@ class Data:
 
         return first_id
 
-    def add(self, count):
+    def add(self, count) -> int:
         """Add several rows."""
         empty_value = None
         first_id = self._get_next_id()
@@ -186,7 +187,7 @@ class Data:
 
         return first_id
 
-    def add(self, record):
+    def add(self, record) -> int:
         """Add one new row with the specified attribute values passed as a dictionary or series"""
         empty_value = None
         first_id = self._get_next_id()
@@ -204,7 +205,7 @@ class Data:
 
         return first_id
 
-    def add(self, table):
+    def add(self, table) -> int:
         """Add multiple new rows with the specified attribute values passed as a structured which is a dataframe or can be used to instantiate a data frame."""
         empty_value = None
         first_id = self._get_next_id()
@@ -229,7 +230,7 @@ class Data:
     # Physically delete records and manage allocated space
     #
 
-    def gc(self):
+    def gc(self) -> None:
         """Physically delete all records which are not used, that is, their removal was already propagated."""
         if self.df.empty:
             return
@@ -239,7 +240,7 @@ class Data:
         self.df.drop(to_delete, inplace=True)
         #self.df = self.df.iloc[len(to_delete):]
 
-    def reset(self):
+    def reset(self) -> None:
         """Physically remove all records and start from new empty table with no tracking."""
 
         #self.df.drop(self.df.index, inplace=True)
@@ -256,35 +257,35 @@ class Data:
     # Track changes
     #
 
-    def id_range(self):
+    def id_range(self) -> Range:
         return Range(self.removed_range.end, self.added_range.end)
 
-    def length(self):
+    def length(self) -> int:
         return self.added_range.end - self.removed_range.end  # All non-removed records
 
-    def added_length(self):
+    def added_length(self) -> int:
         return self.added_range.end - self.added_range.start
 
-    def removed_length(self):
+    def removed_length(self) -> int:
         return self.removed_range.end - self.removed_range.start
 
-    def extend_added(self, count=1):
+    def extend_added(self, count=1) -> None:
         self.added_range = Range(self.added_range.start, self.added_range.end + count)
 
-    def extend_removed(self, count=1):
+    def extend_removed(self, count=1) -> None:
         self.removed_range = Range(self.removed_range.start, self.removed_range.end + count)
 
-    def shrink_added(self):
+    def shrink_added(self) -> int:
         added = self.added_range.end - self.added_range.start
         self.added_range = Range(self.added_range.end, self.added_range.end)
         return added
 
-    def shrink_removed(self):
+    def shrink_removed(self) -> int:
         removed = self.removed_range.end - self.removed_range.start
         self.removed_range = Range(self.removed_range.end, self.removed_range.end)
         return removed
 
-    def clear_change_status(self):
+    def clear_change_status(self) -> None:
         added = self.shrink_added()
         removed = self.shrink_removed()
 
@@ -292,14 +293,14 @@ class Data:
     # Remove rows (mark for removal)
     #
 
-    def remove(self):
+    def remove(self) -> None:
         """Mark one oldest record as removed."""
 
         if self.length() > 0:
             # Extend removed range by 1
             self.removed_range.end = Range(self.removed_range.start, self.removed_range.end + 1)
 
-    def remove(self, count):
+    def remove(self, count) -> Range:
         """Mark the specified number of oldest records as removed."""
 
         to_remove = min(count, self.length())
@@ -309,7 +310,7 @@ class Data:
 
         return Range(self.removed_range.end - to_remove, self.removed_range.end)
 
-    def remove_all(self):
+    def remove_all(self) -> None:
         """Mark all records as removed."""
 
         # Track changes
@@ -321,14 +322,14 @@ class Data:
     # Convenience methods
     #
 
-    def _get_next_id(self):
+    def _get_next_id(self)  -> int:
         return self.added_range.end
 
-    def _get_start_offset(self):
+    def _get_start_offset(self) -> int:
         """Physically existing records"""
         return 0
 
-    def _get_end_offset(self):
+    def _get_end_offset(self) -> int:
         """Physically existing records"""
         return len(self.df)
 

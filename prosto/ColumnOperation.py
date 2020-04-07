@@ -1,3 +1,4 @@
+from typing import Union, Any, List, Set, Dict, Tuple, Optional
 import json
 
 from prosto.utils import *
@@ -17,7 +18,7 @@ class ColumnOperation(Operation):
     def __init__(self, schema, definition):
         super(ColumnOperation, self).__init__(schema, definition)
 
-    def get_dependencies(self):
+    def get_dependencies(self) -> List[Union[Table, Column]]:
         """Get tables and columns this column depends upon."""
         definition = self.definition
         operation = definition.get('operation', 'UNKNOWN')
@@ -98,7 +99,7 @@ class ColumnOperation(Operation):
 
         return dependencies
 
-    def evaluate(self):
+    def evaluate(self) -> None:
         """
         Execute this column operation and evaluate the output column(s).
 

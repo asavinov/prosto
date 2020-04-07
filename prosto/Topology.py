@@ -24,7 +24,7 @@ class Topology:
         self.layers = []  # Graph of operations
         self.elem_layers = []  # Graph of elements
 
-    def translate(self):
+    def translate(self) -> None:
         """Build a graph of operations by analyzing table and column dependencies."""
 
         #

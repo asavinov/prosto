@@ -1,3 +1,4 @@
+from typing import Union, Any, List, Set, Dict, Tuple, Optional
 import json
 
 from prosto.utils import *
@@ -40,25 +41,25 @@ class Table:
     def __repr__(self):
         return '['+self.id+']'
 
-    def get_data(self):
+    def get_data(self) -> pd.DataFrame:
         return self.data.get_df()
 
-    def get_column_data(self, column_name):
+    def get_column_data(self, column_name) -> pd.Series:
         return self.get_data()[column_name]
 
     #
     # Column getters
     #
 
-    def get_column(self, column_name):
+    def get_column(self, column_name) -> Column:
         """Find a column definition object with the specified name"""
         return self.schema.get_column(self.id, column_name)
 
-    def get_columns(self):
+    def get_columns(self) -> List[Column]:
         """Get a list of all columns of this table."""
         return self.schema.get_columns(self.id)
 
-    def evaluate(self):
+    def evaluate(self) -> None:
         """Find a table operation which generates this table and execute it."""
         tab_ops = self.schema.get_table_operations(self.id)
         tab_ops[0].evaluate()
