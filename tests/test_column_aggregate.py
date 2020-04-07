@@ -2,7 +2,7 @@ import unittest
 
 from prosto.Schema import *
 
-class ColumnGroupingTestCase(unittest.TestCase):
+class ColumnAggregateTestCase(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -30,7 +30,7 @@ class ColumnGroupingTestCase(unittest.TestCase):
         )
 
         # Aggregation
-        a_clm = sch.create_grouping_column(
+        a_clm = sch.create_aggregate_column(
             name="Aggregate", table=g_tbl.id,
             tables=["Facts"], link="Link",
             func="lambda x, bias,**model: x.sum() + bias", columns=["M"], model={"bias": 0.0}, input_length='column'

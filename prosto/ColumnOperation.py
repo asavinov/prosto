@@ -79,7 +79,7 @@ class ColumnOperation(Operation):
             # Columns to be aggregated
             dependencies.extend(input_columns)
 
-        elif operation.lower().startswith('group'):
+        elif operation.lower().startswith('aggr'):
             # The fact table has to be already populated
             tables = definition.get('tables')
             source_table_name = tables[0]
@@ -224,7 +224,7 @@ class ColumnOperation(Operation):
                 log.error(f"Unknown input_type parameter '{input_length}'.")
                 return
 
-        elif operation.lower().startswith('group'):
+        elif operation.lower().startswith('aggr'):
             #
             # Get parameters
             #
