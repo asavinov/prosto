@@ -51,7 +51,7 @@ class Column:
     def __repr__(self):
         return '[' + self.table.id + '::' + self.id+']'
 
-    def evaluate(self):
+    def evaluate(self) -> None:
         """Find a column operation which generates this column and execute it."""
         col_ops = self.schema.get_column_operations(self.table.id, self.id)
         col_ops[0].evaluate()

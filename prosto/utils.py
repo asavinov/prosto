@@ -1,3 +1,4 @@
+from typing import Union, Any, List, Set, Dict, Tuple, Optional
 import os
 import sys
 import types
@@ -17,7 +18,7 @@ log = logging.getLogger('prosto.utils')
 # Columns and frames
 #
 
-def get_columns(names, df=None):
+def get_columns(names, df=None) -> List[str]:
     """Produce a list of column names by also validating them against the data frame."""
     result = []
 
@@ -91,7 +92,7 @@ def get_columns(names, df=None):
 
     return result
 
-def get_all_columns(df):
+def get_all_columns(df) -> List[str]:
     if df is None:
         return []
     elif isinstance(df, pd.DataFrame):
@@ -102,7 +103,7 @@ def get_all_columns(df):
     else:
         return None
 
-def all_columns_exist(names, df):
+def all_columns_exist(names, df) -> bool:
     all_columns_available = True
     for col in names:
         if col not in df.columns:

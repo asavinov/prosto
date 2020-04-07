@@ -1,3 +1,5 @@
+from typing import Union, Any, List, Set, Dict, Tuple, Optional
+
 from prosto.Schema import *
 from prosto.Table import *
 from prosto.Column import *
@@ -35,7 +37,7 @@ class Schema:
     # Table methods
     #
 
-    def create_table(self, table_name, attributes):
+    def create_table(self, table_name, attributes) -> Table:
         """Create a new table with no operation that populates it. The table is supposed to be populated using API."""
 
         # Create a table definition
@@ -48,12 +50,12 @@ class Schema:
 
         return table
 
-    def get_table(self, table_name):
+    def get_table(self, table_name) -> Table:
         """Find a table with the specified name"""
         if not table_name: return None
         return next((x for x in self.tables if x.id == table_name), None)
 
-    def get_tables(self, table_names):
+    def get_tables(self, table_names) -> List[Table]:
         """Get a list of tables with the specified names"""
         if not table_names: return []
         if isinstance(table_names, str):
@@ -65,13 +67,13 @@ class Schema:
     # Column getters
     #
 
-    def get_column(self, table_name, column_name):
+    def get_column(self, table_name, column_name) -> Column:
         """Find a column the specified name"""
         if not table_name: return None
         if not column_name: return None
         return next((x for x in self.columns if x.id == column_name and x.table.id == table_name), None)
 
-    def get_columns(self, table_name, column_names=None):
+    def get_columns(self, table_name, column_names=None) -> List[Column]:
         """Get a list of columns with the specified names. All columns belong to one table."""
         if not table_name: return None
         if not column_names:
@@ -86,7 +88,7 @@ class Schema:
     # Table operation methods
     #
 
-    def get_table_operations(self, table_name):
+    def get_table_operations(self, table_name) -> List[TableOperation]:
         """Find operations which generate the specified table. Such operations have this table name in its outputs."""
         return [x for x in self.operations if isinstance(x, TableOperation) and table_name in x.definition.get("outputs", [])]
 
@@ -94,7 +96,7 @@ class Schema:
             self,
             table_name, attributes,
             func, tables=None, model=None, input_length='table'
-    ):
+    ) -> Table:
         """Create a new populate table."""
 
         # Create a table definition
@@ -126,7 +128,7 @@ class Schema:
             self,
             table_name, attributes,
             tables
-    ):
+    ) -> Table:
         """Create a new product table."""
 
         # Create a table definition
@@ -155,7 +157,7 @@ class Schema:
             self,
             table_name, attributes,
             func, tables, columns=None
-    ):
+    ) -> Table:
         """Create a new filter table."""
 
         # Create a table definition
@@ -186,7 +188,7 @@ class Schema:
             self,
             table_name, attributes,
             link, tables
-    ):
+    ) -> Table:
         """Create a new project table."""
 
         # Create a table definition
@@ -216,7 +218,7 @@ class Schema:
     # Column operation methods
     #
 
-    def get_column_operations(self, table_name, column_name):
+    def get_column_operations(self, table_name, column_name) -> List[ColumnOperation]:
         """Find operations which generate the specified column. Such operations have this column name in its outputs as well as the specified table name (each column operation has a table field)."""
         return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.definition.get("outputs", []) and table_name == x.definition.get("table")]
 
@@ -224,7 +226,7 @@ class Schema:
             self,
             name, table,
             func, columns=None, model=None, input_length='column'
-    ):
+    ) -> Column:
         """Create a new calculate column."""
 
         # Create a column definition
@@ -257,7 +259,7 @@ class Schema:
             self,
             name, table, type,
             columns, linked_columns=None
-    ):
+    ) -> Column:
         """Create a new link column."""
 
         # Create a column definition
@@ -289,7 +291,7 @@ class Schema:
             self,
             name, table,
             columns
-    ):
+    ) -> Column:
         """
         Create a new merge column.
 
@@ -326,7 +328,7 @@ class Schema:
             name, table,
             window,
             func, columns=None, model=None, input_length='column'
-    ):
+    ) -> Column:
         """Create a new rolling aggregation column."""
 
         # Create a column definition
@@ -364,7 +366,7 @@ class Schema:
             name, table,
             tables, link,
             func, columns=None, model=None, input_length='column'
-    ):
+    ) -> Column:
         """Create a new grouping aggregation column."""
 
         # Create a column definition
@@ -405,12 +407,12 @@ class Schema:
     # Execution
     #
 
-    def translate(self):
+    def translate(self) -> Topology:
         self.topology = Topology(self)
         self.topology.translate()
         return self.topology
 
-    def run(self):
+    def run(self) -> None:
         """Execute the whole schema."""
         log.info("Start executing schema '{0}'.".format(self.id))
 
