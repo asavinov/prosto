@@ -11,7 +11,7 @@ from prosto.ColumnOperation import *
 from prosto.Data import *
 
 import logging
-log = logging.getLogger('prosto.topology')
+log = logging.getLogger('prosto')
 
 
 class Topology:

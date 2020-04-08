@@ -5,7 +5,7 @@ from collections import namedtuple
 from prosto.utils import *
 
 import logging
-log = logging.getLogger('prosto.data')
+log = logging.getLogger('prosto')
 
 
 Range = namedtuple('Range', 'start end')

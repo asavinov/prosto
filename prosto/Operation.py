@@ -8,7 +8,7 @@ from prosto.Table import *
 from prosto.Column import *
 
 import logging
-log = logging.getLogger('prosto.operation')
+log = logging.getLogger('prosto')
 
 
 class Operation:

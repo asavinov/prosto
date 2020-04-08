@@ -8,7 +8,7 @@ from prosto.ColumnOperation import *
 from prosto.Topology import *
 
 import logging
-log = logging.getLogger('prosto.schema')
+log = logging.getLogger('prosto')
 
 
 class Schema:
