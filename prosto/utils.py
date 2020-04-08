@@ -35,7 +35,7 @@ def get_columns(names, df=None) -> List[str]:
             elif isinstance(col, int) and df is not None:
                 result.append(df.columns[col])
             else:
-                log.error("Error reading column '{0}'. Names have to be strings or integers.".format(str(col)))
+                log.error(f"Error reading column '{str(col)}'. Names have to be strings or integers.")
                 return None
 
         # Process default (auto) values
@@ -47,7 +47,7 @@ def get_columns(names, df=None) -> List[str]:
         if not isinstance(exclude, dict):
             exclude_columns = get_columns(exclude, df)
         else:
-            log.error("Error reading column '{0}'. Excluded columns have to be (a list of) strings or integers.".format(exclude))
+            log.error(f"Error reading column '{exclude}'. Excluded columns have to be (a list of) strings or integers.")
             return None
 
         # Get all columns and exclude the specified ones
@@ -55,7 +55,7 @@ def get_columns(names, df=None) -> List[str]:
         result = [x for x in all_columns if x not in exclude_columns]
 
     else:
-        log.error("Column names have to be a list of strings or a string.")
+        log.error(f"Column names have to be a list of strings or a string.")
         return None
 
     #
@@ -71,7 +71,7 @@ def get_columns(names, df=None) -> List[str]:
             if col in df.columns:
                 out.append(col)
             else:
-                log.warning("Column '{0}' cannot be found. Skip column.".format(str(col)))
+                log.warning(f"Column '{str(col)}' cannot be found. Skip column.")
         return out
 
     elif isinstance(df, pd.core.groupby.groupby.DataFrameGroupBy):
@@ -87,7 +87,7 @@ def get_columns(names, df=None) -> List[str]:
             if col_exists:
                 out.append(col)
             else:
-                log.warning("Column '{0}' cannot be found. Skip column.".format(str(col)))
+                log.warning(f"Column '{str(col)}' cannot be found. Skip column.")
         return out
 
     return result
@@ -108,7 +108,7 @@ def all_columns_exist(names, df) -> bool:
     for col in names:
         if col not in df.columns:
             all_columns_available = False
-            log.warning("Column '{0}' is not available.".format(col))
+            log.warning(f"Column '{col}' is not available.")
             break
     if not all_columns_available:
         return False
@@ -134,7 +134,7 @@ def resolve_full_name(full_name):
         try:
             func = eval(full_name)
         except Exception as e:
-            log.error("Error translating lambda function: {0}.".format(full_name))
+            log.error(f"Error translating lambda function: {full_name}.")
             log.debug(e)
             return None
         return func
@@ -234,7 +234,7 @@ def import_modules(imports):
             sys.modules[mod_name] = mod
             continue
 
-        log.warning("Cannot import module '{0}'. Ignored. This can cause errors later if its functions are used in the workflow".format(mod_name))
+        log.warning(f"Cannot import module '{mod_name}'. Ignored. This can cause errors later if its functions are used in the workflow")
 
     return modules
 
