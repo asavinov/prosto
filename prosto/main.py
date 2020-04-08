@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.version import *
 
 import logging

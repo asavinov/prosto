@@ -3,7 +3,7 @@ import json
 
 from prosto.utils import *
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 from prosto.Operation import *
@@ -15,8 +15,8 @@ log = logging.getLogger('prosto')
 class ColumnOperation(Operation):
     """The class represents one column operation."""
 
-    def __init__(self, schema, definition):
-        super(ColumnOperation, self).__init__(schema, definition)
+    def __init__(self, prosto, definition):
+        super(ColumnOperation, self).__init__(prosto, definition)
 
     def get_dependencies(self) -> List[Union[Table, Column]]:
         """Get tables and columns this column depends upon."""
@@ -24,14 +24,14 @@ class ColumnOperation(Operation):
         operation = definition.get('operation', 'UNKNOWN')
 
         output_table_name = definition.get('table')
-        output_table = self.schema.get_table(output_table_name)
+        output_table = self.prosto.get_table(output_table_name)
 
         outputs = self.get_outputs()
         output_column_name = outputs[0]
-        output_column = self.schema.get_column(output_table_name, output_column_name)
+        output_column = self.prosto.get_column(output_table_name, output_column_name)
 
         columns = self.get_columns()
-        input_columns = self.schema.get_columns(output_table_name, columns)
+        input_columns = self.prosto.get_columns(output_table_name, columns)
 
         dependencies = []
 
@@ -45,7 +45,7 @@ class ColumnOperation(Operation):
         elif operation.lower().startswith('link'):
             # Target (linked) table has to be populated
             linked_table_name = output_column.definition.get('type', '')
-            linked_table = self.schema.get_table(linked_table_name)
+            linked_table = self.prosto.get_table(linked_table_name)
             dependencies.append(linked_table)
 
             # Input (fact table) columns or column paths have to be evaluated
@@ -53,20 +53,20 @@ class ColumnOperation(Operation):
 
             # Target columns have to be evaluated in order to contain values. However, they are supposed to be attributes and hence they will be set during population.
             linked_columns = definition.get('linked_columns', [])
-            dependencies.extend(self.schema.get_columns(linked_table_name, linked_columns))
+            dependencies.extend(self.prosto.get_columns(linked_table_name, linked_columns))
 
         elif operation.lower().startswith('merg'):
             # Link column (first segment) has to be evaluated
             link_column_name = next(iter(columns), None)
-            link_column = self.schema.get_column(output_table_name, link_column_name)
+            link_column = self.prosto.get_column(output_table_name, link_column_name)
             dependencies.append(link_column)
 
             # Linked column path (tail) in the linked table has to exist (recursion)
             linked_table_name = link_column.definition.get('type')
-            linked_table = self.schema.get_table(linked_table_name)
+            linked_table = self.prosto.get_table(linked_table_name)
             linked_column_name = columns[1]
 
-            linked_column = self.schema.get_column(linked_table_name, linked_column_name)
+            linked_column = self.prosto.get_column(linked_table_name, linked_column_name)
             if linked_column:  # A linked column might not have a definition, e.g., an attribute
                 dependencies.append(linked_column)
             # Here we assume that the tail dependencies will be retrieved separately.
@@ -83,7 +83,7 @@ class ColumnOperation(Operation):
             # The fact table has to be already populated
             tables = definition.get('tables')
             source_table_name = tables[0]
-            source_table = self.schema.get_table(source_table_name)
+            source_table = self.prosto.get_table(source_table_name)
             dependencies.append(source_table)
 
             # Group column
@@ -92,7 +92,7 @@ class ColumnOperation(Operation):
             dependencies.append(link_column)
 
             # Measure columns
-            dependencies.extend(self.schema.get_columns(source_table_name, columns))
+            dependencies.extend(self.prosto.get_columns(source_table_name, columns))
 
         else:
             return []
@@ -123,11 +123,11 @@ class ColumnOperation(Operation):
         model = definition.get('model')
 
         output_table_name = definition.get('table')
-        output_table = self.schema.get_table(output_table_name)
+        output_table = self.prosto.get_table(output_table_name)
 
         outputs = definition.get('outputs')
         output_column_name = outputs[0]
-        output_column = self.schema.get_column(output_table_name, output_column_name)
+        output_column = self.prosto.get_column(output_table_name, output_column_name)
 
         data = output_table.get_data()
 
@@ -137,7 +137,7 @@ class ColumnOperation(Operation):
         # Operations without UDF
         #
 
-        # Link columns use their own definition schema different from computational (functional) definitions
+        # Link columns use their own definition format different from computational (functional) definitions
         if operation.lower().startswith('link'):
             out = self._evaluate_link()
 
@@ -146,7 +146,7 @@ class ColumnOperation(Operation):
             log.info(f"<--- Finish evaluating column '{self.id}'")
             return
 
-        # Compose columns use their own definition schema different from computational (functional) definitions
+        # Compose columns use their own definition format different from computational (functional) definitions
         if operation.lower().startswith('merg'):
             out = self._evaluate_merge()
 
@@ -183,7 +183,7 @@ class ColumnOperation(Operation):
                 return
 
             # Slice input according to the change status
-            if self.schema.incremental:
+            if self.prosto.incremental:
                 data = output_table.data.get_added_slice(columns)
                 range = output_table.data.added_range
             else:
@@ -230,7 +230,7 @@ class ColumnOperation(Operation):
             #
             tables = definition.get('tables')
             source_table_name = tables[0]
-            source_table = self.schema.get_table(source_table_name)
+            source_table = self.prosto.get_table(source_table_name)
             if source_table is None:
                 log.error(f"Cannot find the fact table '{source_table_name}'.")
                 return
@@ -362,11 +362,11 @@ class ColumnOperation(Operation):
         #
 
         main_table_name = definition.get('table')
-        main_table = self.schema.get_table(main_table_name)
+        main_table = self.prosto.get_table(main_table_name)
 
         outputs = definition.get('outputs')
         column_name = outputs[0]
-        output_column = self.schema.get_column(main_table_name, column_name)
+        output_column = self.prosto.get_column(main_table_name, column_name)
 
         main_keys = self.get_columns()
         if not all_columns_exist(main_keys, main_table.get_data()):
@@ -374,7 +374,7 @@ class ColumnOperation(Operation):
             return
 
         linked_table_name = output_column.definition.get('type', '')
-        linked_table = self.schema.get_table(linked_table_name)
+        linked_table = self.prosto.get_table(linked_table_name)
         if not linked_table:
             log.error(f"Linked table '{linked_table}' cannot be found in the link column definition..")
             return
@@ -434,12 +434,12 @@ class ColumnOperation(Operation):
         # Read and validate parameters
         #
         output_table_name = definition.get('table')
-        output_table = self.schema.get_table(output_table_name)
+        output_table = self.prosto.get_table(output_table_name)
         output_table_data = output_table.get_data()
 
         outputs = definition.get('outputs')
         output_column_name = outputs[0]
-        output_column = self.schema.get_column(output_table_name, output_column_name)
+        output_column = self.prosto.get_column(output_table_name, output_column_name)
 
         column_segment_separator = '::'
 
@@ -475,7 +475,7 @@ class ColumnOperation(Operation):
             # Find the linked table
             #
             linked_table_name = link_column.definition.get('type')
-            linked_table = self.schema.get_table(linked_table_name)
+            linked_table = self.prosto.get_table(linked_table_name)
             linked_table_data = linked_table.get_data()
 
             #
@@ -594,10 +594,10 @@ class ColumnOperation(Operation):
 
         tables = definition.get('tables')
         source_table_name = tables[0]
-        source_table = self.schema.get_table(source_table_name)
+        source_table = self.prosto.get_table(source_table_name)
 
         link_column_name = definition.get('link')
-        link_column = self.schema.get_column(source_table_name, link_column_name)
+        link_column = self.prosto.get_column(source_table_name, link_column_name)
 
         if link_column.groupby is not None:
             return link_column.groupby
@@ -629,7 +629,7 @@ class ColumnOperation(Operation):
 
         outputs = self.get_outputs()
         output_table_name = definition.get('table')
-        output_table = self.schema.get_table(output_table_name)
+        output_table = self.prosto.get_table(output_table_name)
 
         fillna_value = definition.get('fillna_value')
 

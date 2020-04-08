@@ -3,7 +3,7 @@ import copy
 
 from prosto.utils import *
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 from prosto.TableOperation import *
@@ -17,9 +17,9 @@ log = logging.getLogger('prosto')
 class Topology:
     """Topology is a graph of operations built taking into account their dependencies."""
 
-    def __init__(self, schema):
+    def __init__(self, prosto):
 
-        self.schema = schema  # If schema can be modified then make a copy: copy.deepcopy(schema)
+        self.prosto = prosto  # If context can be modified then make a copy: copy.deepcopy(prosto)
 
         self.layers = []  # Graph of operations
         self.elem_layers = []  # Graph of elements
@@ -30,7 +30,7 @@ class Topology:
         #
         # Collect all operations into one list
         #
-        all_operations = [x for x in self.schema.operations]
+        all_operations = [x for x in self.prosto.operations]
 
         #
         # Build graph of operations by analyzing dependencies
@@ -66,9 +66,9 @@ class Topology:
                 dep_ops = []
                 for dep in dep_elems:
                     if isinstance(dep, Table):
-                        ops = self.schema.get_table_operations(dep.id)
+                        ops = self.prosto.get_table_operations(dep.id)
                     elif isinstance(dep, Column):
-                        ops = self.schema.get_column_operations(dep.table.id, dep.id)
+                        ops = self.prosto.get_column_operations(dep.table.id, dep.id)
                     else:
                         log.error(f"Element '{dep.id}' with unknown class found while building topology (only Table and Column are possible).")
                         ops = []
@@ -97,7 +97,7 @@ class Topology:
                 # Find element (column or table) this operation produces
                 outputs = op.get_outputs()
                 if isinstance(op, TableOperation):  # Find table
-                    tables = self.schema.get_tables(outputs)
+                    tables = self.prosto.get_tables(outputs)
                     elem_layer.extend(tables)
 
                     # Allocate/initialize data and other resources
@@ -106,7 +106,7 @@ class Topology:
 
                 elif isinstance(op, ColumnOperation):  # Find column
                     table_name = op.definition.get("table")
-                    columns = self.schema.get_columns(table_name, outputs)
+                    columns = self.prosto.get_columns(table_name, outputs)
                     elem_layer.extend(columns)
             elem_layers.append(elem_layer)
 

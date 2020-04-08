@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class ColumnAggregateTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class ColumnAggregateTestCase(unittest.TestCase):
         pass
 
     def test_aggregate(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         # Facts
         f_tbl = sch.create_populate_table(

@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class ColumnCalculateTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
         pass
 
     def test_calculate_value(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         tbl = sch.create_populate_table(
             table_name="My table", attributes=["A"],
@@ -37,7 +37,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
         self.assertIsInstance(v2, float)
 
     def test_all(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         tbl = sch.create_populate_table(
             table_name="My table", attributes=["A"],

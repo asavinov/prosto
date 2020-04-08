@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class TableFilterTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class TableFilterTestCase(unittest.TestCase):
         pass
 
     def test_filter_table(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         tbl = sch.create_populate_table(
             table_name="Base table", attributes=["A", "B"],
