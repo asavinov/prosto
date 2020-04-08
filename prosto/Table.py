@@ -9,7 +9,7 @@ from prosto.Column import *
 from prosto.Data import *
 
 import logging
-log = logging.getLogger('prosto.table')
+log = logging.getLogger('prosto')
 
 
 class Table:

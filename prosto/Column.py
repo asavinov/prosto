@@ -7,7 +7,7 @@ from prosto.Table import *
 from prosto.Column import *
 
 import logging
-log = logging.getLogger('prosto.column')
+log = logging.getLogger('prosto')
 
 
 class Column:

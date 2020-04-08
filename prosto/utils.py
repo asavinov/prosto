@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 import logging
-log = logging.getLogger('prosto.utils')
+log = logging.getLogger('prosto')
 
 
 #

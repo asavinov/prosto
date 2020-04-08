@@ -9,7 +9,7 @@ from prosto.Column import *
 from prosto.Operation import *
 
 import logging
-log = logging.getLogger('prosto.operation')
+log = logging.getLogger('prosto')
 
 
 class ColumnOperation(Operation):
