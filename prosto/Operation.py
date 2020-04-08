@@ -3,7 +3,7 @@ import json
 
 from prosto.utils import *
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 
@@ -16,11 +16,11 @@ class Operation:
 
     operation_no = 0
 
-    def __init__(self, schema, definition):
+    def __init__(self, prosto, definition):
         """
         Create a new operation object using its definition.
 
-        :param schema: Schema object this operation belongs to
+        :param prosto: Prosto context object this operation belongs to
         :param definition: Operation definition as a dict
         """
 
@@ -31,7 +31,7 @@ class Operation:
             definition['id'] = self.id
             Operation.operation_no += 1
 
-        self.schema = schema
+        self.prosto = prosto
         self.definition = definition
         self.operation = definition.get("operation")
 

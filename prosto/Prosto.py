@@ -1,6 +1,6 @@
 from typing import Union, Any, List, Set, Dict, Tuple, Optional
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 from prosto.TableOperation import *
@@ -11,17 +11,17 @@ import logging
 log = logging.getLogger('prosto')
 
 
-class Schema:
-    """The class represents a schema which stores lists of tables, columns and operations."""
+class Prosto:
+    """The class represents a context which stores lists of tables, columns and operations."""
 
-    schema_no = 0
+    prosto_no = 0
 
     def __init__(self, id):
 
         self.id = id
         if self.id is None:
-            self.id = "___schema___" + str(self.schema_no)
-            self.schema_no += 1
+            self.id = "___prosto___" + str(self.prosto_no)
+            self.prosto_no += 1
 
         self.tables = []
         self.columns = []
@@ -413,8 +413,8 @@ class Schema:
         return self.topology
 
     def run(self) -> None:
-        """Execute the whole schema."""
-        log.info(f"Start executing schema '{self.id}'.")
+        """Execute the whole workflow."""
+        log.info(f"Start executing workflow '{self.id}'.")
 
         # Translate if necessary
         if self.topology is None:
@@ -436,7 +436,7 @@ class Schema:
             tbl.data.clear_change_status()
             tbl.data.gc()
 
-        log.info(f"Finish executing schema '{self.id}'.")
+        log.info(f"Finished executing workflow '{self.id}'.")
 
 
 if __name__ == "__main__":

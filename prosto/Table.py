@@ -3,7 +3,7 @@ import json
 
 from prosto.utils import *
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 from prosto.Data import *
@@ -17,11 +17,11 @@ class Table:
 
     table_no = 0
 
-    def __init__(self, schema, definition):
+    def __init__(self, prosto, definition):
         """
         Create a new table object using its definition.
 
-        :param schema: Schema object this table belongs to
+        :param prosto: Prosto context object this table belongs to
         :param definition: Table definition as a dict
         """
 
@@ -32,7 +32,7 @@ class Table:
             definition['id'] = self.id
             Table.table_no += 1
 
-        self.schema = schema
+        self.prosto = prosto
         self.definition = definition
 
         # Here we store the real (physical) data for this table (all its attributes and columns)
@@ -53,15 +53,15 @@ class Table:
 
     def get_column(self, column_name) -> Column:
         """Find a column definition object with the specified name"""
-        return self.schema.get_column(self.id, column_name)
+        return self.prosto.get_column(self.id, column_name)
 
     def get_columns(self) -> List[Column]:
         """Get a list of all columns of this table."""
-        return self.schema.get_columns(self.id)
+        return self.prosto.get_columns(self.id)
 
     def evaluate(self) -> None:
         """Find a table operation which generates this table and execute it."""
-        tab_ops = self.schema.get_table_operations(self.id)
+        tab_ops = self.prosto.get_table_operations(self.id)
         tab_ops[0].evaluate()
 
 if __name__ == "__main__":

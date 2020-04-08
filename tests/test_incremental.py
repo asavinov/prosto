@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class IncrementalTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class IncrementalTestCase(unittest.TestCase):
         pass
 
     def test_calculate_value(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
         sch.incremental = True
 
         tbl = sch.create_table(

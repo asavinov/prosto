@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class TablePopulateTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class TablePopulateTestCase(unittest.TestCase):
         pass
 
     def test_populate(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         tbl = sch.create_populate_table(
             table_name="My table", attributes=["A", "B"],
@@ -21,7 +21,7 @@ class TablePopulateTestCase(unittest.TestCase):
         self.assertEqual(len(tbl.get_data()), 3)
 
     def test_populate2(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         data = {'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']}
 

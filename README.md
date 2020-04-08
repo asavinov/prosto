@@ -36,7 +36,7 @@ Prosto provides the following unique features and benefits:
 `Prosto` is a toolkit and it is intended to be used from another (Python) application. Before its data processing functions can be used, the module has to be imported:
 
 ```python
-import prosto as prst
+import prosto as pr
 ```
 
 ## Defining a workflow
@@ -44,7 +44,7 @@ import prosto as prst
 A workflow contains definitions of data elements (tables and columns) as well as operations for data generation. Before data processing operations can be defined, a `Prosto` workflow has to be created:
 
 ```python
-workflow = prst.Schema("My workflow")
+prosto = pr.Prosto("My Prosto Workflow")
 ```
 
 `Prosto` provides two types of operations which can be used in a workflow:
@@ -65,7 +65,7 @@ sales_data = {
     "price": [10.0, 5.0, 6.0, 15.0, 4.0]
 }
 
-sales = workflow.create_populate_table(
+sales = prosto.create_populate_table(
     # A table definition consists of a name and a list of attributes
     table_name="Sales", attributes=["product_name", "quantity", "price"],
 
@@ -88,7 +88,7 @@ A column is formally interpreted as a mathematical function which maps tuples (d
 There exist many different ways to compute a mapping form one table to another table. One of the simplest column operations is a `calculate` column which *computes* output values of the mapping using the values of the specified input columns of the same table:
 
 ```python
-calc_column = workflow.create_calculate_column(
+calc_column = prosto.create_calculate_column(
     # Column definition consists of a name and table it belongs to
     name="amount", table=sales.id,
 
@@ -109,7 +109,7 @@ Other column operations like `link`, `aggregate` or `rolling` allow for producin
 When a workflow is defined it is not executed - it stores only operation definitions. In order to really process data, the workflow has to be executed:
 
 ```python
-workflow.run()
+prosto.run()
 ```
 
 `Prosto` translates a workflow into a graph of operations (topology) taking into account their dependencies and then executes each operation: table operations will populate tables and column operations will evaluate columns.

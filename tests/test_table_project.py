@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class TableProjectTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class TableProjectTestCase(unittest.TestCase):
         pass
 
     def test_one_key(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         # Facts
         f_tbl = sch.create_populate_table(
@@ -58,7 +58,7 @@ class TableProjectTestCase(unittest.TestCase):
         self.assertTrue(set([x.id for x in layers[2]]) == set(["Link"]))
 
     def test_two_keys(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         # Facts
         f_tbl = sch.create_populate_table(

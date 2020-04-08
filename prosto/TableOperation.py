@@ -3,7 +3,7 @@ import json
 
 from prosto.utils import *
 
-from prosto.Schema import *
+from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 from prosto.Operation import *
@@ -15,8 +15,8 @@ log = logging.getLogger('prosto')
 class TableOperation(Operation):
     """The class represents one table operation."""
 
-    def __init__(self, schema, definition):
-        super(TableOperation, self).__init__(schema, definition)
+    def __init__(self, prosto, definition):
+        super(TableOperation, self).__init__(prosto, definition)
 
     def get_dependencies(self) -> List[Union[Table, Column]]:
         """Get tables and columns this table depends upon."""
@@ -25,10 +25,10 @@ class TableOperation(Operation):
 
         outputs = self.get_outputs()
         output_table_name = outputs[0]
-        output_table = self.schema.get_table(output_table_name)
+        output_table = self.prosto.get_table(output_table_name)
 
         tables = self.definition.get("tables")
-        input_tables = self.schema.get_tables(tables)
+        input_tables = self.prosto.get_tables(tables)
 
         dependencies = []
 
@@ -70,10 +70,10 @@ class TableOperation(Operation):
             link_column = source_table.get_column(link_column_name)
 
             # Input columns of the link column
-            link_column_ops = self.schema.get_column_operations(source_table_name, link_column_name)
+            link_column_ops = self.prosto.get_column_operations(source_table_name, link_column_name)
             link_column_op = link_column_ops[0]
             source_keys = link_column_op.get_columns()
-            dependencies.extend(self.schema.get_columns(source_table_name, source_keys))
+            dependencies.extend(self.prosto.get_columns(source_table_name, source_keys))
 
         else:
             log.warning(f"Unknown operation type '{operation}' in the definition of table '{self.id}'.")
@@ -93,7 +93,7 @@ class TableOperation(Operation):
 
         outputs = definition.get('outputs')
         output_table_name = outputs[0]
-        output_table = self.schema.get_table(output_table_name)
+        output_table = self.prosto.get_table(output_table_name)
 
         log.info(f"===> Start populating '{operation}' table '{output_table.id}'")
 
@@ -154,7 +154,7 @@ class TableOperation(Operation):
         # Stage 2. Prepare input data
         #
         tables = self.definition.get("tables")
-        tables = self.schema.get_tables(tables)
+        tables = self.prosto.get_tables(tables)
         if not tables: tables = []
 
         #
@@ -206,7 +206,7 @@ class TableOperation(Operation):
         definition = self.definition
 
         outputs = definition.get('outputs')
-        output_table = self.schema.get_table(outputs[0])
+        output_table = self.prosto.get_table(outputs[0])
 
         attributes = output_table.definition.get("attributes", [])
 
@@ -221,7 +221,7 @@ class TableOperation(Operation):
             log.error(f"Number of input tables must be equal to the number of attributes in product table definition.")
             return
 
-        tables = self.schema.get_tables(tables)
+        tables = self.prosto.get_tables(tables)
         table_datas = [x.get_data() for x in tables]
 
         #
@@ -241,7 +241,7 @@ class TableOperation(Operation):
         definition = self.definition
 
         outputs = definition.get('outputs')
-        output_table = self.schema.get_table(outputs[0])
+        output_table = self.prosto.get_table(outputs[0])
 
         #
         # Stage 1. Prepare input data
@@ -250,7 +250,7 @@ class TableOperation(Operation):
         if not tables:
             log.error(f"Table filter operation must specify one base table in the 'tables' field.")
             return
-        tables = self.schema.get_tables(tables)
+        tables = self.prosto.get_tables(tables)
 
         base_table = tables[0]
         base_table_data = base_table.get_data()
@@ -294,7 +294,7 @@ class TableOperation(Operation):
         definition = self.definition
 
         outputs = definition.get('outputs')
-        output_table = self.schema.get_table(outputs[0])
+        output_table = self.prosto.get_table(outputs[0])
 
         #
         # Stage 1. Prepare input data
@@ -303,7 +303,7 @@ class TableOperation(Operation):
         if not tables:
             log.error(f"Project operation must specify one input table in the 'tables' field")
             return
-        tables = self.schema.get_tables(tables)
+        tables = self.prosto.get_tables(tables)
 
         source_table = tables[0]
         source_table_data = source_table.get_data()
@@ -322,7 +322,7 @@ class TableOperation(Operation):
         #
 
         # Find source table keys to be projected
-        link_column_ops = self.schema.get_column_operations(source_table.id, link_column.id)
+        link_column_ops = self.prosto.get_column_operations(source_table.id, link_column.id)
         link_column_op = link_column_ops[0]
         source_keys = link_column_op.get_columns()
         if not all_columns_exist(source_keys, source_table_data):

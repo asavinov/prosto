@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class ColumnMergeTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class ColumnMergeTestCase(unittest.TestCase):
         pass
 
     def test_merge(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         # Facts
         f_tbl = sch.create_populate_table(
@@ -66,7 +66,7 @@ class ColumnMergeTestCase(unittest.TestCase):
         self.assertEqual(m_data.to_list(), [1.0, 1.0, 2.0, 2.0])
 
     def test_merge_path(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         # Facts
         f_tbl = sch.create_populate_table(

@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class TableProductTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class TableProductTestCase(unittest.TestCase):
         pass
 
     def test_product(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         t1 = sch.create_populate_table(
             table_name="Table 1", attributes=["A"],

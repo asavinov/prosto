@@ -1,6 +1,6 @@
 import unittest
 
-from prosto.Schema import *
+from prosto.Prosto import *
 
 class ColumnRollTestCase(unittest.TestCase):
 
@@ -8,7 +8,7 @@ class ColumnRollTestCase(unittest.TestCase):
         pass
 
     def test_roll_single(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         tbl = sch.create_populate_table(
             table_name="My table", attributes=["A"],
@@ -31,7 +31,7 @@ class ColumnRollTestCase(unittest.TestCase):
         self.assertAlmostEqual(clm_data[2], 5.0)
 
     def test_roll_multiple(self):
-        sch = Schema("My schema")
+        sch = Prosto("My Prosto")
 
         tbl = sch.create_populate_table(
             table_name="My table", attributes=["A", "B"],
