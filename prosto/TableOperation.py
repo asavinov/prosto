@@ -326,7 +326,7 @@ class TableOperation(Operation):
         link_column_op = link_column_ops[0]
         source_keys = link_column_op.get_columns()
         if not all_columns_exist(source_keys, source_table_data):
-            log.error("Not all key columns available in the link column definition.".format())
+            log.error(f"Not all key columns available in the link column definition.")
             return
 
         # Find this (target) table attributes to be created

@@ -414,7 +414,7 @@ class Schema:
 
     def run(self) -> None:
         """Execute the whole schema."""
-        log.info("Start executing schema '{0}'.".format(self.id))
+        log.info(f"Start executing schema '{self.id}'.")
 
         # Translate if necessary
         if self.topology is None:
@@ -429,14 +429,14 @@ class Schema:
                 elif isinstance(op, ColumnOperation):
                     op.evaluate()
                 else:
-                    log.warning("Unknown element '{0}' in the topology '{1}'.".format(op.id, self.id))
+                    log.warning(f"Unknown element '{op.id}' in the topology '{self.id}'.")
 
         # Clear change status of all elements
         for tbl in self.tables:
             tbl.data.clear_change_status()
             tbl.data.gc()
 
-        log.info("Finish executing schema '{0}'.".format(self.id))
+        log.info(f"Finish executing schema '{self.id}'.")
 
 
 if __name__ == "__main__":

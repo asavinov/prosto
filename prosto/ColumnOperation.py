@@ -179,7 +179,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.error("Not all input columns available. Skip column definition.".format())
+                log.error(f"Not all input columns available. Skip column definition.")
                 return
 
             # Slice input according to the change status
@@ -208,7 +208,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.warning("Not all input columns available. Skip column definition.".format())
+                log.warning(f"Not all input columns available. Skip column definition.")
                 return
 
             # Slice input according to the change status (incremental not implemented)
@@ -232,13 +232,13 @@ class ColumnOperation(Operation):
             source_table_name = tables[0]
             source_table = self.schema.get_table(source_table_name)
             if source_table is None:
-                log.error("Cannot find the fact table '{0}'.".format(source_table_name))
+                log.error(f"Cannot find the fact table '{source_table_name}'.")
                 return
 
             link_column_name = definition.get('link')
             link_column = source_table.get_column(link_column_name)
             if link_column is None:
-                log.error("Cannot find the link column '{0}'.".format(link_column_name))
+                log.error(f"Cannot find the link column '{link_column_name}'.")
                 return
 
             data = source_table.get_data()  # Data (to be processed) is a (source) table which is different from the output table
@@ -252,7 +252,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.warning("Not all input columns available. Skip column definition.".format())
+                log.warning(f"Not all input columns available. Skip column definition.")
                 return
 
             data = data[columns]  # Select only the specified *input* columns
@@ -370,20 +370,20 @@ class ColumnOperation(Operation):
 
         main_keys = self.get_columns()
         if not all_columns_exist(main_keys, main_table.get_data()):
-            log.error("Not all key columns available in the link column definition.".format())
+            log.error(f"Not all key columns available in the link column definition.")
             return
 
         linked_table_name = output_column.definition.get('type', '')
         linked_table = self.schema.get_table(linked_table_name)
         if not linked_table:
-            log.error("Linked table '{0}' cannot be found in the link column definition..".format(linked_table))
+            log.error(f"Linked table '{linked_table}' cannot be found in the link column definition..")
             return
 
         linked_columns = definition.get('linked_columns', [])
         if len(linked_columns) == 0:
             linked_columns = linked_table.definition.get("attributes", [])  # By default (e.g., for projection), we link to target table attributes
         if not all_columns_exist(linked_columns, linked_table.get_data()):
-            log.error("Not all linked key columns available in the link column definition.".format())
+            log.error(f"Not all linked key columns available in the link column definition.")
             return
 
         #
@@ -607,7 +607,7 @@ class ColumnOperation(Operation):
             gb = source_table.get_data().groupby(link_column_name, as_index=True)
             # Alternatively, we could use target keys or main keys
         except Exception as e:
-            log.error("Error grouping input table using the specified column(s).".format())
+            log.error(f"Error grouping input table using the specified column(s).")
             log.debug(e)
             raise e
 
