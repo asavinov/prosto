@@ -10,7 +10,7 @@ class TablePopulateTestCase(unittest.TestCase):
     def test_populate(self):
         sch = Prosto("My Prosto")
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="My table", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']})", tables=[], model={"nrows": 3}, input_length='table'
         )
@@ -27,7 +27,7 @@ class TablePopulateTestCase(unittest.TestCase):
 
         populate_fn = lambda **m: pd.DataFrame(data)
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="My table", attributes=["A", "B"],
             func=populate_fn, tables=[], model={"nrows": 3}, input_length='table'
         )

@@ -11,13 +11,13 @@ class TableProjectTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
         )
 
         # Groups
-        g_tbl = sch.create_project_table(
+        g_tbl = sch.project(
             table_name="Groups", attributes=["X"],
             link="Link",
             tables=["Facts"]
@@ -61,13 +61,13 @@ class TableProjectTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[], model=None, input_length='table'
         )
 
         # Groups
-        g_tbl = sch.create_project_table(
+        g_tbl = sch.project(
             table_name="Groups", attributes=["X", "Y"],
             link="Link",
             tables=["Facts"]

@@ -85,14 +85,22 @@ class Prosto:
         return list(columns)
 
     #
-    # Table operation methods
+    # Operations
     #
 
     def get_table_operations(self, table_name) -> List[TableOperation]:
         """Find operations which generate the specified table. Such operations have this table name in its outputs."""
         return [x for x in self.operations if isinstance(x, TableOperation) and table_name in x.definition.get("outputs", [])]
 
-    def create_populate_table(
+    def get_column_operations(self, table_name, column_name) -> List[ColumnOperation]:
+        """Find operations which generate the specified column. Such operations have this column name in its outputs as well as the specified table name (each column operation has a table field)."""
+        return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.definition.get("outputs", []) and table_name == x.definition.get("table")]
+
+    #
+    # Table operations
+    #
+
+    def populate(
             self,
             table_name, attributes,
             func, tables=None, model=None, input_length='table'
@@ -107,7 +115,7 @@ class Prosto:
         table = Table(self, table_def)
         self.tables.append(table)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'populate',
@@ -124,7 +132,7 @@ class Prosto:
 
         return table
 
-    def create_product_table(
+    def product(
             self,
             table_name, attributes,
             tables
@@ -139,7 +147,7 @@ class Prosto:
         table = Table(self, table_def)
         self.tables.append(table)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'product',
@@ -153,7 +161,7 @@ class Prosto:
 
         return table
 
-    def create_filter_table(
+    def filter(
             self,
             table_name, attributes,
             func, tables, columns=None
@@ -168,7 +176,7 @@ class Prosto:
         table = Table(self, table_def)
         self.tables.append(table)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'filter',
@@ -184,7 +192,7 @@ class Prosto:
 
         return table
 
-    def create_project_table(
+    def project(
             self,
             table_name, attributes,
             link, tables
@@ -199,7 +207,7 @@ class Prosto:
         table = Table(self, table_def)
         self.tables.append(table)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'project',
@@ -215,12 +223,8 @@ class Prosto:
         return table
 
     #
-    # Column operation methods
+    # Column operations
     #
-
-    def get_column_operations(self, table_name, column_name) -> List[ColumnOperation]:
-        """Find operations which generate the specified column. Such operations have this column name in its outputs as well as the specified table name (each column operation has a table field)."""
-        return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.definition.get("outputs", []) and table_name == x.definition.get("table")]
 
     def create_calculate_column(
             self,
@@ -237,7 +241,7 @@ class Prosto:
         column = Column(self, definition)
         self.columns.append(column)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'calculate',
@@ -271,7 +275,7 @@ class Prosto:
         column = Column(self, definition)
         self.columns.append(column)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'link',
@@ -308,7 +312,7 @@ class Prosto:
         column = Column(self, definition)
         self.columns.append(column)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'merge',
@@ -339,7 +343,7 @@ class Prosto:
         column = Column(self, definition)
         self.columns.append(column)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'rolling',
@@ -377,7 +381,7 @@ class Prosto:
         column = Column(self, definition)
         self.columns.append(column)
 
-        # Create an operation definition
+        # Create operation definition
         operation_def = {
             "id": None,
             "operation": 'aggregate',

@@ -10,7 +10,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
     def test_calculate_value(self):
         sch = Prosto("My Prosto")
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="My table", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[], model=None, input_length='table'
         )
@@ -39,7 +39,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
     def test_all(self):
         sch = Prosto("My Prosto")
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="My table", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[], model=None, input_length='table'
         )

@@ -11,13 +11,13 @@ class ColumnLinkTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
         )
 
         # Groups
-        g_tbl = sch.create_populate_table(
+        g_tbl = sch.populate(
             table_name="Groups", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[], model=None, input_length='table'
         )
@@ -59,13 +59,13 @@ class ColumnLinkTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[], model=None, input_length='table'
         )
 
         # Groups
-        g_tbl = sch.create_populate_table(
+        g_tbl = sch.populate(
             table_name="Groups", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'a'], 'B': ['b', 'c', 'c'], 'C': [1, 2, 3]})", tables=[], model=None, input_length='table'
         )

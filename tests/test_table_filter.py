@@ -10,7 +10,7 @@ class TableFilterTestCase(unittest.TestCase):
     def test_filter_table(self):
         sch = Prosto("My Prosto")
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="Base table", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[], model=None, input_length='table'
         )
@@ -24,7 +24,7 @@ class TableFilterTestCase(unittest.TestCase):
         tbl.evaluate()
         clm.evaluate()
 
-        tbl = sch.create_filter_table(
+        tbl = sch.filter(
             table_name="Filtered table", attributes=["super"],
             func=None, tables=["Base table"], columns=["filter_column"]
         )
