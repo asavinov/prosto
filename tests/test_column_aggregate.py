@@ -11,14 +11,14 @@ class ColumnAggregateTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "M"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[], model=None, input_length='table'
         )
 
         # Groups
         df = pd.DataFrame({'A': ['a', 'b', 'c']})
-        g_tbl = sch.create_populate_table(
+        g_tbl = sch.populate(
             table_name="Groups", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[], model=None, input_length='table'
         )

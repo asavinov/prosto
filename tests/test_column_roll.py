@@ -10,7 +10,7 @@ class ColumnRollTestCase(unittest.TestCase):
     def test_roll_single(self):
         sch = Prosto("My Prosto")
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="My table", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
         )
@@ -33,7 +33,7 @@ class ColumnRollTestCase(unittest.TestCase):
     def test_roll_multiple(self):
         sch = Prosto("My Prosto")
 
-        tbl = sch.create_populate_table(
+        tbl = sch.populate(
             table_name="My table", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': [1, 2, 3], 'B': [3, 2, 1]})", tables=[], model=None, input_length='table'
         )

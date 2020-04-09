@@ -10,17 +10,17 @@ class TableProductTestCase(unittest.TestCase):
     def test_product(self):
         sch = Prosto("My Prosto")
 
-        t1 = sch.create_populate_table(
+        t1 = sch.populate(
             table_name="Table 1", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
         )
 
-        t2 = sch.create_populate_table(
+        t2 = sch.populate(
             table_name="Table 2", attributes=["B"],
             func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[], model=None, input_length='table'
         )
 
-        product = sch.create_product_table(
+        product = sch.product(
             table_name="Product", attributes=["t1", "t2"],
             tables=["Table 1", "Table 2"]
         )

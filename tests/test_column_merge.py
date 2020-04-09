@@ -11,13 +11,13 @@ class ColumnMergeTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
         )
 
         # Groups
-        g_tbl = sch.create_populate_table(
+        g_tbl = sch.populate(
             table_name="Groups", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
         )
@@ -69,13 +69,13 @@ class ColumnMergeTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         # Facts
-        f_tbl = sch.create_populate_table(
+        f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
         )
 
         # Groups
-        g_tbl = sch.create_populate_table(
+        g_tbl = sch.populate(
             table_name="Groups", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[], model=None, input_length='table'
         )
@@ -86,7 +86,7 @@ class ColumnMergeTestCase(unittest.TestCase):
         )
 
         # SuperGroups
-        sg_tbl = sch.create_populate_table(
+        sg_tbl = sch.populate(
             table_name="SuperGroups", attributes=["B", "C"],
             func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[], model=None, input_length='table'
         )
