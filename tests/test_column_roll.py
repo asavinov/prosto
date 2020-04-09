@@ -15,7 +15,7 @@ class ColumnRollTestCase(unittest.TestCase):
             func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
         )
 
-        clm = sch.create_rolling_column(
+        clm = sch.roll(
             name="Roll", table=tbl.id,
             window="2",
             func="lambda x: x.sum()", columns=["A"], model={}, input_length='column'
@@ -38,7 +38,7 @@ class ColumnRollTestCase(unittest.TestCase):
             func="lambda **m: pd.DataFrame({'A': [1, 2, 3], 'B': [3, 2, 1]})", tables=[], model=None, input_length='table'
         )
 
-        clm = sch.create_rolling_column(
+        clm = sch.roll(
             name="Roll", table=tbl.id,
             window="2",
             func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}, input_length='column'

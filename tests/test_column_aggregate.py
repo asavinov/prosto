@@ -24,13 +24,13 @@ class ColumnAggregateTestCase(unittest.TestCase):
         )
 
         # Link
-        l_clm = sch.create_link_column(
+        l_clm = sch.link(
             name="Link", table=f_tbl.id, type=g_tbl.id,
             columns=["A"], linked_columns=["A"]
         )
 
         # Aggregation
-        a_clm = sch.create_aggregate_column(
+        a_clm = sch.aggregate(
             name="Aggregate", table=g_tbl.id,
             tables=["Facts"], link="Link",
             func="lambda x, bias,**model: x.sum() + bias", columns=["M"], model={"bias": 0.0}, input_length='column'

@@ -23,13 +23,13 @@ class ColumnMergeTestCase(unittest.TestCase):
         )
 
         # Link
-        l_clm = sch.create_link_column(
+        l_clm = sch.link(
             name="Link", table=f_tbl.id, type=g_tbl.id,
             columns=["A"], linked_columns=["A"]
         )
 
         # Merge
-        m_clm = sch.create_merge_column("Merge", f_tbl.id, ["Link", "B"])
+        m_clm = sch.merge("Merge", f_tbl.id, ["Link", "B"])
 
         f_tbl.evaluate()
         g_tbl.evaluate()
@@ -80,7 +80,7 @@ class ColumnMergeTestCase(unittest.TestCase):
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[], model=None, input_length='table'
         )
         # Link
-        l_clm = sch.create_link_column(
+        l_clm = sch.link(
             name="Link", table=f_tbl.id, type=g_tbl.id,
             columns=["A"], linked_columns=["A"]
         )
@@ -91,13 +91,13 @@ class ColumnMergeTestCase(unittest.TestCase):
             func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[], model=None, input_length='table'
         )
         # SuperLink
-        sl_clm = sch.create_link_column(
+        sl_clm = sch.link(
             name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
             columns=["B"], linked_columns=["B"]
         )
 
         # Merge
-        m_clm = sch.create_merge_column("Merge", f_tbl.id, ["Link", "SuperLink", "C"])
+        m_clm = sch.merge("Merge", f_tbl.id, ["Link", "SuperLink", "C"])
 
         f_tbl.evaluate()
         g_tbl.evaluate()

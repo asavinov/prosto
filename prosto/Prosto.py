@@ -226,7 +226,7 @@ class Prosto:
     # Column operations
     #
 
-    def create_calculate_column(
+    def calculate(
             self,
             name, table,
             func, columns=None, model=None, input_length='column'
@@ -259,7 +259,7 @@ class Prosto:
 
         return column
 
-    def create_link_column(
+    def link(
             self,
             name, table, type,
             columns, linked_columns=None
@@ -291,7 +291,7 @@ class Prosto:
 
         return column
 
-    def create_merge_column(
+    def merge(
             self,
             name, table,
             columns
@@ -327,7 +327,7 @@ class Prosto:
 
         return column
 
-    def create_rolling_column(
+    def roll(
             self,
             name, table,
             window,
@@ -365,7 +365,7 @@ class Prosto:
 
         return column
 
-    def create_aggregate_column(
+    def aggregate(
             self,
             name, table,
             tables, link,

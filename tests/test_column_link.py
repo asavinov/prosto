@@ -23,7 +23,7 @@ class ColumnLinkTestCase(unittest.TestCase):
         )
 
         # Link
-        l_clm = sch.create_link_column(
+        l_clm = sch.link(
             name="Link", table=f_tbl.id, type=g_tbl.id,
             columns=["A"], linked_columns=["A"]
         )
@@ -71,7 +71,7 @@ class ColumnLinkTestCase(unittest.TestCase):
         )
 
         # Link
-        l_clm = sch.create_link_column(
+        l_clm = sch.link(
             name="Link", table=f_tbl.id, type=g_tbl.id,
             columns=["A", "B"], linked_columns=["A", "B"]
         )
