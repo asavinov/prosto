@@ -15,7 +15,7 @@ class IncrementalTestCase(unittest.TestCase):
             table_name="My table", attributes=["A"],
         )
 
-        clm = sch.create_calculate_column(
+        clm = sch.calculate(
             name="My column", table=tbl.id,
             func="lambda x: float(x)", columns=["A"], model=None, input_length='value'
         )
