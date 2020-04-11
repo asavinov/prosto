@@ -5,6 +5,15 @@
 |  __/| | | (_) \__ \ || (_) | Data Processing Toolkit
 |_|   |_|  \___/|___/\__\___/  _______________________
 ```
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
+
+
+* [What is Prosto?](#what-is-prosto)
+* [Why Prosto?](#why-prosto)
+* [Getting started with Prosto](#getting-started-with-prosto)
+* [Concepts](#concepts)
+* [Prosto operations](#prosto-operations)
+* [How to use](#how-to-use)
 
 # What is Prosto?
 
@@ -12,22 +21,22 @@
 
 `Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two kinds of operations:
 
-* *Table (population) operations* produce new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
-* *Column (evaluation) operations* produce new columns from existing columns. A column is an implementation of a mathematical *function* which is a mapping of values from one set to another set.
+* *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
+* *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which is a mapping of values from one set to another set.
 
-Data processing logic is provided via *user-defined functions* which can be as simple as format conversion and as complex as as a machine learning algorithm.
-
-## Why Prosto?
+# Why Prosto?
 
 Prosto provides the following unique features and benefits:
 
-* *Processing data in multiple tables.* We can easily implement calculate columns (as demonstrated in examples) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` makes it easy to process data stored in many tables by relying on `link` columns which are also evaluated from the data.
+* *Processing data in multiple tables.* We can easily implement calculate columns (as demonstrated in examples) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` is intended for and makes it easy to process data stored in many tables by relying on `link` columns which are also evaluated from the data.
 
 * *Getting rid of joins.* Data in multiple tables can be processed using the relational join operation. However, it is tedious, error prone and requires high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are part of one workflow.
 
 * *Getting rid of group-by.* Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially in describing complex analytical workflows.
 
-* *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing. They provide the logic of processing at the level of individual values while the logic of looping through the sets is implemented by the system according to the type of operation applied.
+* *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing. They provide the logic of processing at the level of individual values while the logic of looping through the sets is implemented by the system according to the type of operation applied. User-defined functions can be as simple as format conversion and as complex as as a machine learning algorithm.
+
+* In future, `Prosto` will implement such features as *incremental evaluation*, *model management*, and other data processing operations.
 
 # Getting started with Prosto
 
@@ -41,7 +50,7 @@ import prosto as pr
 
 ## Defining a workflow
 
-A workflow contains definitions of data elements (tables and columns) as well as operations for data generation. Before data processing operations can be defined, a `Prosto` workflow has to be created:
+A workflow contains *definitions* of data elements (tables and columns) as well as *operations* for data generation. Before data processing operations can be defined, a `Prosto` workflow has to be created:
 
 ```python
 prosto = pr.Prosto("My Prosto Workflow")
@@ -56,7 +65,7 @@ prosto = pr.Prosto("My Prosto Workflow")
 
 Each table has some structure which is defined by its *attributes*. Table data is defined by the tuples it consists of and each tuple is a combination of some attribute values.
 
-There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `population` operation. It relies on a *user-defined function* which is supposed to *know* how to populate the table by returning a `pandas` data frame with the data:
+There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `population` operation. It relies on a *user-defined function* which is supposed to "know" how to populate this table by returning a `pandas` data frame with the data:
 
 ```python
 sales_data = {
@@ -72,7 +81,7 @@ sales = prosto.populate(
     # Table operation is an UDF, list of input tables and model (parameters for UDF)
     func=lambda **m: pd.DataFrame(sales_data), tables=[], model={},
 
-    # This parameter says that UDF returns a complete data frame
+    # This parameter says that UDF returns a complete data frame (not one row)
     input_length="table"
 )
 ```
@@ -151,23 +160,29 @@ It is summarized in the table:
 | Dimensionality    | Number of axes   | Number of attributes   |
 
 
-Obviously, this difference makes it extremely difficult to combine these two semantics in one framework.
+Obviously, these differences makes it extremely difficult to combine these two semantics in one framework.
 
-`Prosto` is an implementation of the set-oriented approach where a table represents a set and its rows represent tuples. Note however that `prosto` supports an extended version of the set-oriented approach which includes also functions as the first-class elements of the model.
+`Prosto` is an implementation of the set-oriented approach where a table represents a set and its rows represent tuples. Note however that `Prosto` supports an extended version of the set-oriented approach which includes also functions as the first-class elements of the model.
 
 ## Sets and functions
 
 Tuples are a formal representation of data values. A tuple has structure declared by its *attributes*.
 
-A *set* is a collection of *tuples*. A set is a formal representation of a collection of values. Tuples (data values) can be only added to or removed from a set. In `prosto`, we refer to sets as tables, that is, tables implement sets. 
+A *set* is a collection of *tuples*. A set is a formal representation of a collection of values. Tuples (data values) can be only added to or removed from a set. In `Prosto`, we refer to sets as tables, that is, tables implement sets. 
 
-A *function* is a mapping from an input set to an output set. Given an input value, the output value can be read from the function or set for the function. In `prosto`, we refer to functions as columns, that is, columns are implementations of functions.
+A *function* is a mapping from an input set to an output set. Given an input value, the output value can be read from the function or set for the function. In `Prosto`, we refer to functions as columns, that is, columns are implementations of functions.
 
-## `Pandas` vs. `prosto`
+## Attributes and columns
+
+Attributes define the structure of tuples and they are not evaluated. Attribute values are specified by the table population procedure.
+
+Columns implement functions (mappings between sets) and their values are computed by the column evaluation procedure.
+
+## `Pandas` vs. `Prosto`
 
 `Pandas` is very powerful toolkit which relies on the notion of matrix for data representation. In other words, a matrix is the main unit of data representation in `pandas`. Yet, `pandas` supports not only matrix operations (in this case, having `numpy` would be enough) but also set operations and relational operations as well as map-reduce and OLAP and some other conceptions. In this sense, `pandas` is a quite eclectic toolkit. 
 
-In contrast, `prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model. Yet, `prosto` relies on `pandas` in its implementation just because `pandas` provides a really powerful set of various highly optimized operations with data. Yet, these operations are used as one possible implementation method by essentially changing their semantics when wrapped into `prosto` operations.
+In contrast, `Prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model. Yet, `Prosto` relies on `pandas` in its implementation just because `pandas` provides a really powerful set of various highly optimized operations with data. Yet, these operations are used as one possible implementation method by essentially changing their semantics when wrapped into `Prosto` operations.
 
 # Prosto operations
 
@@ -195,13 +210,13 @@ In contrast, `prosto` is based on only one theoretical basis: the concept-orient
 
 ### Calculate column (instead of map operation)
 
-Probably the simplest and most frequent operation in `prosto` is computing a new column of the table which is done by defining a `calculate` column. The main computational part of the definition is a (Python) function which returns a single value computed from one or more input values in its arguments. 
+Probably the simplest and most frequent operation in `Prosto` is computing a new column of the table which is done by defining a `calculate` column. The main computational part of the definition is a (Python) function which returns a single value computed from one or more input values in its arguments. 
 
 This function will be evaluated for each row of the table and its outputs will be stored as a new column. 
 
 It is precisely how `apply` works in `pandas` (and actually it relies on it in its implementation) but it is different from how `map` operation works because a calculated column does not add any new table while `map` computes a new collection (which makes computations less efficient). 
 
-The `prosto` approach is somewhat similar to spreadsheets with the difference that new columns depend on only one coordinate - other columns - while cells in spreadsheets depend on two coordinates - row and column addresses. The both however are equally simple and natural.   
+The `Prosto` approach is somewhat similar to spreadsheets with the difference that new columns depend on only one coordinate - other columns - while cells in spreadsheets depend on two coordinates - row and column addresses. The both however are equally simple and natural.   
 
 ### Link column (instead of join)
 
@@ -255,7 +270,7 @@ This table is intended to produce all combinations of rows in other tables. Its 
 Uses:
 * Creating a cube table from dimension tables for multi-dimensional analysis. It is typically followed by aggregating data in the fact table. 
 
-# How to install
+# How to use
 
 ## Install from source code
 
@@ -279,9 +294,9 @@ Install from repository:
 $ pip install prosto
 ```
 
-This command will install the latest version of `prosto` from repository.
+This command will install the latest version of `Prosto` from repository.
 
-# How to test
+## How to test
 
 Run tests from the project root:
 
