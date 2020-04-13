@@ -35,7 +35,7 @@ def get_columns(names, df=None) -> List[str]:
             elif isinstance(col, int) and df is not None:
                 result.append(df.columns[col])
             else:
-                log.error(f"Error reading column '{str(col)}'. Names have to be strings or integers.")
+                log.error("Error reading column '{}'. Names have to be strings or integers.".format(str(col)))
                 return None
 
         # Process default (auto) values

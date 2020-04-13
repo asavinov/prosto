@@ -76,7 +76,7 @@ class TableOperation(Operation):
             dependencies.extend(self.prosto.get_columns(source_table_name, source_keys))
 
         else:
-            log.warning(f"Unknown operation type '{operation}' in the definition of table '{self.id}'.")
+            log.warning("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
             return
 
         return dependencies
@@ -95,7 +95,7 @@ class TableOperation(Operation):
         output_table_name = outputs[0]
         output_table = self.prosto.get_table(output_table_name)
 
-        log.info(f"===> Start populating '{operation}' table '{output_table.id}'")
+        log.info("===> Start populating '{}' table '{}'".format(operation, output_table.id))
 
         if operation.lower().startswith('noop'):
             new_data = None
@@ -106,7 +106,7 @@ class TableOperation(Operation):
             elif input_length == 'table':
                 new_data = self._evaluate_populate_table()
             else:
-                log.error(f"Unknown input_type parameter '{input_length}'.")
+                log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
 
         elif operation.lower().startswith('prod'):
@@ -119,19 +119,19 @@ class TableOperation(Operation):
             new_data = self._evaluate_project()
 
         else:
-            log.warning(f"Unknown operation type '{operation}' in the definition of table '{self.id}'.")
+            log.warning("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
             return
 
         if new_data is not None:
             output_table.data.remove_all()
             output_table.data.add(new_data)
 
-        log.info(f"<=== Finish populating table '{output_table.id}'")
+        log.info("<=== Finish populating table '{}'".format(output_table.id))
 
     def _evaluate_populate_row(self):
         """The function is applied to one row (from an input table) and generates a sub-table which will be appnded to the result."""
         definition = self.definition
-        log.error(f"Row-based table population not supported.")
+        log.error("Row-based table population not supported.".format())
 
     def _evaluate_populate_table(self):
         """The result dataframe is genreated by the specified function using dataframe from input tables and model parameters."""
@@ -142,12 +142,12 @@ class TableOperation(Operation):
         #
         func_name = definition.get('function')
         if not func_name:
-            log.error(f"Table function '{func_name}' is not specified. Skip table definition.")
+            log.error("Table function '{}' is not specified. Skip table definition.".format(func_name))
             return
 
         func = resolve_full_name(func_name)
         if not func:
-            log.error(f"Cannot resolve user-defined function '{func_name}'. Skip table definition.")
+            log.error("Cannot resolve user-defined function '{}'. Skip table definition.".format(func_name))
             return
 
         #
@@ -191,7 +191,7 @@ class TableOperation(Operation):
         columns = out.columns.tolist()
         for att in attributes:
             if att not in columns:
-                log.error(f"Declared attribute '{att}' is not in the populated table data.")
+                log.error("Declared attribute '{}' is not in the populated table data.".format(att))
                 return
 
         #
@@ -215,10 +215,10 @@ class TableOperation(Operation):
         #
         tables = self.definition.get("tables")
         if not tables:
-            log.error(f"Table product operation must specify at least one table in the 'tables' field.")
+            log.error("Table product operation must specify at least one table in the 'tables' field.".format())
             return
         if len(tables) != len(attributes):
-            log.error(f"Number of input tables must be equal to the number of attributes in product table definition.")
+            log.error("Number of input tables must be equal to the number of attributes in product table definition.".format())
             return
 
         tables = self.prosto.get_tables(tables)
@@ -248,7 +248,7 @@ class TableOperation(Operation):
         #
         tables = self.definition.get("tables")
         if not tables:
-            log.error(f"Table filter operation must specify one base table in the 'tables' field.")
+            log.error("Table filter operation must specify one base table in the 'tables' field.".format())
             return
         tables = self.prosto.get_tables(tables)
 
@@ -260,7 +260,7 @@ class TableOperation(Operation):
         #
         columns = self.definition.get("columns")
         if not columns:
-            log.error(f"Filter operation must specify a boolean column from the base table in the 'columns' field.")
+            log.error("Filter operation must specify a boolean column from the base table in the 'columns' field.".format())
             return
 
         filter_column_name = columns[0]
@@ -271,7 +271,7 @@ class TableOperation(Operation):
         #
         attributes = output_table.definition.get("attributes", [])
         if len(attributes) != 1:
-            log.error(f"Filter table must declare one attribute for linking to the base table.")
+            log.error("Filter table must declare one attribute for linking to the base table.".format())
             return
         super_attribute = attributes[0]
 
@@ -301,7 +301,7 @@ class TableOperation(Operation):
         #
         tables = self.definition.get("tables")
         if not tables:
-            log.error(f"Project operation must specify one input table in the 'tables' field")
+            log.error("Project operation must specify one input table in the 'tables' field".format())
             return
         tables = self.prosto.get_tables(tables)
 
@@ -313,7 +313,7 @@ class TableOperation(Operation):
         #
         link_column_name = definition.get('link')
         if not link_column_name:
-            log.error(f"Project operation must specify a link column from the input table in the 'function' field.")
+            log.error("Project operation must specify a link column from the input table in the 'function' field.".format())
             return
         link_column = source_table.get_column(link_column_name)
 
@@ -326,19 +326,19 @@ class TableOperation(Operation):
         link_column_op = link_column_ops[0]
         source_keys = link_column_op.get_columns()
         if not all_columns_exist(source_keys, source_table_data):
-            log.error(f"Not all key columns available in the link column definition.")
+            log.error("Not all key columns available in the link column definition.".format())
             return
 
         # Find this (target) table attributes to be created
         attributes = output_table.definition.get("attributes", [])
         if len(attributes) != len(source_keys):
-            log.error(f"Project table must declare one attribute for each input of the corresonding link column.")
+            log.error("Project table must declare one attribute for each input of the corresponding link column.".format())
             return
 
         # Link column can define its own target keys. We do not use them but want to check the validity because the link evaluation can fail later.
         linked_inputs = link_column_op.definition.get("linked_inputs", [])
         if len(linked_inputs) > 0 and set(attributes) != set(linked_inputs):
-            log.warning(f"Attributes of the project table are different from the 'linked_inputs' of the corresonding link column.")
+            log.warning("Attributes of the project table are different from the 'linked_inputs' of the corresonding link column.".format())
 
         #
         # Stage 4. Produce all unique combinations of the input columns

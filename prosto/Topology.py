@@ -57,7 +57,7 @@ class Topology:
                 if isinstance(op, (TableOperation, ColumnOperation)):
                     dep_elems = op.get_dependencies()  # Get all element definitions this element depends upon
                 else:
-                    log.error(f"Operation '{op.id}' with unknown class found while building topology.")
+                    log.error("Operation '{}' with unknown class found while building topology.".format(op.id))
                     dep_elems = []
 
                 #
@@ -70,7 +70,7 @@ class Topology:
                     elif isinstance(dep, Column):
                         ops = self.prosto.get_column_operations(dep.table.id, dep.id)
                     else:
-                        log.error(f"Element '{dep.id}' with unknown class found while building topology (only Table and Column are possible).")
+                        log.error("Element '{}' with unknown class found while building topology (only Table and Column are possible).".format(dep.id))
                         ops = []
                     dep_ops.extend(ops)
 

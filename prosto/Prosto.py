@@ -418,7 +418,7 @@ class Prosto:
 
     def run(self) -> None:
         """Execute the whole workflow."""
-        log.info(f"Start executing workflow '{self.id}'.")
+        log.info("Start executing workflow '{}'.".format(self.id))
 
         # Translate if necessary
         if self.topology is None:
@@ -433,14 +433,14 @@ class Prosto:
                 elif isinstance(op, ColumnOperation):
                     op.evaluate()
                 else:
-                    log.warning(f"Unknown element '{op.id}' in the topology '{self.id}'.")
+                    log.warning("Unknown element '{}' in the topology '{}'.".format(op.id, self.id))
 
         # Clear change status of all elements
         for tbl in self.tables:
             tbl.data.clear_change_status()
             tbl.data.gc()
 
-        log.info(f"Finished executing workflow '{self.id}'.")
+        log.info("Finished executing workflow '{}'.".format(self.id))
 
 
 if __name__ == "__main__":
