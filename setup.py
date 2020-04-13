@@ -1,21 +1,21 @@
 import setuptools
 
 # import ``__version__`` from code base
-exec(open('prosto/version.py').read())
+exec(open('prosto/__init__.py').read())
 
 setuptools.setup(
     name='prosto',
     version=__version__,
 
     # descriptive metadata for upload to PyPI
-    description='Prosto data processing toolkit',
+    description='Data processing toolkit radically changing the way data is processed',
     long_description=open("README.md", "r").read(),
     long_description_content_type="text/markdown",
     author='Prosto Data',
     author_email='52108119+prostodata@users.noreply.github.com',
     license='MIT License',
-    keywords = ['data processing', 'feature engineering', 'data science', 'analytics', 'machine learning', 'data mining', 'forecasting', 'time series', 'pandas'],
-    url='https://github.com/prostodata',
+    keywords = ['data processing', 'analytics', 'data science', 'pandas', 'map-reduce', 'feature engineering', 'business intelligence'],
+    url='https://github.com/prostodata/prosto',
     classifiers=[
         "Development Status :: 4 - Beta",
         "Programming Language :: Python",
@@ -33,13 +33,15 @@ setuptools.setup(
 
     # dependencies
     install_requires=[
-        'numpy>=1.16',
-        'pandas>=0.24',
+        'numpy',
+        'pandas',
     ],
     zip_safe=True,
 
     # package content (what to include)
     packages=setuptools.find_packages(),
+    #packages=setuptools.find_packages(exclude=("tests",)),
+    #packages=["prosto", "notebooks", "tests"],
 
     package_data={
         # If any package contains *.txt or *.rst files, include them:
@@ -48,16 +50,4 @@ setuptools.setup(
         #'hello': ['*.msg'],
     },
 
-    # It will generate prosto.exe and prosto-script.py in the Scripts folder of Python
-    #entry_points={
-    #    'console_scripts': [
-    #        'prosto=prosto.main:main'
-    #    ],
-    #},
-    # The files will be copied to Scripts folder of Python
-    scripts=[
-        #'scripts/prosto.bat',
-        #'scripts/prosto',
-        #'scripts/prosto.py',
-    ],
 )
