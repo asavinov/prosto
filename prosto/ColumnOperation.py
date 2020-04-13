@@ -131,7 +131,7 @@ class ColumnOperation(Operation):
 
         data = output_table.get_data()
 
-        log.info(f"---> Start evaluating '{operation}' column '{self.id}'.")
+        log.info("---> Start evaluating '{}' column '{}'.".format(operation, self.id))
 
         #
         # Operations without UDF
@@ -143,7 +143,7 @@ class ColumnOperation(Operation):
 
             self._impose_output_columns(out)
 
-            log.info(f"<--- Finish evaluating column '{self.id}'")
+            log.info("<--- Finish evaluating column '{}'".format(self.id))
             return
 
         # Compose columns use their own definition format different from computational (functional) definitions
@@ -152,7 +152,7 @@ class ColumnOperation(Operation):
 
             self._impose_output_columns(out)
 
-            log.info(f"<--- Finish evaluating column '{self.id}'")
+            log.info("<--- Finish evaluating column '{}'".format(self.id))
             return
 
         #
@@ -161,12 +161,12 @@ class ColumnOperation(Operation):
 
         func_name = definition.get('function')
         if not func_name:
-            log.error(f"Column function '{func_name}' is not specified. Skip column definition.")
+            log.error("Column function '{}' is not specified. Skip column definition.".format(func_name))
             return
 
         func = resolve_full_name(func_name)
         if not func:
-            log.error(f"Cannot resolve user-defined function '{func_name}'. Skip column definition.")
+            log.error("Cannot resolve user-defined function '{}'. Skip column definition.".format(func_name))
             return
 
         if operation.lower().startswith('calc'):
@@ -179,7 +179,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.error(f"Not all input columns available. Skip column definition.")
+                log.error("Not all input columns available. Skip column definition.".format())
                 return
 
             # Slice input according to the change status
@@ -195,7 +195,7 @@ class ColumnOperation(Operation):
             elif input_length == 'column':
                 out = self._evaluate_calc_column(func, data, data_type, model)
             else:
-                log.error(f"Unknown input_type parameter '{input_length}'.")
+                log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
 
         elif operation.lower().startswith('roll'):
@@ -208,7 +208,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.warning(f"Not all input columns available. Skip column definition.")
+                log.warning("Not all input columns available. Skip column definition.".format())
                 return
 
             # Slice input according to the change status (incremental not implemented)
@@ -216,12 +216,12 @@ class ColumnOperation(Operation):
             range = output_table.data.id_range()
 
             if input_length == 'value':
-                log.error(f"Accumulation is not implemented.")
+                log.error("Accumulation is not implemented.".format())
                 return
             elif input_length == 'column':
                 out = self._evaluate_roll_column(func, data, data_type, model)
             else:
-                log.error(f"Unknown input_type parameter '{input_length}'.")
+                log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
 
         elif operation.lower().startswith('aggr'):
@@ -232,13 +232,13 @@ class ColumnOperation(Operation):
             source_table_name = tables[0]
             source_table = self.prosto.get_table(source_table_name)
             if source_table is None:
-                log.error(f"Cannot find the fact table '{source_table_name}'.")
+                log.error("Cannot find the fact table '{}'.".format(source_table_name))
                 return
 
             link_column_name = definition.get('link')
             link_column = source_table.get_column(link_column_name)
             if link_column is None:
-                log.error(f"Cannot find the link column '{link_column_name}'.")
+                log.error("Cannot find the link column '{}'.".format(link_column_name))
                 return
 
             data = source_table.get_data()  # Data (to be processed) is a (source) table which is different from the output table
@@ -252,7 +252,7 @@ class ColumnOperation(Operation):
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.warning(f"Not all input columns available. Skip column definition.")
+                log.warning("Not all input columns available. Skip column definition.".format())
                 return
 
             data = data[columns]  # Select only the specified *input* columns
@@ -263,16 +263,16 @@ class ColumnOperation(Operation):
             range = output_table.data.id_range()
 
             if input_length == 'value':
-                log.error(f"Accumulation is not implemented.")
+                log.error("Accumulation is not implemented.".format())
                 return
             elif input_length == 'column':
                 out = self._evaluate_group_column(func, data, data_type, model)
             else:
-                log.error(f"Unknown input_type parameter '{input_length}'.")
+                log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
 
         else:
-            log.error(f"Unknown operation type '{operation}' in the definition of column '{self.id}'.")
+            log.error("Unknown operation type '{}' in the definition of column '{}'.".format(operation, self.id))
             return
 
         #
@@ -280,7 +280,7 @@ class ColumnOperation(Operation):
         #
         self._impose_output_columns(out, range)
 
-        log.info(f"<--- Finish evaluating column '{self.id}'")
+        log.info("<--- Finish evaluating column '{}'".format(self.id))
 
     def _evaluate_calc_value(self, func, data, data_type, model):
         """Calculate column. Apply function to each row of the table."""
@@ -325,7 +325,7 @@ class ColumnOperation(Operation):
                     out = pd.DataFrame.apply(data, func, axis=1, raw=False, args=(model,))  # Model as an arbitrary object
 
         else:
-            log.error(f"Unknown input data type '{type(data_type).__name__}'")
+            log.error("Unknown input data type '{}'".format(type(data_type).__name__))
 
         return out
 
@@ -370,20 +370,20 @@ class ColumnOperation(Operation):
 
         main_keys = self.get_columns()
         if not all_columns_exist(main_keys, main_table.get_data()):
-            log.error(f"Not all key columns available in the link column definition.")
+            log.error("Not all key columns available in the link column definition.".format())
             return
 
         linked_table_name = output_column.definition.get('type', '')
         linked_table = self.prosto.get_table(linked_table_name)
         if not linked_table:
-            log.error(f"Linked table '{linked_table}' cannot be found in the link column definition..")
+            log.error("Linked table '{}' cannot be found in the link column definition.".format(linked_table))
             return
 
         linked_columns = definition.get('linked_columns', [])
         if len(linked_columns) == 0:
             linked_columns = linked_table.definition.get("attributes", [])  # By default (e.g., for projection), we link to target table attributes
         if not all_columns_exist(linked_columns, linked_table.get_data()):
-            log.error(f"Not all linked key columns available in the link column definition.")
+            log.error("Not all linked key columns available in the link column definition.".format())
             return
 
         #
@@ -607,7 +607,7 @@ class ColumnOperation(Operation):
             gb = source_table.get_data().groupby(link_column_name, as_index=True)
             # Alternatively, we could use target keys or main keys
         except Exception as e:
-            log.error(f"Error grouping input table using the specified column(s).")
+            log.error("Error grouping input table using the specified column(s).".format())
             log.debug(e)
             raise e
 
@@ -642,22 +642,22 @@ class ColumnOperation(Operation):
             out = pd.DataFrame(out)  # Series name will be column name
         elif isinstance(out, (list,tuple)):
             # TODO: Convert a list of series or data frames into one data frame. They all have to have same index.
-            log.error(f"List (of series) as a result of evaluation is currently not supported.")
+            log.error("List (of series) as a result of evaluation is currently not supported.".format())
             return
         elif isinstance(out, np.ndarray):
             # TODO: Convert ndarray into dataframe. Main problem is that we need to know the index and then assume that the values in ndarray are sequential.
-            log.error(f"NumPy array as a result of evaluation is currently not supported.")
+            log.error("NumPy array as a result of evaluation is currently not supported.".format())
             return
 
         #
         # Assign (custom) column names
         #
         if len(out.columns) > len(outputs):
-            log.error(f"An operation returned {len(out.columns)} columns, which is more than specified in its definition for its output'.")
+            log.error("Operation returned {} columns, which is more than specified in its definition for its output.".format(len(out.columns)))
             return
 
         if len(out.columns) < len(outputs):
-            log.warning(f"An operation returned {len(out.columns)} columns, which is less than specified in its definition for its output'.")
+            log.warning("Operation returned {} columns, which is less than specified in its definition for its output.".format(len(out.columns)))
 
         out.columns = outputs[0:len(out.columns)]
 

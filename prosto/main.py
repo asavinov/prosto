@@ -12,7 +12,7 @@ log = logging.getLogger('prosto')
 def run(script_file):
 
     # TODO: Not implemented
-    log.error(f"Script execution is not implemented.")
+    log.error("Script execution is not implemented.".format())
 
     return 0
 
@@ -41,7 +41,7 @@ def main(args = None):
     try:
         exitcode = run(arguments.script_file)
     except Exception as e:
-        log.error(f"Error executing script file {arguments.script_file}.")
+        log.error("Error executing script file {}.".format(arguments.script_file))
         log.exception(e)
 
     logging.shutdown()
