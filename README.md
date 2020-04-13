@@ -1,12 +1,13 @@
 ```
  ____                _        
-|  _ \ _ __ ___  ___| |_ ___   _______________________
+|  _ \ _ __ ___  ___| |_ ___   ___________________________________________
 | |_) | '__/ _ \/ __| __/ _ \ 
-|  __/| | | (_) \__ \ || (_) | Data Processing Toolkit
-|_|   |_|  \___/|___/\__\___/  _______________________
+|  __/| | | (_) \__ \ || (_) | Data Processing Toolkit - noSql-noMapReduce
+|_|   |_|  \___/|___/\__\___/  ___________________________________________
 ```
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
-
+[![Python 3.6](https://img.shields.io/badge/python-3.6-brightgreen.svg)](https://www.python.org/downloads/release/python-370/)
+[![PyPI version](https://badge.fury.io/py/prosto.svg)](https://badge.fury.io/py/prosto)
 
 * [What is Prosto?](#what-is-prosto)
 * [Why Prosto?](#why-prosto)
@@ -17,9 +18,11 @@
 
 # What is Prosto?
 
-`Prosto` is a data processing toolkit which significantly simplifies data processing and analysis. Conceptually, it is an alternative (and opposed) to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like Python `pandas`.
+`Prosto` is a data processing toolkit which significantly simplifies data processing and analysis. 
 
-`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two kinds of operations:
+Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like Python `pandas`.
+
+`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two categories of operations:
 
 * *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
 * *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which is a mapping of values from one set to another set.
@@ -36,7 +39,7 @@ Prosto provides the following unique features and benefits:
 
 * *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing. They provide the logic of processing at the level of individual values while the logic of looping through the sets is implemented by the system according to the type of operation applied. User-defined functions can be as simple as format conversion and as complex as as a machine learning algorithm.
 
-* In future, `Prosto` will implement such features as *incremental evaluation*, *model management*, and other data processing operations.
+* In future, `Prosto` will implement such features as *incremental evaluation* for processing only what has changed, *model training* for training models as part of the workflow, data/model persistence and other data processing and analysis operations.
 
 # Getting started with Prosto
 
@@ -61,7 +64,7 @@ prosto = pr.Prosto("My Prosto Workflow")
 * A *table population operation* adds new records to the table given records from one or more input tables
 * A *column evaluation operation* generates values of the column given values of one or more input columns
 
-## Defining tables
+## Defining a table
 
 Each table has some structure which is defined by its *attributes*. Table data is defined by the tuples it consists of and each tuple is a combination of some attribute values.
 
@@ -75,7 +78,7 @@ sales_data = {
 }
 
 sales = prosto.populate(
-    # A table definition consists of a name and a list of attributes
+    # Table definition consists of a name and a list of attributes
     table_name="Sales", attributes=["product_name", "quantity", "price"],
 
     # Table operation is an UDF, list of input tables and model (parameters for UDF)
@@ -90,7 +93,7 @@ The user-defined function in this example returns a `pandas` data frame with in-
 
 Other table operations like `project`, `product` and `filter` allow for processing table data from already existing input tables which in turn could be populated using other operations.
 
-## Defining columns
+## Defining a column
 
 A column is formally interpreted as a mathematical function which maps tuples (defined by table attributes) of this table to tuples in another table.
 
@@ -143,7 +146,7 @@ Although it looks like a normal table, the last column was derived from the data
 
 # Concepts
 
-## Matrixes and sets
+## Matrixes vs. sets
 
 It is important to understand the following crucial difference between matrixes and sets expressed in terms of multidimensional spaces:
 
@@ -152,37 +155,37 @@ It is important to understand the following crucial difference between matrixes 
 
 It is summarized in the table:
 
-| Tables            | Matrix           | Set                    |
-| ---               | ---              | ---                    |
-| Point coordinates | Cell axes values | Tuple attribute values |
-| Point property    | Cell value       | Tuple existence        |
-| Dimension         | Axis             | Attribute              |
-| Dimensionality    | Number of axes   | Number of attributes   |
+| Property          | Matrix                | Set                    |
+| ---               | ---                   | ---                    |
+| Dimension         | Axis                  | Attribute              |
+| Point coordinates | Cell axes values      | Tuple attribute values |
+| Dimensionality    | Number of axes        | Number of attributes   |
+| Represents        | Distribution          | Predicate              |
+| Point             | Value of distribution | True of false          |
 
+The both structure can represent some distribution over a multidimensional space but do it in different ways. Obviously, these differences make it extremely difficult to combine these two semantics in one framework.
 
-Obviously, these differences makes it extremely difficult to combine these two semantics in one framework.
+`Prosto` is an implementation of the set-oriented approach where a table represents a set and its rows represent tuples. Note however that `Prosto` supports an extended version of the set-oriented approach which includes also functions as first-class elements of the model.
 
-`Prosto` is an implementation of the set-oriented approach where a table represents a set and its rows represent tuples. Note however that `Prosto` supports an extended version of the set-oriented approach which includes also functions as the first-class elements of the model.
+## Sets vs. functions
 
-## Sets and functions
+*Tuples* are a formal representation of data values. A tuple has structure declared by its *attributes*.
 
-Tuples are a formal representation of data values. A tuple has structure declared by its *attributes*.
+A *set* is a collection of *tuples*. A set is a formal representation of a collection of values. Tuples (data values) can be only added to or removed from a set. In `Prosto`, sets are implemented via table objects. 
 
-A *set* is a collection of *tuples*. A set is a formal representation of a collection of values. Tuples (data values) can be only added to or removed from a set. In `Prosto`, we refer to sets as tables, that is, tables implement sets. 
+A *function* is a mapping from an input set to an output set. Given an input value, the output value can be read from the function or set for the function. In `Prosto`, functions are implemented via column objects.
 
-A *function* is a mapping from an input set to an output set. Given an input value, the output value can be read from the function or set for the function. In `Prosto`, we refer to functions as columns, that is, columns are implementations of functions.
+## Attributes vs. columns
 
-## Attributes and columns
-
-Attributes define the structure of tuples and they are not evaluated. Attribute values are specified by the table population procedure.
+Attributes define the structure of tuples and they are not evaluated. Attribute values are set by the table population procedure.
 
 Columns implement functions (mappings between sets) and their values are computed by the column evaluation procedure.
 
 ## `Pandas` vs. `Prosto`
 
-`Pandas` is very powerful toolkit which relies on the notion of matrix for data representation. In other words, a matrix is the main unit of data representation in `pandas`. Yet, `pandas` supports not only matrix operations (in this case, having `numpy` would be enough) but also set operations and relational operations as well as map-reduce and OLAP and some other conceptions. In this sense, `pandas` is a quite eclectic toolkit. 
+`Pandas` is a very powerful toolkit which relies on the notion of matrix for data representation. In other words, matrix is the main unit of data representation in `pandas`. Yet, `pandas` supports not only matrix operations (in this case, having `numpy` would be enough) but also set operations, relational operations, map-reduce, multidimensional and OLAP as well as some other conceptions. In this sense, `pandas` is a quite eclectic toolkit. 
 
-In contrast, `Prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model. Yet, `Prosto` relies on `pandas` in its implementation just because `pandas` provides a really powerful set of various highly optimized operations with data. Yet, these operations are used as one possible implementation method by essentially changing their semantics when wrapped into `Prosto` operations.
+In contrast, `Prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model. Yet, `Prosto` relies on `pandas` in its implementation just because `pandas` provides a powerful set of various highly optimized operations with data.
 
 # Prosto operations
 
@@ -205,6 +208,7 @@ In contrast, `Prosto` is based on only one theoretical basis: the concept-orient
   * `filter` - rows of the new table are a subset of rows from another table
   * `project` - rows of the new table are all unique sub-tuples from another table
 
+Examples of these operations can be found in unit tests or Jupyter notebooks in the `notebooks` project folder.
 
 ## Column operations
 
@@ -218,6 +222,8 @@ It is precisely how `apply` works in `pandas` (and actually it relies on it in i
 
 The `Prosto` approach is somewhat similar to spreadsheets with the difference that new columns depend on only one coordinate - other columns - while cells in spreadsheets depend on two coordinates - row and column addresses. The both however are equally simple and natural.   
 
+Check out the `calculate.ipynb` notebook for a working example of the `calculate` operaiton.
+
 ### Link column (instead of join)
 
 We can define and evaluate new columns only in individual tables but we cannot define a new column which depends on the data in another table. Link columns solve this problem. A link column stores values which uniquely represent rows of a target (linked) table. In this sense, it is a normal column with some values which are computed using some definition. The difference is how these values are computed and their semantics. They do not have a domain-specific semantics but rather they are understood only by the system. More specifically, each value of a link column is a reference to a row in the linked table or None in the case it does not reference anything. 
@@ -230,6 +236,8 @@ Link columns have several major uses:
 * Link columns are used when defining aggregate columns
 
 There could be other criteria for matching rows and defining link columns which will be implemented in future versions.
+
+Check out the `link.ipynb` notebook for a working example of the `link` operaiton.
 
 ### Merge column (instead of join)
 
@@ -245,11 +253,15 @@ This column will aggregate data located in "neighbor" rows of this same table wh
 
 Currently, its logic is equivalent to that of the rolling aggregation in `pandas` with the difference that the result column is immediately added to the table and this operation is part of the whole workflow.
 
+Check out the `roll.ipynb` notebook for a working example of rolling aggregation.
+
 ### Aggregate column (instead of groupby)
 
 This column aggregates data in groups of rows selected from another table. The selection is performed by specifying an existing link column which links the fact table with this (group) table. The new column is added to this (group) table. 
 
 Currently, its logic is equivalent to that of the groupby in `pandas` with the difference that the result column is added to the existing table and the two tables must be linked beforehand.
+
+Check out the `aggregate.ipynb` notebook for a working example of aggregation.
 
 ## Table operations
 
@@ -262,6 +274,8 @@ It is one of the most frequently used operations. The main difference form conve
 This operation has these important uses:
 * Creating a table with group elements for aggregation because (in contrast to other approaches) it must exist
 * Creating a dimension table for multi-dimensional analysis in the case it does not exist
+
+Check out the `project.ipynb` notebook for a working example of the `project` operaiton.
 
 ### Product of tables (instead of join)
 
@@ -286,15 +300,13 @@ Or alternatively:
 $ python setup.py install
 ```
 
-## Install from repository
+## Install from PYPI
 
-Install from repository:
+This command will install the latest release of `Prosto` from PYPI:
 
 ```console
 $ pip install prosto
 ```
-
-This command will install the latest version of `Prosto` from repository.
 
 ## How to test
 
