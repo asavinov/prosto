@@ -2,8 +2,8 @@ import os
 import sys
 import argparse
 
-from prosto.Prosto import *
-from prosto.version import *
+import prosto as pr
+#from prosto.Prosto import *
 
 import logging
 log = logging.getLogger('prosto')
@@ -19,7 +19,7 @@ def run(script_file):
 def main(args = None):
     if not args: args = sys.argv[1:]
 
-    programVersion = 'Version ' + VERSION
+    programVersion = 'Version ' + pr.__version__
     programDescription = 'Prosto data processing toolkit' + programVersion
 
     parser = argparse.ArgumentParser(description=programDescription)
