@@ -407,6 +407,37 @@ class Prosto:
 
         return column
 
+    def discretize(
+            self,
+            name, table,
+            columns=None, model=None
+    ) -> Column:
+        """Create a new discretize column."""
+
+        # Create a column definition
+        definition = {
+            "id": name,
+            "table": table,
+        }
+        column = Column(self, definition)
+        self.columns.append(column)
+
+        # Create operation definition
+        operation_def = {
+            "id": None,
+            "operation": 'discretize',
+
+            "table": table,
+            "outputs": [name],
+
+            "columns": columns,
+            "model": model,
+        }
+        operation = ColumnOperation(self, operation_def)
+        self.operations.append(operation)
+
+        return column
+
     #
     # Execution
     #
