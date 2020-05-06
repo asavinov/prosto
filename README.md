@@ -200,6 +200,7 @@ In contrast, `Prosto` is based on only one theoretical basis: the concept-orient
   * `merge` - new columns values are copied from a linked column in another table
   * `roll` - new column values are computed from the subset of rows in the same table
   * `aggregate` - new column values are computed from a subset of row in another table
+  * `discretize` - new column values are a finite number of groups like numeric intervals
 
 * Table operations
 
@@ -262,6 +263,12 @@ This column aggregates data in groups of rows selected from another table. The s
 Currently, its logic is equivalent to that of the groupby in `pandas` with the difference that the result column is added to the existing table and the two tables must be linked beforehand.
 
 Check out the `aggregate.ipynb` notebook for a working example of aggregation.
+
+### Discretize column
+
+Let us assume that we have a numeric column but we want to partition it into a finite number of intervals and then use these intervals intead of numeric values. The `discretize` coumn produces a new column with a finite number of values where each such value represents a group the input value belongs to.
+
+How the groups are identified and how the input space is partitioned is defined in the model. In the simplest case, there is one numeric column and the model defines intervals with equal length. These intervals are identified by their border value (left or right). The output columm will contain border values for the intervals input values belong to. For example, if we have temperature values in the input column like 21.1, 23.3, 22.2 etc. but we want to use discrete values like 21, 23, 22, then we need to define a `discretize` column. In this case, it is similar to rounding (which can be implemented using a `calculate` column) but the logic of discretization can be more complicated.
 
 ## Table operations
 

@@ -1,5 +1,6 @@
 from typing import Union, Any, List, Set, Dict, Tuple, Optional
 import json
+import math
 
 from prosto.utils import *
 
@@ -94,6 +95,10 @@ class ColumnOperation(Operation):
             # Measure columns
             dependencies.extend(self.prosto.get_columns(source_table_name, columns))
 
+        elif operation.lower().startswith('disc'):
+            # Input column objects for which we need to find definitions
+            dependencies.extend(input_columns)
+
         else:
             return []
 
@@ -151,6 +156,36 @@ class ColumnOperation(Operation):
             out = self._evaluate_merge()
 
             self._impose_output_columns(out)
+
+            log.info("<--- Finish evaluating column '{}'".format(self.id))
+            return
+
+        # Discretize column using some logic of partitioning represented in the model
+        if operation.lower().startswith('disc'):
+            # Determine input columns
+            columns = self.get_columns()
+            columns = get_columns(columns, data)
+            if columns is None:
+                log.error("Error reading column list. Skip column definition.")
+                return
+
+            # Validation: check if all explicitly specified columns available
+            if not all_columns_exist(columns, data):
+                log.error("Not all input columns available. Skip column definition.".format())
+                return
+
+            # Slice input according to the change status
+            if self.prosto.incremental:
+                data = output_table.data.get_added_slice(columns)
+                range = output_table.data.added_range
+            else:
+                data = output_table.data.get_full_slice(columns)
+                range = output_table.data.id_range()
+
+
+            out = self._evaluate_discretize(data, model)
+
+            self._impose_output_columns(out, range)
 
             log.info("<--- Finish evaluating column '{}'".format(self.id))
             return
@@ -518,6 +553,92 @@ class ColumnOperation(Operation):
         # Here we get linked column names like 'Prefix::OriginalName'
 
         return out_df
+
+    def _evaluate_discretize(self, data, model):
+        """Discretize column. Apply discretization function to each row of the table."""
+        definition = self.definition
+
+        # Currently we discretize only one numeric column
+
+        #
+        # Single input: Apply to a series. UDF will get single value
+        #
+        if isinstance(data, pd.Series) or ((isinstance(data, pd.DataFrame) and len(data.columns) == 1)):
+            if isinstance(data, pd.DataFrame):
+                ser = data[data.columns[0]]
+            else:
+                ser = data
+        else:
+            log.error("Discretize expects only one column as input")
+            return None
+
+        # Discretization functions
+        # Model example: {
+        #   "origin/base/ancor": 1, (default is 0) - value the steps are started from (also negative). it is always label no 0 (but can represent left/negative or right/positive interval).
+        #   "step/freq/rule": 10, - length of one whole interval (unit of the raster)
+        #   "label/label_end/border": "left/right" (return left or right border as id, default is left),
+        #   "closed": "left/right" (default left),
+        #   "label_value": "step/border" (default step_no, interval_no) - return intervla number or border value (note that returning float value is a bad idea because floats are bad representatives for discrete groups, also step/interval_no are continuous)
+        #   }
+        def disc_numeric_fn(value, **model):
+            # How many whole steps from origin till this point (including or excluding) and what is the remainder
+            # How many whole (integer) steps are from origin to this value (in both directions)
+            #   What is origin - label number 0? If so, then we determine which, left or righ interval it represents with left-right borders, and it is a basis of further computations.
+            #   It is (value - origin) // step OR float division and then round by removing after dot (which is remainder)
+            #   int() rounds down so 1.9 will be 1,
+            #   math.floor(-0.5) = -1, 1.2 -> 1,
+
+            # ----0---------1---------2---------3--- label_no
+            #    )[        )[        )[        )[ closed left - either left or right label
+            #     ](        ](        ](        ]( closed right - either left or right label
+
+            # Get parameters
+            origin = model.get("origin", 0)
+            step = model.get("step", 1)
+            label = model.get("label", "left")
+            closed = model.get("closed", "left")
+            label_value = model.get("label_value", "interval")
+
+            steps = (value - origin) / step
+            left_border_no = math.floor(steps)  # floor: the largest integer less than or equal to x, floor(-0.5) = -1
+            right_border_no = math.ceil(steps)  # ceil: the smallest integer greater than or equal to x
+            # Alternatively, use math.modf(x) - Return the fractional and integer parts of x
+            # Alternatively, use int()
+
+            #
+            # Determine borders of the interval the value belongs to
+            #
+            if left_border_no == right_border_no:  # Value is exactly on the border - interval is not known (either left or right)
+                if closed == "left":  # Interval on the right
+                    right_border_no += 1
+                else:  # Interval on the left
+                    left_border_no -= 1
+
+            #
+            # Determine label for this interval
+            #
+            if label == "left":
+                label_no = left_border_no
+            else:
+                label_no = right_border_no
+
+            if label_value == "interval":
+                return label_no
+            else:
+                return label_no * step
+
+        if model is None:
+            log.error("Discretize expects non-empty model.")
+            return None
+        elif isinstance(model, (list, tuple)):
+            out = pd.Series.apply(ser, disc_numeric_fn, *model)  # Model as positional arguments
+        elif isinstance(model, dict):
+            # Pass model by flattening dict (alternative: arbitrary Python object as positional or key argument). UDF has to declare the expected arguments
+            out = pd.Series.apply(ser, disc_numeric_fn, **model)  # Model as keyword arguments
+        else:
+            out = pd.Series.apply(ser, disc_numeric_fn, args=(model,))  # Model as an arbitrary object
+
+        return out
 
     def _evaluate_roll_column(self, func, data, data_type, model):
         """Roll column. Apply aggregate function to each window defined on this same table for every record."""

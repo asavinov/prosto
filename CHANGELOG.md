@@ -1,5 +1,8 @@
 # Change Log
 
+* v0.3.0-SNAPSHOT (2020-xx-xx)
+* discretize column
+
 * v0.2.0 (2020-04-13)
   * various improvements, renamings, short documentation in readme
   * basic incremental evaluation for calculate columns
