@@ -39,7 +39,11 @@ class ColumnOperation(Operation):
         # All derived columns depend on their table
         dependencies.append(output_table)
 
-        if operation.lower().startswith('calc'):
+        if operation.lower().startswith('comp'):
+            # Input column objects for which we need to find definitions
+            dependencies.extend(input_columns)
+
+        elif operation.lower().startswith('calc'):
             # Input column objects for which we need to find definitions
             dependencies.extend(input_columns)
 
@@ -204,7 +208,7 @@ class ColumnOperation(Operation):
             log.error("Cannot resolve user-defined function '{}'. Skip column definition.".format(func_name))
             return
 
-        if operation.lower().startswith('calc'):
+        if operation.lower().startswith('comp') or operation.lower().startswith('calc'):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
@@ -225,10 +229,10 @@ class ColumnOperation(Operation):
                 data = output_table.data.get_full_slice(columns)
                 range = output_table.data.id_range()
 
-            if input_length == 'value':
-                out = self._evaluate_calc_value(func, data, data_type, model)
-            elif input_length == 'column':
+            if operation.lower().startswith('comp'):  # Equivalently: input_length == 'column'
                 out = self._evaluate_calc_column(func, data, data_type, model)
+            elif operation.lower().startswith('calc'):  # Equivalently: input_length == 'value'
+                out = self._evaluate_calc_value(func, data, data_type, model)
             else:
                 log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return

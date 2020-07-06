@@ -197,19 +197,20 @@ In contrast, `Prosto` is based on only one theoretical basis: the concept-orient
 
 * Column operations
 
-  * `calculate` - new column values are computed from other values in the same table and row
-  * `link` - new column values uniquely represent rows from another table
-  * `merge` - new columns values are copied from a linked column in another table
-  * `roll` - new column values are computed from the subset of rows in the same table
-  * `aggregate` - new column values are computed from a subset of row in another table
-  * `discretize` - new column values are a finite number of groups like numeric intervals
+  * `compute`: A complete new column is computed from the input columns of the same table. It is analogous to table `populate` operation
+  * `calculate`: New column values are computed from other values in the same table and row
+  * `link`: New column values uniquely represent rows from another table
+  * `merge`: New columns values are copied from a linked column in another table
+  * `roll`: New column values are computed from the subset of rows in the same table
+  * `aggregate`: New column values are computed from a subset of row in another table
+  * `discretize`: New column values are a finite number of groups like numeric intervals
 
 * Table operations
 
-  * `populate` - rows of the new table are populated by the specified procedure
-  * `product` - rows of the new table are combinations of rows from other tables
-  * `filter` - rows of the new table are a subset of rows from another table
-  * `project` - rows of the new table are all unique sub-tuples from another table
+  * `populate`: A complete table with all its rows is populated and returned by the specified UDF
+  * `product`: A new table consists of all combinations of rows in the inputs tables
+  * `filter`: A new table is a subset of rows from another table selected using the specified UDF
+  * `project`: A new table consists of all unique combinations of the specified columns of the input table
 
 Examples of these operations can be found in unit tests or Jupyter notebooks in the `notebooks` project folder.
 
