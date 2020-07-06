@@ -230,9 +230,9 @@ class ColumnOperation(Operation):
                 range = output_table.data.id_range()
 
             if operation.lower().startswith('comp'):  # Equivalently: input_length == 'column'
-                out = self._evaluate_calc_column(func, data, data_type, model)
+                out = self._evaluate_compute(func, data, data_type, model)
             elif operation.lower().startswith('calc'):  # Equivalently: input_length == 'value'
-                out = self._evaluate_calc_value(func, data, data_type, model)
+                out = self._evaluate_calculate(func, data, data_type, model)
             else:
                 log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
@@ -258,7 +258,7 @@ class ColumnOperation(Operation):
                 log.error("Accumulation is not implemented.".format())
                 return
             elif input_length == 'column':
-                out = self._evaluate_roll_column(func, data, data_type, model)
+                out = self._evaluate_roll(func, data, data_type, model)
             else:
                 log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
@@ -305,7 +305,7 @@ class ColumnOperation(Operation):
                 log.error("Accumulation is not implemented.".format())
                 return
             elif input_length == 'column':
-                out = self._evaluate_group_column(func, data, data_type, model)
+                out = self._evaluate_aggregate(func, data, data_type, model)
             else:
                 log.error("Unknown input_type parameter '{}'.".format(input_length))
                 return
@@ -321,7 +321,7 @@ class ColumnOperation(Operation):
 
         log.info("<--- Finish evaluating column '{}'".format(self.id))
 
-    def _evaluate_calc_value(self, func, data, data_type, model):
+    def _evaluate_calculate(self, func, data, data_type, model):
         """Calculate column. Apply function to each row of the table."""
 
         #
@@ -368,7 +368,7 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_calc_column(self, func, data, data_type, model):
+    def _evaluate_compute(self, func, data, data_type, model):
         """Calculate column. Apply function to all inputs and return calculated column(s)."""
 
         #
@@ -426,7 +426,9 @@ class ColumnOperation(Operation):
             return
 
         #
-        # 1. In the target (linked) table, convert its index into a normal column (because we can only merge normal columns and index)
+        # 1. In the target (linked) table, convert its index into a normal column
+        # The reason is that we can only merge normal columns and not index.
+        # The values of this index column will be copied to our new link column and hence will reference the linked rows
         #
         index_column_name = '__row_id__' # It could be 'id', 'index' or whatever other convention
         linked_table.get_data()[index_column_name] = linked_table.get_data().index
@@ -644,7 +646,7 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_roll_column(self, func, data, data_type, model):
+    def _evaluate_roll(self, func, data, data_type, model):
         """Roll column. Apply aggregate function to each window defined on this same table for every record."""
         definition = self.definition
 
@@ -693,7 +695,7 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_group_column(self, func, data, data_type, model):
+    def _evaluate_aggregate(self, func, data, data_type, model):
         """Group column. Apply aggregate function to each group of records of the fact table."""
         definition = self.definition
 

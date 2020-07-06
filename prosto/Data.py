@@ -40,10 +40,14 @@ class Data:
         self.table = table
 
         # Data frame which store the real data for this table (all its attributes and columns)
+        if table.definition.get("index"):
+            raise NotImplementedError("Currently only default (integer, sequential) index is implemented.")
+        else:  # Default sequential integer raster
+            index = pd.Int64Index([])
+            index.astype(int)
         attributes = table.definition.get("attributes", [])
-        self.df = pd.DataFrame(columns=attributes, index=pd.Int64Index([]))
+        self.df = pd.DataFrame(columns=attributes, index=index)
         self.df.name = table.id
-        self.df.index.astype(int)
 
         # Track changes
         self.removed_range = Range(0, 0)
