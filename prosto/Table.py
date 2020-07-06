@@ -4,7 +4,6 @@ import json
 from prosto.utils import *
 
 from prosto.Prosto import *
-from prosto.Table import *
 from prosto.Column import *
 from prosto.Data import *
 
