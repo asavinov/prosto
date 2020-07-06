@@ -13,13 +13,13 @@ class ColumnLinkTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
         )
 
         # Groups
         g_tbl = sch.populate(
             table_name="Groups", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[]
         )
 
         # Link
@@ -61,13 +61,13 @@ class ColumnLinkTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[]
         )
 
         # Groups
         g_tbl = sch.populate(
             table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'a'], 'B': ['b', 'c', 'c'], 'C': [1, 2, 3]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'a'], 'B': ['b', 'c', 'c'], 'C': [1, 2, 3]})", tables=[]
         )
 
         # Link

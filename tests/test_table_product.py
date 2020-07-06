@@ -12,12 +12,12 @@ class TableProductTestCase(unittest.TestCase):
 
         t1 = sch.populate(
             table_name="Table 1", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
         )
 
         t2 = sch.populate(
             table_name="Table 2", attributes=["B"],
-            func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[]
         )
 
         product = sch.product(

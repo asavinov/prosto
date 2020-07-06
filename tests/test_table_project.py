@@ -13,7 +13,7 @@ class TableProjectTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
         )
 
         # Groups
@@ -63,7 +63,7 @@ class TableProjectTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[]
         )
 
         # Groups

@@ -12,13 +12,13 @@ class ColumnRollTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="My table", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
         )
 
         clm = sch.roll(
             name="Roll", table=tbl.id,
             window="2",
-            func="lambda x: x.sum()", columns=["A"], model={}, input_length='column'
+            func="lambda x: x.sum()", columns=["A"], model={}
         )
 
         tbl.evaluate()
@@ -35,13 +35,13 @@ class ColumnRollTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="My table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1, 2, 3], 'B': [3, 2, 1]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1, 2, 3], 'B': [3, 2, 1]})", tables=[]
         )
 
         clm = sch.roll(
             name="Roll", table=tbl.id,
             window="2",
-            func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}, input_length='column'
+            func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}
         )
 
         tbl.evaluate()

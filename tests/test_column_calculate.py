@@ -12,7 +12,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="My table", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[]
         )
 
         clm = sch.calculate(
@@ -41,7 +41,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="My table", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[]
         )
 
         clm = sch.calculate(

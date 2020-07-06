@@ -13,14 +13,14 @@ class ColumnAggregateTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "M"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[]
         )
 
         # Groups
         df = pd.DataFrame({'A': ['a', 'b', 'c']})
         g_tbl = sch.populate(
             table_name="Groups", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[]
         )
 
         # Link
@@ -33,7 +33,7 @@ class ColumnAggregateTestCase(unittest.TestCase):
         a_clm = sch.aggregate(
             name="Aggregate", table=g_tbl.id,
             tables=["Facts"], link="Link",
-            func="lambda x, bias,**model: x.sum() + bias", columns=["M"], model={"bias": 0.0}, input_length='column'
+            func="lambda x, bias,**model: x.sum() + bias", columns=["M"], model={"bias": 0.0}
         )
 
         f_tbl.evaluate()
