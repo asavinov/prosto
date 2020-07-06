@@ -12,7 +12,7 @@ class TableFilterTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="Base table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
         )
 
         clm = sch.calculate(

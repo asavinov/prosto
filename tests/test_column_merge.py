@@ -13,13 +13,13 @@ class ColumnMergeTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
         )
 
         # Groups
         g_tbl = sch.populate(
             table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [1.0, 2.0, 3.0]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [1.0, 2.0, 3.0]})", tables=[]
         )
 
         # Link
@@ -71,13 +71,13 @@ class ColumnMergeTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
         )
 
         # Groups
         g_tbl = sch.populate(
             table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
         )
         # Link
         l_clm = sch.link(
@@ -88,7 +88,7 @@ class ColumnMergeTestCase(unittest.TestCase):
         # SuperGroups
         sg_tbl = sch.populate(
             table_name="SuperGroups", attributes=["B", "C"],
-            func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[], model=None, input_length='table'
+            func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
         )
         # SuperLink
         sl_clm = sch.link(

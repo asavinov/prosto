@@ -12,7 +12,7 @@ class TablePopulateTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="My table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']})", tables=[], model={"nrows": 3}, input_length='table'
+            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']})", tables=[], model={"nrows": 3}
         )
 
         tbl.evaluate()
@@ -29,7 +29,7 @@ class TablePopulateTestCase(unittest.TestCase):
 
         tbl = sch.populate(
             table_name="My table", attributes=["A", "B"],
-            func=populate_fn, tables=[], model={"nrows": 3}, input_length='table'
+            func=populate_fn, tables=[], model={"nrows": 3}
         )
 
         tbl.evaluate()
