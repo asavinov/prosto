@@ -70,7 +70,7 @@ prosto = pr.Prosto("My Prosto Workflow")
 
 Each table has some structure which is defined by its *attributes*. Table data is defined by the tuples it consists of and each tuple is a combination of some attribute values.
 
-There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `population` operation. It relies on a *user-defined function* which is supposed to "know" how to populate this table by returning a `pandas` data frame with the data:
+There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `populate` operation. It relies on a *user-defined function* which is supposed to "know" how to populate this table by returning a `pandas` data frame with the data:
 
 ```python
 sales_data = {
@@ -84,10 +84,7 @@ sales = prosto.populate(
     table_name="Sales", attributes=["product_name", "quantity", "price"],
 
     # Table operation is an UDF, list of input tables and model (parameters for UDF)
-    func=lambda **m: pd.DataFrame(sales_data), tables=[], model={},
-
-    # This parameter says that UDF returns a complete data frame (not one row)
-    input_length="table"
+    func=lambda **m: pd.DataFrame(sales_data), tables=[], model={}
 )
 ```
 
@@ -107,10 +104,7 @@ calc_column = prosto.calculate(
     name="amount", table=sales.id,
 
     # Column operation is UDF, list of input columns and model (parameters for UDF)
-    func=lambda x: x["quantity"] * x["price"], columns=["quantity", "price"], model=None,
-
-    # This parameter says that the UDF returns one value (not a whole column)
-    input_length="value"
+    func=lambda x: x["quantity"] * x["price"], columns=["quantity", "price"], model=None
 )
 ```
 
