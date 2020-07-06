@@ -15,10 +15,10 @@ class TableFilterTestCase(unittest.TestCase):
             func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
         )
 
-        clm = sch.calculate(
+        clm = sch.compute(
             name="filter_column", table=tbl.id,
             func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
-            columns=["A", "B"], model={"param": 1.5}, input_length='column'
+            columns=["A", "B"], model={"param": 1.5}
         )
 
         tbl.evaluate()

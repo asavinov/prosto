@@ -17,7 +17,7 @@ class IncrementalTestCase(unittest.TestCase):
 
         clm = sch.calculate(
             name="My column", table=tbl.id,
-            func="lambda x: float(x)", columns=["A"], model=None, input_length='value'
+            func="lambda x: float(x)", columns=["A"], model=None
         )
 
         sch.run()  # Inference on empty data

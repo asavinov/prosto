@@ -246,15 +246,54 @@ class Prosto:
     # Column operations
     #
 
-    def calculate(
+    def compute(
             self,
             name, table,
-            func, columns=None, model=None, input_length='column'
+            func, columns=None, model=None
     ) -> Column:
         """
         Create a new calculate column.
 
         The output values are computed from the input values of the same row using the specified UDF.
+        UDF is called one time and returns a new column with all the value computed from the input columns passed in the parameters.
+        """
+
+        # Create a column definition
+        definition = {
+            "id": name,
+            "table": table,
+        }
+        column = Column(self, definition)
+        self.columns.append(column)
+
+        # Create operation definition
+        operation_def = {
+            "id": None,
+            "operation": 'compute',
+
+            "table": table,
+            "outputs": [name],
+
+            "function": func,
+            "columns": columns,
+            "model": model,
+            "input_length": 'column',
+        }
+        operation = ColumnOperation(self, operation_def)
+        self.operations.append(operation)
+
+        return column
+
+    def calculate(
+            self,
+            name, table,
+            func, columns=None, model=None
+    ) -> Column:
+        """
+        Create a new calculate column.
+
+        The output values are computed from the input values of the same row using the specified UDF.
+        UDF is called as many times as there are input rows in the table and each time returns one value calculated from the input values passed in the parameters.
         """
 
         # Create a column definition
@@ -276,7 +315,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": input_length,
+            "input_length": 'value',
         }
         operation = ColumnOperation(self, operation_def)
         self.operations.append(operation)

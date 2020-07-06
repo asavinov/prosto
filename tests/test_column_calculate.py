@@ -17,7 +17,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
 
         clm = sch.calculate(
             name="My column", table=tbl.id,
-            func="lambda x: float(x)", columns=["A"], model=None, input_length='value'
+            func="lambda x: float(x)", columns=["A"], model=None
         )
 
         tbl.evaluate()
@@ -44,9 +44,9 @@ class ColumnCalculateTestCase(unittest.TestCase):
             func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[]
         )
 
-        clm = sch.calculate(
+        clm = sch.compute(
             name="My column", table=tbl.id,
-            func="lambda x, **model: x.shift(**model)", columns=["A"], model={"periods": -1}, input_length='column'
+            func="lambda x, **model: x.shift(**model)", columns=["A"], model={"periods": -1}
         )
 
         tbl.evaluate()
