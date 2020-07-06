@@ -39,6 +39,8 @@ Prosto provides the following unique features and benefits:
 
 * *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing. They provide the logic of processing at the level of individual values while the logic of looping through the sets is implemented by the system according to the type of operation applied. User-defined functions can be as simple as format conversion and as complex as as a machine learning algorithm.
 
+* Data Dictionary (DD) for declaring schema, tables and columns, and Feature Store (FS) functions for definition operations over these data objects
+
 * In future, `Prosto` will implement such features as *incremental evaluation* for processing only what has changed, *model training* for training models as part of the workflow, data/model persistence and other data processing and analysis operations.
 
 # Getting started with Prosto
@@ -270,6 +272,9 @@ Let us assume that we have a numeric column but we want to partition it into a f
 
 How the groups are identified and how the input space is partitioned is defined in the model. In the simplest case, there is one numeric column and the model defines intervals with equal length. These intervals are identified by their border value (left or right). The output columm will contain border values for the intervals input values belong to. For example, if we have temperature values in the input column like 21.1, 23.3, 22.2 etc. but we want to use discrete values like 21, 23, 22, then we need to define a `discretize` column. In this case, it is similar to rounding (which can be implemented using a `calculate` column) but the logic of discretization can be more complicated.
 
+Links:
+* https://numpy.org/doc/stable/reference/generated/numpy.digitize.html
+
 ## Table operations
 
 ### Filter table (instead of select-where)
@@ -290,6 +295,14 @@ This table is intended to produce all combinations of rows in other tables. Its 
 
 Uses:
 * Creating a cube table from dimension tables for multi-dimensional analysis. It is typically followed by aggregating data in the fact table. 
+
+### Range table
+
+This operation populates a table with one attribute which contains values from a range described in the model. A range specification typically has such parameters as `start`, `end`, `step` size (or frequency), `origin` and others depending on the range type.
+
+Links:
+* https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
+* https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#generating-ranges-of-timestamps
 
 # How to use
 
