@@ -13,7 +13,7 @@ class ColumnAggregateTestCase(unittest.TestCase):
         # Facts
         f_tbl = sch.populate(
             table_name="Facts", attributes=["A", "M"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[]
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0], 'N': [4.0, 3.0, 2.0, 1.0]})", tables=[]
         )
 
         # Groups
@@ -33,7 +33,7 @@ class ColumnAggregateTestCase(unittest.TestCase):
         a_clm = sch.aggregate(
             name="Aggregate", table=g_tbl.id,
             tables=["Facts"], link="Link",
-            func="lambda x, bias,**model: x.sum() + bias", columns=["M"], model={"bias": 0.0}
+            func="lambda x, bias, **model: x.sum() + bias", columns=["M"], model={"bias": 0.0}
         )
 
         f_tbl.evaluate()
@@ -70,6 +70,27 @@ class ColumnAggregateTestCase(unittest.TestCase):
         self.assertEqual(a_clm_data[0], 3.0)
         self.assertEqual(a_clm_data[1], 7.0)
         self.assertEqual(a_clm_data[2], 0.0)
+
+        #
+        # Aggregation of multiple columns
+        #
+        # Aggregation
+        a_clm2 = sch.aggregate(
+            name="Aggregate 2", table=g_tbl.id,
+            tables=["Facts"], link="Link",
+            func="lambda x, my_param, **model: x['M'].sum() + x['N'].sum() + my_param", columns=["M", "N"], model={"my_param": 0.0}
+        )
+
+        #a_clm2.evaluate()
+        sch.translate()  # All data will be reset
+        sch.run()  # A new column is NOT added to the existing data frame (not clear where it is)
+
+        a_clm2_data = g_tbl.get_column_data('Aggregate 2')
+        self.assertEqual(a_clm2_data[0], 10.0)
+        self.assertEqual(a_clm2_data[1], 10.0)
+        self.assertEqual(a_clm2_data[2], 0.0)
+
+        pass
 
 
 if __name__ == '__main__':
