@@ -103,9 +103,15 @@ class Prosto:
     def populate(
             self,
             table_name, attributes,
-            func, tables=None, model=None, input_length='table'
+            func, tables=None, model=None
     ) -> Table:
-        """Create a new populate table."""
+        """
+        Create a new populate table.
+
+        The table will be populated with the data returned by the UDF specified as a parameter.
+        The method can be used to populate source tables with the data from external data sources.
+        The method can be used to process data in input tables and then these input tables have to be specified in the paraneters and their data will be passed to UDF.
+        """
 
         # Create a table definition
         table_def = {
@@ -125,7 +131,7 @@ class Prosto:
             "function": func,
             "tables": tables,
             "model": model,
-            "input_length": input_length,
+            "input_length": 'table',
         }
         operation = TableOperation(self, operation_def)
         self.operations.append(operation)
@@ -137,7 +143,12 @@ class Prosto:
             table_name, attributes,
             tables
     ) -> Table:
-        """Create a new product table."""
+        """
+        Create a new product table.
+
+        The output table is the Cartesian product of the input tables and consists of all combinations of their records.
+        Its attributes are links to the input tables.
+        """
 
         # Create a table definition
         table_def = {
@@ -166,7 +177,12 @@ class Prosto:
             table_name, attributes,
             func, tables, columns=None
     ) -> Table:
-        """Create a new filter table."""
+        """
+        Create a new filter table.
+
+        The output table consists of a subset of records from the input table.
+        It has one attribute which is a link to the input table.
+        """
 
         # Create a table definition
         table_def = {
@@ -197,7 +213,11 @@ class Prosto:
             table_name, attributes,
             link, tables
     ) -> Table:
-        """Create a new project table."""
+        """
+        Create a new project table.
+
+        The output table consists of all unique combinations of the specified attributes in the input table.
+        """
 
         # Create a table definition
         table_def = {
@@ -231,7 +251,11 @@ class Prosto:
             name, table,
             func, columns=None, model=None, input_length='column'
     ) -> Column:
-        """Create a new calculate column."""
+        """
+        Create a new calculate column.
+
+        The output values are computed from the input values of the same row using the specified UDF.
+        """
 
         # Create a column definition
         definition = {
@@ -264,7 +288,12 @@ class Prosto:
             name, table, type,
             columns, linked_columns=None
     ) -> Column:
-        """Create a new link column."""
+        """
+        Create a new link column.
+
+        The output values reference matching rows in another (linked) table.
+        Two rows match if their specified columns are equal.
+        """
 
         # Create a column definition
         definition = {
@@ -299,9 +328,9 @@ class Prosto:
         """
         Create a new merge column.
 
-        A merge column materializes a column in some other table which is accessed via a column path.
-        The column path is a sequence of link columns (except for maybe the last one).
-        The first segments starts from this table and the last segment represents a column to be merged.
+        A merge column materializes a column in some other table which is accessed via a link path.
+        The output values are equal to the linked values stored in another table.
+        The first segment of the link path starts from this table and the last segment represents a column to be merged (copied to the output column).
         """
 
         # Create a column definition
@@ -331,9 +360,13 @@ class Prosto:
             self,
             name, table,
             window,
-            func, columns=None, model=None, input_length='column'
+            func, columns=None, model=None
     ) -> Column:
-        """Create a new rolling aggregation column."""
+        """
+        Create a new rolling aggregation column.
+
+        Each output value is equal to one (aggregated) value computed from several rows (window) of this table.
+        """
 
         # Create a column definition
         definition = {
@@ -358,7 +391,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": input_length,
+            "input_length": 'column',
         }
         operation = ColumnOperation(self, operation_def)
         self.operations.append(operation)
@@ -369,9 +402,13 @@ class Prosto:
             self,
             name, table,
             tables, link,
-            func, columns=None, model=None, input_length='column'
+            func, columns=None, model=None
     ) -> Column:
-        """Create a new aggregate column."""
+        """
+        Create a new aggregate column.
+
+        Each output value is equal to one (aggregated) value computed from several rows (group) of another (fact) table.
+        """
 
         # Create a column definition
         definition = {
@@ -397,7 +434,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": input_length,
+            "input_length": 'column',
 
             "initial_value": 0.0, # Pre-process like initial value
             "fillna_value": 0.0,  # Postprocess
@@ -412,7 +449,11 @@ class Prosto:
             name, table,
             columns=None, model=None
     ) -> Column:
-        """Create a new discretize column."""
+        """
+        Create a new discretize column.
+
+        Each output value is produced by the specified discretization function.
+        """
 
         # Create a column definition
         definition = {
