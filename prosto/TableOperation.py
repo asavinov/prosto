@@ -230,7 +230,9 @@ class TableOperation(Operation):
 
         table_indexes = [x.index for x in table_datas]
 
+        # Compute cartesian product
         index = pd.MultiIndex.from_product(iterables=table_indexes, names=attributes)
+
         out = pd.DataFrame(index=index)
         out.reset_index(inplace=True)
 

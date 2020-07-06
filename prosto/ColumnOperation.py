@@ -446,14 +446,14 @@ class ColumnOperation(Operation):
             linked_table.get_data().rename(columns=lambda x: linked_prefix + x, inplace=False),  # Target table to link to. We rename columns (not in place - the original frame preserves column names)
             how='left',  # This (main) table is not changed - we attach target records
             left_on=main_keys,  # List of main table key columns
-            right_on= [linked_prefix + x for x in linked_columns],  # List of target table key columns. Note that we renamed them above so we use modified names.
+            right_on= [linked_prefix + x for x in linked_columns],  # List of target table key columns. Note that we renamed them above so we use modified names
             left_index=False,
             right_index=False,
             #suffixes=('', linked_suffix),  # We do not use suffixes because they cannot be enforced (they are used only in the case of equal column names)
             sort=False  # Sorting decreases performance
         )
 
-        # We do not need this column anymore - it was merged into the result as a link column
+        # We do not need this column anymore - it was merged (copied) to the result as a link column
         linked_table.get_data().drop(columns=[index_column_name], inplace=True)
 
         #
@@ -463,7 +463,7 @@ class ColumnOperation(Operation):
         # Rename our link column by using only specified column name
         out_df.rename({column_name+'::'+index_column_name: column_name}, axis='columns', inplace=True)
 
-        out = out_df[column_name]
+        out = out_df[column_name]  # We need only one column from the result data frame
 
         return out
 
@@ -659,39 +659,40 @@ class ColumnOperation(Operation):
         # TODO: try/catch with log message if cannot get window size
 
         #
-        # Single input. Moving aggregation of one input column. Function will get a sub-series as a data argument
+        # Single input. UDF will get a window sub-series as a data argument
         #
         if len(data.columns) == 1:
 
             in_column = data.columns.to_list()[0]
 
             # Create a rolling object with windowing (row-based windowing independent of the number of columns)
-            by_window = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
+            rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
 
             # Apply function to all windows
             if data_type == 'ndarray':
-                out = by_window[in_column].apply(func, raw=True, **model)
+                out = rl[in_column].apply(func, raw=True, **model)
             else:
-                out = by_window[in_column].apply(func, raw=False, **model)
+                out = rl[in_column].apply(func, raw=False, **model)
 
         #
-        # Multiple inputs. Function will get a sub-dataframe as a data argument
+        # Multiple inputs. UDF will get a window sub-dataframe as a data argument
         #
         else:
-
             #
-            # Workaround: create a new temporary data frame with all row ids, create a rolling object by using it, apply UDF to it, the UDF will get a window/group of row ids which can be then used to access this window rows from the main data frame:
+            # Problem: rolling apply passes only a series to UDF - we are not able to pass a frame (with multiple columns)
+            # Workaround: create a new temporary data frame with all row ids, create a rolling object over it, apply auxiliary function to it, it will get a window/group of row ids which can be then used to access this window rows from the main data frame:
             # Link: https://stackoverflow.com/questions/45928761/rolling-pca-on-pandas-dataframe
             #
 
-            df_idx = pd.DataFrame(np.arange(data.shape[0]))  # Temporary data frame with all row ids like 0,1,2,...
-            idx_window = df_idx.rolling(**rolling_args)  # Create rolling object from ids-frame
+            df_idx = pd.DataFrame(np.arange(data.shape[0]))  # Temporary frame with all row ids like 0,1,2,...
+            rl_idx = df_idx.rolling(**rolling_args)  # Create rolling object from ids-frame
 
-            # Auxiliary function creates a subframe with data and passes it to the user function
+            # Auxiliary function, when called, will get a series of row ids as a window. It will select a sub-dataframe using these ids and pass it to UDF
             def window_fn(ids, user_f):
-                return user_f(data.iloc[ids])
+                df_window = data.iloc[ids]  # Select rows with the necessary ids
+                return user_f(df_window)
 
-            out = idx_window.apply(lambda x: window_fn(x, func), raw=False)  # Both Series and ndarray work (for iloc)
+            out = rl_idx.apply(lambda x: window_fn(x, func), raw=False)  # Both Series and ndarray work (for iloc)
 
         return out
 
@@ -704,13 +705,24 @@ class ColumnOperation(Operation):
         #
         gb = self._get_or_create_groupby()
 
-        if len(data.columns) == 0:  # Special case: no input columns (or function is size()
+        #
+        # Special case: no input columns (or function is size()
+        #
+        if len(data.columns) == 0:
             out = gb.size()
-        if len(data.columns) == 1:  # Single input: udf will get a sub-series with fact values
-            out = gb[data.columns[0]].agg(func, **model)  # Apply function to all groups
-        else:  # Multiple inputs. Function will get a sub-dataframe as a data argument
-            # TODO:
-            pass
+
+        #
+        # Single input. UDF will get a window sub-series as a data argument
+        #
+        elif len(data.columns) == 1:
+            in_column = data.columns.to_list()[0]
+            out = gb[in_column].agg(func, **model)  # Apply function to all groups
+
+        #
+        # Multiple inputs. UDF will get a window sub-dataframe as a data argument
+        #
+        else:
+            out = gb.apply(func, **model)
 
         return out
 
@@ -796,3 +808,4 @@ class ColumnOperation(Operation):
 
 if __name__ == "__main__":
     pass
+
