@@ -327,62 +327,73 @@ class ColumnOperation(Operation):
         #
         # Single input: Apply to a series. UDF will get single value
         #
-        if isinstance(data, pd.Series) or ((isinstance(data, pd.DataFrame) and len(data.columns) == 1)):
-            if isinstance(data, pd.DataFrame):
-                ser = data[data.columns[0]]
-            else:
-                ser = data
+        if len(data.columns) == 1:
+            data_arg = data[data.columns[0]]  # Series
 
+            # Determine format/type of representation
+            if data_type == 'ndarray':
+                data_arg = data_arg.values
+
+            #
+            # Call UDF depending on the necessary model parameter
+            #
             if model is None:
-                out = pd.Series.apply(ser, func)  # Do not pass model to the function
+                out = pd.Series.apply(data_arg, func)  # Do not pass model to the function
             elif isinstance(model, (list, tuple)):
-                out = pd.Series.apply(ser, func, *model)  # Model as positional arguments
+                out = pd.Series.apply(data_arg, func, *model)  # Model as positional arguments
             elif isinstance(model, dict):
                 # Pass model by flattening dict (alternative: arbitrary Python object as positional or key argument). UDF has to declare the expected arguments
-                out = pd.Series.apply(ser, func, **model)  # Model as keyword arguments
+                out = pd.Series.apply(data_arg, func, **model)  # Model as keyword arguments
             else:
-                out = pd.Series.apply(ser, func, args=(model,))  # Model as an arbitrary object
+                out = pd.Series.apply(data_arg, func, args=(model,))  # Model as an arbitrary object
 
         #
         # Multiple inputs: Apply to a frame. UDF will get a row of values
         #
-        elif isinstance(data, pd.DataFrame):
+        else:
             # Notes:
             # - UDF expects one row as a data input (raw=True - ndarry, raw=False - Series)
             # - model (arguments) cannot be None, so we need to guarantee that we do not pass None
 
+            # Determine format/type of representation
             if data_type == 'ndarray':
-                out = pd.DataFrame.apply(data, func, axis=1, raw=True, **model)
+                data_arg = data.values
+                raw_arg = True
             else:
-                if model is None:
-                    out = pd.DataFrame.apply(data, func, axis=1, raw=False)  # Do not pass model to the function
-                elif isinstance(model, (list, tuple)):
-                    out = pd.DataFrame.apply(data, func, axis=1, raw=False, *model)  # Model as positional arguments
-                elif isinstance(model, dict):
-                    out = pd.DataFrame.apply(data, func, axis=1, raw=False, **model)  # Model as keyword arguments
-                else:
-                    out = pd.DataFrame.apply(data, func, axis=1, raw=False, args=(model,))  # Model as an arbitrary object
+                data_arg = data
+                raw_arg = False
 
-        else:
-            log.error("Unknown input data type '{}'".format(type(data_type).__name__))
+            #
+            # Call UDF depending on the necessary model parameter
+            #
+            if model is None:
+                out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg)  # Do not pass model to the function
+            elif isinstance(model, (list, tuple)):
+                out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg, *model)  # Model as positional arguments
+            elif isinstance(model, dict):
+                out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg, **model)  # Model as keyword arguments
+            else:
+                out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg, args=(model,))  # Model as an arbitrary object
 
         return out
 
     def _evaluate_compute(self, func, data, data_type, model):
         """Calculate column. Apply function to all inputs and return calculated column(s)."""
-
         #
-        # Cast to the necessary argument type expected by the function
+        # Determine data argument shape and format/type
         #
-        if data_type == 'ndarray':
-            data_arg = data.values
-            data_arg.reshape(-1, 1)
-        elif (isinstance(data, pd.DataFrame) and len(data.columns) == 1):
-            # data_arg = data
-            data_arg = data[data.columns[0]]
+        if len(data.columns) == 1:
+            data_arg = data[data.columns[0]]  # Series
         else:
-            data_arg = data
+            data_arg = data  # DataFrame
 
+        # Determine format/type of representation
+        if data_type == 'ndarray':
+            data_arg = data_arg.values
+
+        #
+        # Call UDF depending on the necessary model parameter
+        #
         if isinstance(model, dict):
             out = func(data_arg, **model)  # Model as keyword arguments
         elif isinstance(model, (list, tuple)):
@@ -688,9 +699,14 @@ class ColumnOperation(Operation):
             rl_idx = df_idx.rolling(**rolling_args)  # Create rolling object from ids-frame
 
             # Auxiliary function, when called, will get a series of row ids as a window. It will select a sub-dataframe using these ids and pass it to UDF
-            def window_fn(ids, user_f):
+            def window_fn(ids, user_fn):
                 df_window = data.iloc[ids]  # Select rows with the necessary ids
-                return user_f(df_window)
+                # Apply UDF to this window
+                if data_type == 'ndarray':
+                    out = user_fn(df_window.values, **model)
+                else:
+                    out = user_fn(df_window, **model)
+                return out
 
             out = rl_idx.apply(lambda x: window_fn(x, func), raw=False)  # Both Series and ndarray work (for iloc)
 
