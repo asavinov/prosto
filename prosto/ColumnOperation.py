@@ -340,7 +340,7 @@ class ColumnOperation(Operation):
             if model is None:
                 out = pd.Series.apply(data_arg, func)  # Do not pass model to the function
             elif isinstance(model, (list, tuple)):
-                out = pd.Series.apply(data_arg, func, *model)  # Model as positional arguments
+                out = pd.Series.apply(data_arg, func, args=model)  # Model as positional arguments
             elif isinstance(model, dict):
                 # Pass model by flattening dict (alternative: arbitrary Python object as positional or key argument). UDF has to declare the expected arguments
                 out = pd.Series.apply(data_arg, func, **model)  # Model as keyword arguments
@@ -369,7 +369,7 @@ class ColumnOperation(Operation):
             if model is None:
                 out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg)  # Do not pass model to the function
             elif isinstance(model, (list, tuple)):
-                out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg, *model)  # Model as positional arguments
+                out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg, args=model)  # Model as positional arguments
             elif isinstance(model, dict):
                 out = pd.DataFrame.apply(data_arg, func, axis=1, raw=raw_arg, **model)  # Model as keyword arguments
             else:
@@ -394,10 +394,12 @@ class ColumnOperation(Operation):
         #
         # Call UDF depending on the necessary model parameter
         #
-        if isinstance(model, dict):
-            out = func(data_arg, **model)  # Model as keyword arguments
+        if model is None:
+            out = func(data_arg)  # No model
         elif isinstance(model, (list, tuple)):
-            out = func(data_arg, *model)  # Model as positional arguments
+            out = func(data_arg, args=model)  # Model as positional arguments
+        elif isinstance(model, dict):
+            out = func(data_arg, **model)  # Model as keyword arguments
         else:
             out = func(data_arg, model)  # Model as an arbitrary object
 
@@ -648,7 +650,7 @@ class ColumnOperation(Operation):
             log.error("Discretize expects non-empty model.")
             return None
         elif isinstance(model, (list, tuple)):
-            out = pd.Series.apply(ser, disc_numeric_fn, *model)  # Model as positional arguments
+            out = pd.Series.apply(ser, disc_numeric_fn, args=model)  # Model as positional arguments
         elif isinstance(model, dict):
             # Pass model by flattening dict (alternative: arbitrary Python object as positional or key argument). UDF has to declare the expected arguments
             out = pd.Series.apply(ser, disc_numeric_fn, **model)  # Model as keyword arguments
@@ -824,4 +826,3 @@ class ColumnOperation(Operation):
 
 if __name__ == "__main__":
     pass
-
