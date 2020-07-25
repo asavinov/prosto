@@ -10,9 +10,6 @@ from prosto.TableOperation import *
 from prosto.ColumnOperation import *
 from prosto.Data import *
 
-import logging
-log = logging.getLogger('prosto')
-
 
 class Topology:
     """Topology is a graph of operations built taking into account their dependencies."""
@@ -57,8 +54,8 @@ class Topology:
                 if isinstance(op, (TableOperation, ColumnOperation)):
                     dep_elems = op.get_dependencies()  # Get all element definitions this element depends upon
                 else:
-                    log.error("Operation '{}' with unknown class found while building topology.".format(op.id))
-                    dep_elems = []
+                    raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
+                    #dep_elems = []
 
                 #
                 # Find operations which generate these elements
@@ -70,8 +67,8 @@ class Topology:
                     elif isinstance(dep, Column):
                         ops = self.prosto.get_column_operations(dep.table.id, dep.id)
                     else:
-                        log.error("Element '{}' with unknown class found while building topology (only Table and Column are possible).".format(dep.id))
-                        ops = []
+                        raise ValueError("Element '{}' with unknown class found while building topology (only Table and Column are possible).".format(dep.id))
+                        #ops = []
                     dep_ops.extend(ops)
 
                 #

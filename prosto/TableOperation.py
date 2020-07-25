@@ -9,9 +9,6 @@ from prosto.Table import *
 from prosto.Column import *
 from prosto.Operation import *
 
-import logging
-log = logging.getLogger('prosto')
-
 
 class TableOperation(Operation):
     """The class represents one table operation."""
@@ -77,8 +74,7 @@ class TableOperation(Operation):
             dependencies.extend(self.prosto.get_columns(source_table_name, source_keys))
 
         else:
-            log.warning("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
-            return
+            raise ValueError("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
 
         return dependencies
 
@@ -105,8 +101,7 @@ class TableOperation(Operation):
             elif input_length == 'table':
                 new_data = self._evaluate_populate_table()
             else:
-                log.error("Unknown input_type parameter '{}'.".format(input_length))
-                return
+                raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
         elif operation.lower().startswith('prod'):
             new_data = self._evaluate_product()
@@ -118,8 +113,7 @@ class TableOperation(Operation):
             new_data = self._evaluate_project()
 
         else:
-            log.warning("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
-            return
+            raise ValueError("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
 
         if new_data is not None:
             output_table.data.remove_all()
@@ -128,7 +122,7 @@ class TableOperation(Operation):
     def _evaluate_populate_row(self):
         """The function is applied to one row (from an input table) and generates a sub-table which will be appnded to the result."""
         definition = self.definition
-        log.error("Row-based table population not supported.".format())
+        raise NotImplementedError("Row-based table population not supported.".format())
 
     def _evaluate_populate_table(self):
         """The result dataframe is genreated by the specified function using dataframe from input tables and model parameters."""
@@ -139,13 +133,11 @@ class TableOperation(Operation):
         #
         func_name = definition.get('function')
         if not func_name:
-            log.error("Table function '{}' is not specified. Skip table definition.".format(func_name))
-            return
+            raise ValueError("Table function '{}' is not specified. Skip table definition.".format(func_name))
 
         func = resolve_full_name(func_name)
         if not func:
-            log.error("Cannot resolve user-defined function '{}'. Skip table definition.".format(func_name))
-            return
+            raise ValueError("Cannot resolve user-defined function '{}'. Skip table definition.".format(func_name))
 
         #
         # Stage 2. Prepare input data
@@ -188,8 +180,7 @@ class TableOperation(Operation):
         columns = out.columns.tolist()
         for att in attributes:
             if att not in columns:
-                log.error("Declared attribute '{}' is not in the populated table data.".format(att))
-                return
+                raise ValueError("Declared attribute '{}' is not in the populated table data.".format(att))
 
         #
         # Stage 6. Ensure that it has an integer index
@@ -212,11 +203,9 @@ class TableOperation(Operation):
         #
         tables = self.definition.get("tables")
         if not tables:
-            log.error("Table product operation must specify at least one table in the 'tables' field.".format())
-            return
+            raise ValueError("Table product operation must specify at least one table in the 'tables' field.".format())
         if len(tables) != len(attributes):
-            log.error("Number of input tables must be equal to the number of attributes in product table definition.".format())
-            return
+            raise ValueError("Number of input tables must be equal to the number of attributes in product table definition.".format())
 
         tables = self.prosto.get_tables(tables)
         table_datas = [x.get_data() for x in tables]
@@ -247,8 +236,7 @@ class TableOperation(Operation):
         #
         tables = self.definition.get("tables")
         if not tables:
-            log.error("Table filter operation must specify one base table in the 'tables' field.".format())
-            return
+            raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
         tables = self.prosto.get_tables(tables)
 
         base_table = tables[0]
@@ -259,8 +247,7 @@ class TableOperation(Operation):
         #
         columns = self.definition.get("columns")
         if not columns:
-            log.error("Filter operation must specify a boolean column from the base table in the 'columns' field.".format())
-            return
+            raise ValueError("Filter operation must specify a boolean column from the base table in the 'columns' field.".format())
 
         filter_column_name = columns[0]
         filter_column = base_table.get_column_data(filter_column_name)
@@ -270,8 +257,7 @@ class TableOperation(Operation):
         #
         attributes = output_table.definition.get("attributes", [])
         if len(attributes) != 1:
-            log.error("Filter table must declare one attribute for linking to the base table.".format())
-            return
+            raise ValueError("Filter table must declare one attribute for linking to the base table.".format())
         super_attribute = attributes[0]
 
         #
@@ -300,8 +286,7 @@ class TableOperation(Operation):
         #
         tables = self.definition.get("tables")
         if not tables:
-            log.error("Project operation must specify one input table in the 'tables' field".format())
-            return
+            raise ValueError("Project operation must specify one input table in the 'tables' field".format())
         tables = self.prosto.get_tables(tables)
 
         source_table = tables[0]
@@ -312,8 +297,7 @@ class TableOperation(Operation):
         #
         link_column_name = definition.get('link')
         if not link_column_name:
-            log.error("Project operation must specify a link column from the input table in the 'function' field.".format())
-            return
+            raise ValueError("Project operation must specify a link column from the input table in the 'function' field.".format())
         link_column = source_table.get_column(link_column_name)
 
         #
@@ -325,19 +309,17 @@ class TableOperation(Operation):
         link_column_op = link_column_ops[0]
         source_keys = link_column_op.get_columns()
         if not all_columns_exist(source_keys, source_table_data):
-            log.error("Not all key columns available in the link column definition.".format())
-            return
+            raise ValueError("Not all key columns available in the link column definition.".format())
 
         # Find this (target) table attributes to be created
         attributes = output_table.definition.get("attributes", [])
         if len(attributes) != len(source_keys):
-            log.error("Project table must declare one attribute for each input of the corresponding link column.".format())
-            return
+            raise ValueError("Project table must declare one attribute for each input of the corresponding link column.".format())
 
         # Link column can define its own target keys. We do not use them but want to check the validity because the link evaluation can fail later.
         linked_inputs = link_column_op.definition.get("linked_inputs", [])
         if len(linked_inputs) > 0 and set(attributes) != set(linked_inputs):
-            log.warning("Attributes of the project table are different from the 'linked_inputs' of the corresonding link column.".format())
+            raise ValueError("Attributes of the project table are different from the 'linked_inputs' of the corresonding link column.".format())
 
         #
         # Stage 4. Produce all unique combinations of the input columns
