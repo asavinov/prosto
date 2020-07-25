@@ -10,9 +10,6 @@ from prosto.Table import *
 from prosto.Column import *
 from prosto.Operation import *
 
-import logging
-log = logging.getLogger('prosto')
-
 
 class ColumnOperation(Operation):
     """The class represents one column operation."""
@@ -167,13 +164,11 @@ class ColumnOperation(Operation):
             columns = self.get_columns()
             columns = get_columns(columns, data)
             if columns is None:
-                log.error("Error reading column list. Skip column definition.")
-                return
+                raise ValueError("Error reading column list. Skip column definition.")
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.error("Not all input columns available. Skip column definition.".format())
-                return
+                raise ValueError("Not all input columns available. Skip column definition.".format())
 
             # Slice input according to the change status
             if self.prosto.incremental:
@@ -196,26 +191,22 @@ class ColumnOperation(Operation):
 
         func_name = definition.get('function')
         if not func_name:
-            log.error("Column function '{}' is not specified. Skip column definition.".format(func_name))
-            return
+            raise ValueError("Column function '{}' is not specified. Skip column definition.".format(func_name))
 
         func = resolve_full_name(func_name)
         if not func:
-            log.error("Cannot resolve user-defined function '{}'. Skip column definition.".format(func_name))
-            return
+            raise ValueError("Cannot resolve user-defined function '{}'. Skip column definition.".format(func_name))
 
         if operation.lower().startswith('comp') or operation.lower().startswith('calc'):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
             if columns is None:
-                log.error("Error reading column list. Skip column definition.")
-                return
+                raise ValueError("Error reading column list. Skip column definition.")
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.error("Not all input columns available. Skip column definition.".format())
-                return
+                raise ValueError("Not all input columns available. Skip column definition.".format())
 
             # Slice input according to the change status
             if self.prosto.incremental:
@@ -230,34 +221,29 @@ class ColumnOperation(Operation):
             elif operation.lower().startswith('calc'):  # Equivalently: input_length == 'value'
                 out = self._evaluate_calculate(func, data, data_type, model)
             else:
-                log.error("Unknown input_type parameter '{}'.".format(input_length))
-                return
+                raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
         elif operation.lower().startswith('roll'):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
             if columns is None:
-                log.warning("Error reading input column list. Skip column definition.")
-                return
+                raise ValueError("Error reading input column list. Skip column definition.")
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.warning("Not all input columns available. Skip column definition.".format())
-                return
+                raise ValueError("Not all input columns available. Skip column definition.".format())
 
             # Slice input according to the change status (incremental not implemented)
             data = output_table.data.get_full_slice(columns)
             range = output_table.data.id_range()
 
             if input_length == 'value':
-                log.error("Accumulation is not implemented.".format())
-                return
+                raise NotImplementedError("Accumulation is not implemented.".format())
             elif input_length == 'column':
                 out = self._evaluate_roll(func, data, data_type, model)
             else:
-                log.error("Unknown input_type parameter '{}'.".format(input_length))
-                return
+                raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
         elif operation.lower().startswith('aggr'):
             #
@@ -267,14 +253,12 @@ class ColumnOperation(Operation):
             source_table_name = tables[0]
             source_table = self.prosto.get_table(source_table_name)
             if source_table is None:
-                log.error("Cannot find the fact table '{}'.".format(source_table_name))
-                return
+                raise ValueError("Cannot find the fact table '{}'.".format(source_table_name))
 
             link_column_name = definition.get('link')
             link_column = source_table.get_column(link_column_name)
             if link_column is None:
-                log.error("Cannot find the link column '{}'.".format(link_column_name))
-                return
+                raise ValueError("Cannot find the link column '{}'.".format(link_column_name))
 
             data = source_table.get_data()  # Data (to be processed) is a (source) table which is different from the output table
 
@@ -282,13 +266,11 @@ class ColumnOperation(Operation):
             columns = self.get_columns()
             columns = get_columns(columns, data)
             if columns is None:
-                log.warning("Error reading input column list. Skip column definition.")
-                return
+                raise ValueError("Error reading input column list. Skip column definition.")
 
             # Validation: check if all explicitly specified columns available
             if not all_columns_exist(columns, data):
-                log.warning("Not all input columns available. Skip column definition.".format())
-                return
+                raise ValueError("Not all input columns available. Skip column definition.".format())
 
             data = data[columns]  # Select only the specified *input* columns
 
@@ -298,17 +280,14 @@ class ColumnOperation(Operation):
             range = output_table.data.id_range()
 
             if input_length == 'value':
-                log.error("Accumulation is not implemented.".format())
-                return
+                raise NotImplementedError("Accumulation is not implemented.".format())
             elif input_length == 'column':
                 out = self._evaluate_aggregate(func, data, data_type, model)
             else:
-                log.error("Unknown input_type parameter '{}'.".format(input_length))
-                return
+                raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
         else:
-            log.error("Unknown operation type '{}' in the definition of column '{}'.".format(operation, self.id))
-            return
+            raise ValueError("Unknown operation type '{}' in the definition of column '{}'.".format(operation, self.id))
 
         #
         # Append the newly generated column(s) to this table
@@ -416,21 +395,18 @@ class ColumnOperation(Operation):
 
         main_keys = self.get_columns()
         if not all_columns_exist(main_keys, main_table.get_data()):
-            log.error("Not all key columns available in the link column definition.".format())
-            return
+            raise ValueError("Not all key columns available in the link column definition.".format())
 
         linked_table_name = output_column.definition.get('type', '')
         linked_table = self.prosto.get_table(linked_table_name)
         if not linked_table:
-            log.error("Linked table '{}' cannot be found in the link column definition.".format(linked_table))
-            return
+            raise ValueError("Linked table '{}' cannot be found in the link column definition.".format(linked_table))
 
         linked_columns = definition.get('linked_columns', [])
         if len(linked_columns) == 0:
             linked_columns = linked_table.definition.get("attributes", [])  # By default (e.g., for projection), we link to target table attributes
         if not all_columns_exist(linked_columns, linked_table.get_data()):
-            log.error("Not all linked key columns available in the link column definition.".format())
-            return
+            raise ValueError("Not all linked key columns available in the link column definition.".format())
 
         #
         # 1. In the target (linked) table, convert its index into a normal column
@@ -582,8 +558,7 @@ class ColumnOperation(Operation):
             else:
                 ser = data
         else:
-            log.error("Discretize expects only one column as input")
-            return None
+            raise ValueError("Discretize expects only one column as input")
 
         # Discretization functions
         # Model example: {
@@ -641,8 +616,7 @@ class ColumnOperation(Operation):
                 return label_no * step
 
         if model is None:
-            log.error("Discretize expects non-empty model.")
-            return None
+            raise ValueError("Discretize expects non-empty model.")
         elif isinstance(model, (list, tuple)):
             out = pd.Series.apply(ser, disc_numeric_fn, args=model)  # Model as positional arguments
         elif isinstance(model, dict):
@@ -758,9 +732,7 @@ class ColumnOperation(Operation):
             gb = source_table.get_data().groupby(link_column_name, as_index=True)
             # Alternatively, we could use target keys or main keys
         except Exception as e:
-            log.error("Error grouping input table using the specified column(s).".format())
-            log.debug(e)
-            raise e
+            raise ValueError("Error grouping input table using the specified column(s). Exception: {}".format(e))
 
         # TODO: We might want to remove a group for null value (if it is created by the groupby constructor)
 
@@ -793,22 +765,19 @@ class ColumnOperation(Operation):
             out = pd.DataFrame(out)  # Series name will be column name
         elif isinstance(out, (list,tuple)):
             # TODO: Convert a list of series or data frames into one data frame. They all have to have same index.
-            log.error("List (of series) as a result of evaluation is currently not supported.".format())
-            return
+            raise NotImplementedError("List (of series) as a result of evaluation is currently not supported.".format())
         elif isinstance(out, np.ndarray):
             # TODO: Convert ndarray into dataframe. Main problem is that we need to know the index and then assume that the values in ndarray are sequential.
-            log.error("NumPy array as a result of evaluation is currently not supported.".format())
-            return
+            raise NotImplementedError("NumPy array as a result of evaluation is currently not supported.".format())
 
         #
         # Assign (custom) column names
         #
         if len(out.columns) > len(outputs):
-            log.error("Operation returned {} columns, which is more than specified in its definition for its output.".format(len(out.columns)))
-            return
+            raise ValueError("Operation returned {} columns, which is more than specified in its definition for its output.".format(len(out.columns)))
 
         if len(out.columns) < len(outputs):
-            log.warning("Operation returned {} columns, which is less than specified in its definition for its output.".format(len(out.columns)))
+            raise ValueError("Operation returned {} columns, which is less than specified in its definition for its output.".format(len(out.columns)))
 
         out.columns = outputs[0:len(out.columns)]
 
