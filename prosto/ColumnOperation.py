@@ -3,6 +3,7 @@ import json
 import math
 
 from prosto.utils import *
+from prosto.resolve import *
 
 from prosto.Prosto import *
 from prosto.Table import *
