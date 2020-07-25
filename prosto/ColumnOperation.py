@@ -370,7 +370,7 @@ class ColumnOperation(Operation):
         if model is None:
             out = func(data_arg)  # No model
         elif isinstance(model, (list, tuple)):
-            out = func(data_arg, args=model)  # Model as positional arguments
+            out = func(data_arg, *model)  # Model as positional arguments
         elif isinstance(model, dict):
             out = func(data_arg, **model)  # Model as keyword arguments
         else:
@@ -649,11 +649,23 @@ class ColumnOperation(Operation):
             # Create a rolling object with windowing (row-based windowing independent of the number of columns)
             rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
 
-            # Apply function to all windows
             if data_type == 'ndarray':
-                out = rl[in_column].apply(func, raw=True, **model)
+                raw_arg = True
             else:
-                out = rl[in_column].apply(func, raw=False, **model)
+                raw_arg = False
+
+            # Apply function to all windows
+            out = rl[in_column].apply(func, raw=raw_arg, **model)
+
+            # Invoke depending on the model type
+            if model is None:
+                out = rl[in_column].apply(func, raw=raw_arg)  # No model
+            elif isinstance(model, (list, tuple)):
+                out = rl[in_column].apply(func, raw=raw_arg, args=model)  # Model as positional arguments
+            elif isinstance(model, dict):
+                out = rl[in_column].apply(func, raw=raw_arg, **model)  # Model as keyword arguments
+            else:
+                out = rl[in_column].apply(func, raw=raw_arg, args=(model,))  # Model as an arbitrary object
 
         #
         # Multiple inputs. UDF will get a window sub-dataframe as a data argument
@@ -668,14 +680,28 @@ class ColumnOperation(Operation):
             df_idx = pd.DataFrame(np.arange(data.shape[0]))  # Temporary frame with all row ids like 0,1,2,...
             rl_idx = df_idx.rolling(**rolling_args)  # Create rolling object from ids-frame
 
-            # Auxiliary function, when called, will get a series of row ids as a window. It will select a sub-dataframe using these ids and pass it to UDF
+            # Auxiliary function
+            # When called, it will get a series of row ids as a window.
+            # It will select a sub-dataframe using these ids and pass it to UDF
             def window_fn(ids, user_fn):
                 df_window = data.iloc[ids]  # Select rows with the necessary ids
-                # Apply UDF to this window
+
+                # Determine format/type of representation
                 if data_type == 'ndarray':
-                    out = user_fn(df_window.values, **model)
+                    data_arg = df_window.values
                 else:
-                    out = user_fn(df_window, **model)
+                    data_arg = df_window
+
+                # Apply UDF to this window by invoking depending on the model type
+                if model is None:
+                    out = user_fn(data_arg)  # No model
+                elif isinstance(model, (list, tuple)):
+                    out = user_fn(data_arg, *model)  # Model as positional arguments
+                elif isinstance(model, dict):
+                    out = user_fn(data_arg, **model)  # Model as keyword arguments
+                else:
+                    out = user_fn(data_arg, model)  # Model as an arbitrary object
+
                 return out
 
             out = rl_idx.apply(lambda x: window_fn(x, func), raw=False)  # Both Series and ndarray work (for iloc)
@@ -702,13 +728,29 @@ class ColumnOperation(Operation):
         #
         elif len(data.columns) == 1:
             in_column = data.columns.to_list()[0]
-            out = gb[in_column].agg(func, **model)  # Apply function to all groups
+            # Invoke depending on the model type
+            if model is None:
+                out = gb[in_column].agg(func)  # No model
+            elif isinstance(model, (list, tuple)):
+                out = gb[in_column].agg(func, args=model)  # Model as positional arguments
+            elif isinstance(model, dict):
+                out = gb[in_column].agg(func, **model)  # Model as keyword arguments
+            else:
+                out = gb[in_column].agg(func, args=(model,))  # Model as an arbitrary object
 
         #
         # Multiple inputs. UDF will get a window sub-dataframe as a data argument
         #
         else:
-            out = gb.apply(func, **model)
+            # Invoke depending on the model type
+            if model is None:
+                out = gb.apply(func)  # No model
+            elif isinstance(model, (list, tuple)):
+                out = gb.apply(func, args=model)  # Model as positional arguments
+            elif isinstance(model, dict):
+                out = gb.apply(func, **model)  # Model as keyword arguments
+            else:
+                out = gb.apply(func, args=(model,))  # Model as an arbitrary object
 
         return out
 
