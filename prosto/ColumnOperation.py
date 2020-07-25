@@ -141,8 +141,6 @@ class ColumnOperation(Operation):
 
         data = output_table.get_data()
 
-        log.info("---> Start evaluating '{}' column '{}'.".format(operation, self.id))
-
         #
         # Operations without UDF
         #
@@ -153,7 +151,6 @@ class ColumnOperation(Operation):
 
             self._impose_output_columns(out)
 
-            log.info("<--- Finish evaluating column '{}'".format(self.id))
             return
 
         # Compose columns use their own definition format different from computational (functional) definitions
@@ -162,7 +159,6 @@ class ColumnOperation(Operation):
 
             self._impose_output_columns(out)
 
-            log.info("<--- Finish evaluating column '{}'".format(self.id))
             return
 
         # Discretize column using some logic of partitioning represented in the model
@@ -192,7 +188,6 @@ class ColumnOperation(Operation):
 
             self._impose_output_columns(out, range)
 
-            log.info("<--- Finish evaluating column '{}'".format(self.id))
             return
 
         #
@@ -319,8 +314,6 @@ class ColumnOperation(Operation):
         # Append the newly generated column(s) to this table
         #
         self._impose_output_columns(out, range)
-
-        log.info("<--- Finish evaluating column '{}'".format(self.id))
 
     def _evaluate_calculate(self, func, data, data_type, model):
         """Calculate column. Apply function to each row of the table."""

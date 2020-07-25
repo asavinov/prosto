@@ -96,8 +96,6 @@ class TableOperation(Operation):
         output_table_name = outputs[0]
         output_table = self.prosto.get_table(output_table_name)
 
-        log.info("===> Start populating '{}' table '{}'".format(operation, output_table.id))
-
         if operation.lower().startswith('noop'):
             new_data = None
         if operation.lower().startswith('popu'):
@@ -126,8 +124,6 @@ class TableOperation(Operation):
         if new_data is not None:
             output_table.data.remove_all()
             output_table.data.add(new_data)
-
-        log.info("<=== Finish populating table '{}'".format(output_table.id))
 
     def _evaluate_populate_row(self):
         """The function is applied to one row (from an input table) and generates a sub-table which will be appnded to the result."""

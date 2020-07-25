@@ -7,9 +7,6 @@ from prosto.Prosto import *
 from prosto.Column import *
 from prosto.Data import *
 
-import logging
-log = logging.getLogger('prosto')
-
 
 class Table:
     """The class represents one table. Table data is stored in columns."""
