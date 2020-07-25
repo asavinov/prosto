@@ -4,9 +4,6 @@ from prosto.utils import *
 
 from prosto.Prosto import *
 
-import logging
-log = logging.getLogger('prosto')
-
 
 class Column:
     """The class represents one column definition."""

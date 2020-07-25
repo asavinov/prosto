@@ -10,9 +10,6 @@ import functools
 import pandas as pd
 import numpy as np
 
-import logging
-log = logging.getLogger('prosto')
-
 
 """
 Function resolution.
@@ -34,9 +31,7 @@ def resolve_full_name(full_name):
         try:
             func = eval(full_name)
         except Exception as e:
-            log.error(f"Error translating lambda function: {full_name}.")
-            log.debug(e)
-            return None
+            raise ValueError("Error translating lambda function: '{}'.".format(full_name))
         return func
 
     elif full_name.strip().startswith('def '):
@@ -134,7 +129,7 @@ def import_modules(imports):
             sys.modules[mod_name] = mod
             continue
 
-        log.warning(f"Cannot import module '{mod_name}'. Ignored. This can cause errors later if its functions are used in the workflow")
+        #log.warning(f"Cannot import module '{mod_name}'. Ignored. This can cause errors later if its functions are used in the workflow")
 
     return modules
 

@@ -7,9 +7,6 @@ from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
 
-import logging
-log = logging.getLogger('prosto')
-
 
 class Operation:
     """The class represents one operation."""

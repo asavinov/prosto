@@ -539,10 +539,20 @@ class Prosto:
         for layer in self.topology.layers:
             # Execute operations in one layer
             for op in layer:
+                operation = op.definition.get('operation')
+
                 if isinstance(op, TableOperation):
-                   op.evaluate()
-                elif isinstance(op, ColumnOperation):
+                    outputs = op.definition.get('outputs')
+                    log.info("===> Start table population: id '{}', type = '{}', tables {}".format(op.id, operation, outputs))
                     op.evaluate()
+                    log.info("<=== Finish table population".format())
+
+                elif isinstance(op, ColumnOperation):
+                    columns = op.get_columns()
+                    log.info("---> Start column evaluation: id = '{}', type = '{}', columns {}".format(op.id, operation, columns))
+                    op.evaluate()
+                    log.info("<--- Finish column evaluation".format())
+
                 else:
                     log.warning("Unknown element '{}' in the topology '{}'.".format(op.id, self.id))
 

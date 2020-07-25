@@ -10,9 +10,6 @@ import functools
 import pandas as pd
 import numpy as np
 
-import logging
-log = logging.getLogger('prosto')
-
 
 #
 # Columns and frames
@@ -35,8 +32,7 @@ def get_columns(names, df=None) -> List[str]:
             elif isinstance(col, int) and df is not None:
                 result.append(df.columns[col])
             else:
-                log.error("Error reading column '{}'. Names have to be strings or integers.".format(str(col)))
-                return None
+                raise ValueError("Error reading column '{}'. Names have to be strings or integers.".format(str(col)))
 
         # Process default (auto) values
         if len(result) == 0 and df is not None:  # Explicit empty list = ALL columns
@@ -47,16 +43,14 @@ def get_columns(names, df=None) -> List[str]:
         if not isinstance(exclude, dict):
             exclude_columns = get_columns(exclude, df)
         else:
-            log.error(f"Error reading column '{exclude}'. Excluded columns have to be (a list of) strings or integers.")
-            return None
+            raise ValueError("Error reading column '{}'. Excluded columns have to be (a list of) strings or integers.".format(exclude))
 
         # Get all columns and exclude the specified ones
         all_columns = get_all_columns(df)
         result = [x for x in all_columns if x not in exclude_columns]
 
     else:
-        log.error(f"Column names have to be a list of strings or a string.")
-        return None
+        raise ValueError("Column names have to be a list of strings or a string.")
 
     #
     # Validate
@@ -71,7 +65,7 @@ def get_columns(names, df=None) -> List[str]:
             if col in df.columns:
                 out.append(col)
             else:
-                log.warning(f"Column '{str(col)}' cannot be found. Skip column.")
+                raise ValueError("Column '{}' cannot be found.".format(str(col)))
         return out
 
     elif isinstance(df, pd.core.groupby.groupby.DataFrameGroupBy):
@@ -87,7 +81,7 @@ def get_columns(names, df=None) -> List[str]:
             if col_exists:
                 out.append(col)
             else:
-                log.warning(f"Column '{str(col)}' cannot be found. Skip column.")
+                raise ValueError("Column '{}' cannot be found.".format(str(col)))
         return out
 
     return result
@@ -108,7 +102,6 @@ def all_columns_exist(names, df) -> bool:
     for col in names:
         if col not in df.columns:
             all_columns_available = False
-            log.warning(f"Column '{col}' is not available.")
             break
     if not all_columns_available:
         return False
