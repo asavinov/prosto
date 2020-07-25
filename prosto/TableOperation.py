@@ -2,6 +2,7 @@ from typing import Union, Any, List, Set, Dict, Tuple, Optional
 import json
 
 from prosto.utils import *
+from prosto.resolve import *
 
 from prosto.Prosto import *
 from prosto.Table import *
