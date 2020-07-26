@@ -82,6 +82,15 @@ class ColumnOperation(Operation):
             # Columns to be aggregated
             dependencies.extend(input_columns)
 
+        elif operation.lower().startswith('groll'):
+            # Columns to be aggregated
+            dependencies.extend(input_columns)
+
+            # Link (group) column
+            link_column_name = definition.get('link')
+            link_column = output_table.get_column(link_column_name)
+            dependencies.append(link_column)
+
         elif operation.lower().startswith('aggr'):
             # The fact table has to be already populated
             tables = definition.get('tables')
@@ -89,7 +98,7 @@ class ColumnOperation(Operation):
             source_table = self.prosto.get_table(source_table_name)
             dependencies.append(source_table)
 
-            # Group column
+            # Link (group) column
             link_column_name = definition.get('link')
             link_column = source_table.get_column(link_column_name)
             dependencies.append(link_column)
@@ -223,7 +232,7 @@ class ColumnOperation(Operation):
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
-        elif operation.lower().startswith('roll'):
+        elif operation.lower().startswith('roll') or operation.lower().startswith('groll'):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
@@ -241,7 +250,12 @@ class ColumnOperation(Operation):
             if input_length == 'value':
                 raise NotImplementedError("Accumulation is not implemented.".format())
             elif input_length == 'column':
-                out = self._evaluate_roll(func, data, data_type, model)
+                if operation.lower().startswith('roll'):
+                    out = self._evaluate_roll(func, data, data_type, model, is_groll=False)
+                elif operation.lower().startswith('groll'):
+                    out = self._evaluate_roll(func, data, data_type, model, is_groll=True)
+                else:
+                    pass
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
@@ -627,7 +641,7 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_roll(self, func, data, data_type, model):
+    def _evaluate_roll(self, func, data, data_type, model, is_groll=False):
         """Roll column. Apply aggregate function to each window defined on this same table for every record."""
         definition = self.definition
 
@@ -637,7 +651,7 @@ class ColumnOperation(Operation):
         window = definition.get('window')
         window_size = int(window)
         rolling_args = {'window': window_size}
-        # TODO: try/catch with log message if cannot get window size
+        # TODO: try/catch with exception if cannot get window size
 
         #
         # Single input. UDF will get a window sub-series as a data argument
@@ -646,26 +660,44 @@ class ColumnOperation(Operation):
 
             in_column = data.columns.to_list()[0]
 
-            # Create a rolling object with windowing (row-based windowing independent of the number of columns)
-            rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
-
             if data_type == 'ndarray':
                 raw_arg = True
             else:
                 raw_arg = False
 
-            # Apply function to all windows
-            out = rl[in_column].apply(func, raw=raw_arg, **model)
+            if not is_groll:
 
-            # Invoke depending on the model type
-            if model is None:
-                out = rl[in_column].apply(func, raw=raw_arg)  # No model
-            elif isinstance(model, (list, tuple)):
-                out = rl[in_column].apply(func, raw=raw_arg, args=model)  # Model as positional arguments
-            elif isinstance(model, dict):
-                out = rl[in_column].apply(func, raw=raw_arg, **model)  # Model as keyword arguments
-            else:
-                out = rl[in_column].apply(func, raw=raw_arg, args=(model,))  # Model as an arbitrary object
+                # Create a rolling object with windowing (row-based windowing independent of the number of columns)
+                rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
+
+                # Invoke depending on the model type
+                if model is None:
+                    out = rl[in_column].apply(func, raw=raw_arg)  # No model
+                elif isinstance(model, (list, tuple)):
+                    out = rl[in_column].apply(func, raw=raw_arg, args=model)  # Model as positional arguments
+                elif isinstance(model, dict):
+                    out = rl[in_column].apply(func, raw=raw_arg, **model)  # Model as keyword arguments
+                else:
+                    out = rl[in_column].apply(func, raw=raw_arg, args=(model,))  # Model as an arbitrary object
+
+            else:  # groll
+
+                # Group by the values (ids) of the link column
+                gb = self._get_or_create_groupby()
+
+                def groll_fn(g):
+                    rl = pd.DataFrame.rolling(g, **rolling_args)
+                    out = rl.apply(func, **model)  # TODO: Pass model to the function
+                    return out
+
+                # Apply rolling function to each group
+                # NOTE: "Groupby preserves the order of rows within each group" and therefore rolling should be correct when applied to individual groups
+                out = gb[in_column].apply(groll_fn)
+
+                # The result is a series with aggregated values but it has MultiIndex: first level group, second level original id. Therefore, we cannot directly add it to the original frame
+                # Example for two devices and 6 rows: MultiIndex(levels=[[0, 1], [0, 1, 2, 3, 4, 5]], labels=[[0, 0, 0, 1, 1, 1], [0, 2, 4, 1, 3, 5]])
+                # Remove first level of index (group numbers). The labels of the second level will be then converted to a normal index with original ids corresponding to the frame index
+                out.reset_index(level=0, drop=True, inplace=True)
 
         #
         # Multiple inputs. UDF will get a window sub-dataframe as a data argument
@@ -709,7 +741,7 @@ class ColumnOperation(Operation):
         return out
 
     def _evaluate_aggregate(self, func, data, data_type, model):
-        """Group column. Apply aggregate function to each group of records of the fact table."""
+        """Link (group) column. Apply aggregate function to each group of records of the fact table."""
         definition = self.definition
 
         #
@@ -755,7 +787,11 @@ class ColumnOperation(Operation):
         return out
 
     def _get_or_create_groupby(self):
-        """Each link column stores a pandas groupby object. Return or build such a groupby object for the (already evaluated) link column specified in this definition."""
+        """
+        Each link column stores a pandas groupby object which is built when this link column is first time used.
+        Return or build such a groupby object for the (already evaluated) link column specified in this definition.
+        Currently, link column is specified in such operations as aggregation and grouped rolling aggregation.
+        """
 
         definition = self.definition
 
@@ -771,7 +807,13 @@ class ColumnOperation(Operation):
 
         # Use link column (with target row ids) to build a groupby object (it will build a group for each target row id)
         try:
-            gb = source_table.get_data().groupby(link_column_name, as_index=True)
+            # Option 1:
+            gb = source_table.get_data().groupby(link_column_name, sort=False, as_index=True)
+            # Option 2:
+            #gb = source_table.get_data().groupby([link_column_name], sort=False, as_index=False)
+            # Option 3: group by index - grouping column will be retained via index
+            #gb = source_table.get_data().set_index(link_column_name, append=True).groupby(level=1)
+
             # Alternatively, we could use target keys or main keys
         except Exception as e:
             raise ValueError("Error grouping input table using the specified column(s). Exception: {}".format(e))
