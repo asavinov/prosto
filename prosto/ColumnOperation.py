@@ -82,14 +82,11 @@ class ColumnOperation(Operation):
             # Columns to be aggregated
             dependencies.extend(input_columns)
 
-        elif operation.lower().startswith('groll'):
-            # Columns to be aggregated
-            dependencies.extend(input_columns)
-
             # Link (group) column
             link_column_name = definition.get('link')
-            link_column = output_table.get_column(link_column_name)
-            dependencies.append(link_column)
+            if link_column_name:
+                link_column = output_table.get_column(link_column_name)
+                dependencies.append(link_column)
 
         elif operation.lower().startswith('aggr'):
             # The fact table has to be already populated
@@ -232,7 +229,7 @@ class ColumnOperation(Operation):
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
-        elif operation.lower().startswith('roll') or operation.lower().startswith('groll'):
+        elif operation.lower().startswith('roll'):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
@@ -250,12 +247,7 @@ class ColumnOperation(Operation):
             if input_length == 'value':
                 raise NotImplementedError("Accumulation is not implemented.".format())
             elif input_length == 'column':
-                if operation.lower().startswith('roll'):
-                    out = self._evaluate_roll(func, data, data_type, model, is_groll=False)
-                elif operation.lower().startswith('groll'):
-                    out = self._evaluate_roll(func, data, data_type, model, is_groll=True)
-                else:
-                    pass
+                out = self._evaluate_roll(func, data, data_type, model)
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
@@ -641,7 +633,7 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_roll(self, func, data, data_type, model, is_groll=False):
+    def _evaluate_roll(self, func, data, data_type, model):
         """Roll column. Apply aggregate function to each window defined on this same table for every record."""
         definition = self.definition
 
@@ -652,6 +644,11 @@ class ColumnOperation(Operation):
         window_size = int(window)
         rolling_args = {'window': window_size}
         # TODO: try/catch with exception if cannot get window size
+
+        #
+        # Link (group) column
+        #
+        link_column_name = definition.get('link')
 
         #
         # Single input. UDF will get a window sub-series as a data argument
@@ -665,7 +662,7 @@ class ColumnOperation(Operation):
             else:
                 raw_arg = False
 
-            if not is_groll:
+            if not link_column_name:  # rolling aggregation without grouping
 
                 # Create a rolling object with windowing (row-based windowing independent of the number of columns)
                 rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
@@ -680,7 +677,7 @@ class ColumnOperation(Operation):
                 else:
                     out = rl[in_column].apply(func, raw=raw_arg, args=(model,))  # Model as an arbitrary object
 
-            else:  # groll
+            else:  # rolling aggregation with grouping
 
                 # Group by the values (ids) of the link column
                 gb = self._get_or_create_groupby()
