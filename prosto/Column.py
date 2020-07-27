@@ -39,9 +39,6 @@ class Column:
         else:  # Primitive type
             self.type = None
 
-        # Link columns store here a groupby object which is then (re)used by aggregate columns
-        self.groupby = None
-
 
     def __repr__(self):
         return '[' + self.table.id + '::' + self.id+']'
