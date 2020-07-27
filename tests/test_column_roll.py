@@ -17,7 +17,7 @@ class ColumnRollTestCase(unittest.TestCase):
 
         clm = sch.roll(
             name="Roll", table=tbl.id,
-            window="2",
+            window="2", link=None,
             func="lambda x: x.sum()", columns=["A"], model={}
         )
 
@@ -40,7 +40,7 @@ class ColumnRollTestCase(unittest.TestCase):
 
         clm = sch.roll(
             name="Roll", table=tbl.id,
-            window="2",
+            window="2", link=None,
             func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}
         )
 
@@ -71,6 +71,29 @@ class ColumnRollTestCase(unittest.TestCase):
         self.assertTrue(pd.isna(clm_data[0]))
         self.assertAlmostEqual(clm_data[1], 8.0)
         self.assertAlmostEqual(clm_data[2], 8.0)
+
+    def test_groll_single(self):
+        sch = Prosto("My Prosto")
+
+        tbl = sch.populate(
+            table_name="My table", attributes=["G", "A"],
+            func="lambda **m: pd.DataFrame({'G': [1, 2, 1, 2], 'A': [1.0, 2.0, 3.0, 4.0]})", tables=[]
+        )
+
+        clm = sch.roll(
+            name="Roll", table=tbl.id,
+            window="2", link="G",
+            func="lambda x: x.sum()", columns=["A"], model={}
+        )
+
+        sch.run()
+
+        clm_data = tbl.get_column_data('Roll')
+
+        self.assertAlmostEqual(clm_data[2], 4.0)
+        self.assertAlmostEqual(clm_data[3], 6.0)
+
+        pass
 
 
 if __name__ == '__main__':
