@@ -34,6 +34,10 @@ class Table:
         # Here we store the real (physical) data for this table (all its attributes and columns)
         self.data = Data(self)
 
+        # A mapping from (link) column/attribute names to the corresponding groupby objects
+        self.groupby = {}
+
+
     def __repr__(self):
         return '['+self.id+']'
 
@@ -59,6 +63,36 @@ class Table:
         """Find a table operation which generates this table and execute it."""
         tab_ops = self.prosto.get_table_operations(self.id)
         tab_ops[0].evaluate()
+
+    def _get_or_create_groupby(self, link_column_name):
+        """
+        For each link column or attribute, this table object stores a pandas groupby object which is built when this link column is first time used.
+        Return or build such a groupby object for the (already evaluated) link column/attribute.
+        Currently, link columns/attributes are used in such operations as aggregation and grouped rolling aggregation.
+        """
+        gb = self.groupby.get(link_column_name)
+        if gb is not None:
+            return gb
+
+        # Use link column (with target row ids) to build a groupby object (it will build a group for each target row id)
+        try:
+            # Option 1:
+            gb = self.get_data().groupby(link_column_name, sort=False, as_index=True)
+            # Option 2:
+            #gb = self.get_data().groupby([link_column_name], sort=False, as_index=False)
+            # Option 3: group by index - grouping column will be retained via index
+            #gb = self.get_data().set_index(link_column_name, append=True).groupby(level=1)
+
+            # Alternatively, we could use target keys or main keys
+        except Exception as e:
+            raise ValueError("Error grouping input table using the specified column(s). Exception: {}".format(e))
+
+        # TODO: We might want to remove a group for null value (if it is created by the groupby constructor)
+
+        self.groupby[link_column_name] = gb
+
+        return gb
+
 
 if __name__ == "__main__":
     pass

@@ -398,7 +398,7 @@ class Prosto:
     def roll(
             self,
             name, table,
-            window,
+            window, link,
             func, columns=None, model=None
     ) -> Column:
         """
@@ -425,6 +425,7 @@ class Prosto:
 
             # How to group
             "window": window,
+            "link": link,
 
             # How to aggregate
             "function": func,

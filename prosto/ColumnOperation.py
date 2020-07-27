@@ -86,7 +86,8 @@ class ColumnOperation(Operation):
             link_column_name = definition.get('link')
             if link_column_name:
                 link_column = output_table.get_column(link_column_name)
-                dependencies.append(link_column)
+                if link_column:  # Link column can be an attribute
+                    dependencies.append(link_column)
 
         elif operation.lower().startswith('aggr'):
             # The fact table has to be already populated
@@ -240,6 +241,9 @@ class ColumnOperation(Operation):
             if not all_columns_exist(columns, data):
                 raise ValueError("Not all input columns available. Skip column definition.".format())
 
+            # It exists only for rolling aggregation with grouping
+            link_column_name = definition.get('link')
+
             # Slice input according to the change status (incremental not implemented)
             data = output_table.data.get_full_slice(columns)
             range = output_table.data.id_range()
@@ -247,7 +251,8 @@ class ColumnOperation(Operation):
             if input_length == 'value':
                 raise NotImplementedError("Accumulation is not implemented.".format())
             elif input_length == 'column':
-                out = self._evaluate_roll(func, data, data_type, model)
+                gb = output_table._get_or_create_groupby(link_column_name) if link_column_name else None
+                out = self._evaluate_roll(func, gb, data, data_type, model)
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
@@ -288,7 +293,8 @@ class ColumnOperation(Operation):
             if input_length == 'value':
                 raise NotImplementedError("Accumulation is not implemented.".format())
             elif input_length == 'column':
-                out = self._evaluate_aggregate(func, data, data_type, model)
+                gb = source_table._get_or_create_groupby(link_column_name)
+                out = self._evaluate_aggregate(func, gb, data, data_type, model)
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
@@ -633,7 +639,7 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_roll(self, func, data, data_type, model):
+    def _evaluate_roll(self, func, gb, data, data_type, model):
         """Roll column. Apply aggregate function to each window defined on this same table for every record."""
         definition = self.definition
 
@@ -644,11 +650,6 @@ class ColumnOperation(Operation):
         window_size = int(window)
         rolling_args = {'window': window_size}
         # TODO: try/catch with exception if cannot get window size
-
-        #
-        # Link (group) column
-        #
-        link_column_name = definition.get('link')
 
         #
         # Single input. UDF will get a window sub-series as a data argument
@@ -662,7 +663,7 @@ class ColumnOperation(Operation):
             else:
                 raw_arg = False
 
-            if not link_column_name:  # rolling aggregation without grouping
+            if gb is None:  # rolling aggregation without grouping
 
                 # Create a rolling object with windowing (row-based windowing independent of the number of columns)
                 rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
@@ -678,9 +679,6 @@ class ColumnOperation(Operation):
                     out = rl[in_column].apply(func, raw=raw_arg, args=(model,))  # Model as an arbitrary object
 
             else:  # rolling aggregation with grouping
-
-                # Group by the values (ids) of the link column
-                gb = self._get_or_create_groupby()
 
                 def groll_fn(g):
                     rl = pd.DataFrame.rolling(g, **rolling_args)
@@ -737,14 +735,9 @@ class ColumnOperation(Operation):
 
         return out
 
-    def _evaluate_aggregate(self, func, data, data_type, model):
+    def _evaluate_aggregate(self, func, gb, data, data_type, model):
         """Link (group) column. Apply aggregate function to each group of records of the fact table."""
         definition = self.definition
-
-        #
-        # Group by the values (ids) of the link column. All facts with the same id in the link column belong to one group
-        #
-        gb = self._get_or_create_groupby()
 
         #
         # Special case: no input columns (or function is size()
@@ -782,44 +775,6 @@ class ColumnOperation(Operation):
                 out = gb.apply(func, args=(model,))  # Model as an arbitrary object
 
         return out
-
-    def _get_or_create_groupby(self):
-        """
-        Each link column stores a pandas groupby object which is built when this link column is first time used.
-        Return or build such a groupby object for the (already evaluated) link column specified in this definition.
-        Currently, link column is specified in such operations as aggregation and grouped rolling aggregation.
-        """
-
-        definition = self.definition
-
-        tables = definition.get('tables')
-        source_table_name = tables[0]
-        source_table = self.prosto.get_table(source_table_name)
-
-        link_column_name = definition.get('link')
-        link_column = self.prosto.get_column(source_table_name, link_column_name)
-
-        if link_column.groupby is not None:
-            return link_column.groupby
-
-        # Use link column (with target row ids) to build a groupby object (it will build a group for each target row id)
-        try:
-            # Option 1:
-            gb = source_table.get_data().groupby(link_column_name, sort=False, as_index=True)
-            # Option 2:
-            #gb = source_table.get_data().groupby([link_column_name], sort=False, as_index=False)
-            # Option 3: group by index - grouping column will be retained via index
-            #gb = source_table.get_data().set_index(link_column_name, append=True).groupby(level=1)
-
-            # Alternatively, we could use target keys or main keys
-        except Exception as e:
-            raise ValueError("Error grouping input table using the specified column(s). Exception: {}".format(e))
-
-        # TODO: We might want to remove a group for null value (if it is created by the groupby constructor)
-
-        link_column.groupby = gb
-
-        return gb
 
     def _impose_output_columns(self, out, range=None):
         """
