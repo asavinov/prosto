@@ -663,7 +663,7 @@ class ColumnOperation(Operation):
             else:
                 raw_arg = False
 
-            if gb is None:  # rolling aggregation without grouping
+            if gb is None:  # single column without link/grouping
 
                 # Create a rolling object with windowing (row-based windowing independent of the number of columns)
                 rl = pd.DataFrame.rolling(data, **rolling_args)  # as_index=False - aggregations will produce flat DataFrame instead of Series with index
@@ -678,7 +678,7 @@ class ColumnOperation(Operation):
                 else:
                     out = rl[in_column].apply(func, raw=raw_arg, args=(model,))  # Model as an arbitrary object
 
-            else:  # rolling aggregation with grouping
+            else:  # single column with link/grouping
 
                 def groll_fn(g):
                     rl = pd.DataFrame.rolling(g, **rolling_args)
@@ -699,19 +699,17 @@ class ColumnOperation(Operation):
         #
         else:
             #
-            # Problem: rolling apply passes only a series to UDF - we are not able to pass a frame (with multiple columns)
+            # Problem (of pandas): rolling apply passes only a series to UDF - we are not able to pass a frame (with multiple columns)
             # Workaround: create a new temporary data frame with all row ids, create a rolling object over it, apply auxiliary function to it, it will get a window/group of row ids which can be then used to access this window rows from the main data frame:
             # Link: https://stackoverflow.com/questions/45928761/rolling-pca-on-pandas-dataframe
             #
 
-            df_idx = pd.DataFrame(np.arange(data.shape[0]))  # Temporary frame with all row ids like 0,1,2,...
-            rl_idx = df_idx.rolling(**rolling_args)  # Create rolling object from ids-frame
-
             # Auxiliary function
-            # When called, it will get a series of row ids as a window.
-            # It will select a sub-dataframe using these ids and pass it to UDF
+            # It gets a window as a series of row ids and an aggregate function
+            # It will select a sub-dataframe using these ids and pass it to UDF for aggregation and return the value
+            # Note that it selects data from a well known variable and uses a model defined outside
             def window_fn(ids, user_fn):
-                df_window = data.iloc[ids]  # Select rows with the necessary ids
+                df_window = data.loc[ids]  # Select rows of the window with the necessary ids
 
                 # Determine format/type of representation
                 if data_type == 'ndarray':
@@ -731,7 +729,43 @@ class ColumnOperation(Operation):
 
                 return out
 
-            out = rl_idx.apply(lambda x: window_fn(x, func), raw=False)  # Both Series and ndarray work (for iloc)
+            if gb is None:  # multiple columns without link/grouping
+
+                # Generate sequential row ids like 0,1,2,...
+                # NOTE: Why not to re-use existing integer index?
+                # NOTE: We should add a datetime column if it is used in the window definition
+                df_idx = pd.DataFrame(data=data.index, index=data.index)
+                #df_idx = pd.DataFrame(np.arange(data.shape[0]))
+
+                # Create rolling object from ids-frame
+                # NOTE: We can use only row-based windows (not custom column based windows like timestamps with duration as a window parameter)
+                rl_idx = df_idx.rolling(**rolling_args)
+
+                # Apply UDF for rolling aggregation
+                out = rl_idx.apply(lambda x: window_fn(x, func), raw=False)
+
+            else:  # multiple columns with link/grouping
+
+                out = pd.Series(index=data.index)
+                out.values[:] = None  # We need to assign default value which should be a parameter of column or operation
+
+                # Perform rolling aggregation for each group independently in the loop and then merge all the results
+                # The body is logically equivalent to rolling aggregation without grouping (see above)
+                for n, df_g in gb:
+                    # g is a data frame with all records belonging to one group
+
+                    # Generate row ids for this group
+                    df_idx = pd.DataFrame(data=df_g.index, index=df_g.index)
+
+                    # Create rolling object for these ids (of this group only)
+                    rl_idx = df_idx.rolling(**rolling_args)
+
+                    # Apply UDF for rolling aggregation by sending window ids, all data with all ids and function
+                    # Produce output for this group only (for indexes of this group)
+                    out_g = rl_idx.apply(lambda x: window_fn(x, func), raw=False)
+
+                    # Append results of aggregation for this group to the final result by index-based imposing (update)
+                    out.update(out_g[0])
 
         return out
 
