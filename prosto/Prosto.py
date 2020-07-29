@@ -64,7 +64,7 @@ class Prosto:
         return list(tables)
 
     #
-    # Column getters
+    # Column methods
     #
 
     def get_column(self, table_name, column_name) -> Column:
@@ -83,6 +83,28 @@ class Prosto:
             column_names = [column_names]
         columns = filter(lambda x: x.id in column_names and x.table.id == table_name, self.columns)
         return list(columns)
+
+    def remove_column(self, table_name, column_name) -> Column:
+        """
+        Remove the specified column if it exists or return None otherwise.
+        Note that the removed column might be produced or consumed by some operations.
+        """
+        col = self.get_column(table_name, column_name)
+        if col is None:
+            return None
+        self.columns.remove(col)
+        return col
+
+    def add_column(self, column: Column) -> Column:
+        """
+        Remove the specified column if it exists or return None otherwise.
+        Note that the removed column might be produced or consumed by some operations.
+        """
+        table_name = column.table.id
+        column_name = column.id
+        self.remove_column(table_name, column_name)
+        self.columns.append(column)
+        return column
 
     #
     # Operations
@@ -264,7 +286,7 @@ class Prosto:
             "table": table,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
@@ -302,7 +324,7 @@ class Prosto:
             "table": table,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
@@ -341,7 +363,7 @@ class Prosto:
             "type": type,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
@@ -378,7 +400,7 @@ class Prosto:
             "table": table,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
@@ -413,7 +435,7 @@ class Prosto:
             "table": table,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
@@ -456,7 +478,7 @@ class Prosto:
             "table": table,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
@@ -501,7 +523,7 @@ class Prosto:
             "table": table,
         }
         column = Column(self, definition)
-        self.columns.append(column)
+        self.add_column(column)
 
         # Create operation definition
         operation_def = {
