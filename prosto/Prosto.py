@@ -46,7 +46,7 @@ class Prosto:
             "attributes": attributes,
         }
         table = Table(self, table_def)
-        self.tables.append(table)
+        self.add_table(table)
 
         return table
 
@@ -62,6 +62,26 @@ class Prosto:
             table_names = [table_names]
         tables = filter(lambda x: x.id in table_names, self.tables)
         return list(tables)
+
+    def remove_table(self, table_name) -> Table:
+        """
+        Remove the specified table if it exists or return None otherwise.
+        Note that the removed table might be produced or consumed by some operations.
+        """
+        table = self.get_table(table_name)
+        if table is None:
+            return None
+        self.tables.remove(table)
+        return table
+
+    def add_table(self, table: Table) -> Table:
+        """
+        Add table. If a table with this name table then it is removed before adding.
+        """
+        table_name = table.id
+        self.remove_table(table_name)
+        self.tables.append(table)
+        return table
 
     #
     # Column methods
@@ -89,16 +109,15 @@ class Prosto:
         Remove the specified column if it exists or return None otherwise.
         Note that the removed column might be produced or consumed by some operations.
         """
-        col = self.get_column(table_name, column_name)
-        if col is None:
+        column = self.get_column(table_name, column_name)
+        if column is None:
             return None
-        self.columns.remove(col)
-        return col
+        self.columns.remove(column)
+        return column
 
     def add_column(self, column: Column) -> Column:
         """
-        Remove the specified column if it exists or return None otherwise.
-        Note that the removed column might be produced or consumed by some operations.
+        Add column. If a column with this name exists then it is removed before adding.
         """
         table_name = column.table.id
         column_name = column.id
@@ -141,7 +160,7 @@ class Prosto:
             "attributes": attributes,
         }
         table = Table(self, table_def)
-        self.tables.append(table)
+        self.add_table(table)
 
         # Create operation definition
         operation_def = {
@@ -178,7 +197,7 @@ class Prosto:
             "attributes": attributes,
         }
         table = Table(self, table_def)
-        self.tables.append(table)
+        self.add_table(table)
 
         # Create operation definition
         operation_def = {
@@ -212,7 +231,7 @@ class Prosto:
             "attributes": attributes,
         }
         table = Table(self, table_def)
-        self.tables.append(table)
+        self.add_table(table)
 
         # Create operation definition
         operation_def = {
@@ -247,7 +266,7 @@ class Prosto:
             "attributes": attributes,
         }
         table = Table(self, table_def)
-        self.tables.append(table)
+        self.add_table(table)
 
         # Create operation definition
         operation_def = {
