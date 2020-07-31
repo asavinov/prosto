@@ -1,7 +1,11 @@
 # Change Log
 
-* v0.3.0-SNAPSHOT (2020-xx-xx)
-* discretize column
+* v0.3.0 (2020-08-31)
+  * rolling aggregation with grouping operation
+  * aggregation for multiple input columns
+  * implement compute column operation
+  * discretize column
+  * various refactorings and improvements
 
 * v0.2.0 (2020-04-13)
   * various improvements, renamings, short documentation in readme
