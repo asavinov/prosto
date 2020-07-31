@@ -22,9 +22,10 @@
 
 Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like Python `pandas`.
 
-`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two categories of operations:
+`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two categories of operations:
 
 * *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
+
 * *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which is a mapping of values from one set to another set.
 
 # Why Prosto?
@@ -80,7 +81,7 @@ sales_data = {
 }
 
 sales = prosto.populate(
-    # Table definition consists of a name and a list of attributes
+    # Table definition consists of a name and list of attributes
     table_name="Sales", attributes=["product_name", "quantity", "price"],
 
     # Table operation is an UDF, list of input tables and model (parameters for UDF)
@@ -138,7 +139,7 @@ print(df)
 4  chips        1        4.0   4.0
 ```
 
-Although it looks like a normal table, the last column was derived from the data in other columns. In more realistic cases, column data and table data will be derived from columns in other tables.
+Although it looks like a normal table, the last column was derived from the data in other columns. In more complex cases, column data and table data will be derived from columns in other tables.
 
 # Concepts
 
@@ -159,7 +160,7 @@ It is summarized in the table:
 | Represents        | Distribution          | Predicate              |
 | Point             | Value of distribution | True of false          |
 
-The both structure can represent some distribution over a multidimensional space but do it in different ways. Obviously, these differences make it extremely difficult to combine these two semantics in one framework.
+The both structures can represent some distribution over a multidimensional space but do it in different ways. Obviously, these differences make it extremely difficult to combine these two semantics in one framework.
 
 `Prosto` is an implementation of the set-oriented approach where a table represents a set and its rows represent tuples. Note however that `Prosto` supports an extended version of the set-oriented approach which includes also functions as first-class elements of the model.
 
@@ -167,7 +168,7 @@ The both structure can represent some distribution over a multidimensional space
 
 *Tuples* are a formal representation of data values. A tuple has structure declared by its *attributes*.
 
-A *set* is a collection of *tuples*. A set is a formal representation of a collection of values. Tuples (data values) can be only added to or removed from a set. In `Prosto`, sets are implemented via table objects. 
+A *set* is a formal representation of a collection of tuples representing data values. Tuples (data values) can be only added to or removed from a set. In `Prosto`, sets are implemented via table objects. 
 
 A *function* is a mapping from an input set to an output set. Given an input value, the output value can be read from the function or set for the function. In `Prosto`, functions are implemented via column objects.
 
@@ -181,7 +182,7 @@ Columns implement functions (mappings between sets) and their values are compute
 
 `Pandas` is a very powerful toolkit which relies on the notion of matrix for data representation. In other words, matrix is the main unit of data representation in `pandas`. Yet, `pandas` supports not only matrix operations (in this case, having `numpy` would be enough) but also set operations, relational operations, map-reduce, multidimensional and OLAP as well as some other conceptions. In this sense, `pandas` is a quite eclectic toolkit. 
 
-In contrast, `Prosto` is based on only one theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model. Yet, `Prosto` relies on `pandas` in its implementation just because `pandas` provides a powerful set of various highly optimized operations with data.
+In contrast, `Prosto` is based on a solid theoretical basis: the concept-oriented model of data. For simplicity, it can be viewed as a purely set-oriented model (not the relational model) along with a function-oriented model. Yet, `Prosto` relies on `pandas` in its implementation just because `pandas` provides a powerful set of highly optimized operations with data.
 
 # Prosto operations
 
@@ -191,7 +192,7 @@ In contrast, `Prosto` is based on only one theoretical basis: the concept-orient
 
 * Column operations
 
-  * `compute`: A complete new column is computed from the input columns of the same table. It is analogous to table `populate` operation
+  * `compute`: A complete new column is computed from the input columns of the same table. It is analogous to the table `populate` operation
   * `calculate`: New column values are computed from other values in the same table and row
   * `link`: New column values uniquely represent rows from another table
   * `merge`: New columns values are copied from a linked column in another table
@@ -201,7 +202,7 @@ In contrast, `Prosto` is based on only one theoretical basis: the concept-orient
 
 * Table operations
 
-  * `populate`: A complete table with all its rows is populated and returned by the specified UDF
+  * `populate`: A complete table with all its rows is populated and returned by the specified UDF similar to the column `compute` operaiton
   * `product`: A new table consists of all combinations of rows in the inputs tables
   * `filter`: A new table is a subset of rows from another table selected using the specified UDF
   * `project`: A new table consists of all unique combinations of the specified columns of the input table
@@ -212,21 +213,21 @@ Examples of these operations can be found in unit tests or Jupyter notebooks in 
 
 An operation in Prosto provides a general logic of data processing and it does not do anything by itself. An operation needs additional parameters which specify what exactly has to be done with the data. Below we describe parameters which are common to almost all operation types.
 
-Data elements and operations. It is important to understand that data elements and operations are different types of objects and they managed separately. We can create, update and delete them separately. Yet, for simplicity, Prosto provides functions which create an operation along with the corresponding new data element. For example, we call the `calculate` function then it will define one column and one operation. A new data element and a new operation are described by different parameters of the function.
+* Data elements and operations. It is important to understand that data elements and operations are different types of objects and they are managed separately in `Prosto`. We can create, update and delete them separately. Yet, for simplicity, Prosto provides functions which create an operation along with the corresponding new data element. For example, we call the `calculate` function then it will define one column and one operation. A new data element and a new operation are described by different parameters of the function.
 
-Data element definition. First two parameters of an operation define a data element. If it is a column operation like `link` then it defines a new column using its `name` and (existing) `table`. If it is a table operation like `project` then it is its `table_name` and a list of `attributes`. The rest of the operation parameters define an operation.
+* Data element definition. First two parameters of an operation define a data element. If it is a column operation like `link` then it defines a new column using its `name` and (existing) `table`. If it is a table operation like `project` then it is its `table_name` and a list of `attributes`. The rest of the operation parameters define an operation.
 
-Function. Most operations have a `func` argument which provides a user-defined function (UDF). This function "knows" what to do with the data. There are two types of functions: (i) functions which are called in an internal loop and take/return data values, (ii) functions which are called only once and take/return collections of values (columns or tables). For each operation it is specified which kind of UDF it uses.
+* Function. Most operations have a `func` argument which provides a user-defined function (UDF). This function "knows" what to do with the data. There are two types of functions: (i) functions which are called in an internal loop and take/return data values, (ii) functions which are called only once and take/return collections of values (columns or tables). For each operation it is specified which kind of UDF it uses.
 
-Data. Here we can specify what data has to be processed by the operation (and the corresponding UDF). For many column operations, it is a list of `columns` of the input table. It is assumed that only these columns have to be processed. For many table operations, it is a list of `tables`.
+* Data. Here we can specify what data has to be processed by the operation (and the corresponding UDF). For many column operations, it is a list of `columns` of the input table. It is assumed that only these columns have to be processed. For many table operations, it is a list of `tables`.
 
-Model. This argument of an operation is intended for providing additional parameter for data processing. The model object is passed to UDF which has to know how to use it. It can be as simple as one value and as complex as a trained data mining model. It can be a tuple, dictionary or an arbitrary Python object. A tuple will be unpacked in a list of positional arguments of UDF. A dictionary will be unpacked into a list of keyword arguments. An object will be passed as one positional argument.
+* Model. This argument of an operation is intended for providing additional parameter for data processing. The model object is passed to UDF which has to know how to use it. It can be as simple as one value and as complex as a trained data mining model. It can be a tuple, dictionary or an arbitrary Python object. A tuple will be unpacked in a list of positional arguments of UDF. A dictionary will be unpacked into a list of keyword arguments. An object will be passed as one positional argument.
 
 ## Column operations
 
 ### Compute column
 
-TBD
+A `compute` column is intended for computing a new column based the values in other columns in the same row. It is defined via a Python user-defined function which gets several input columns and returns one output column which is then added to the table.
 
 ### Calculate column (instead of map operation)
 
@@ -234,7 +235,7 @@ Probably the simplest and most frequent operation in `Prosto` is computing a new
 
 This function will be evaluated for each row of the table and its outputs will be stored as a new column. 
 
-It is precisely how `apply` works in `pandas` (and actually it relies on it in its implementation) but it is different from how `map` operation works because a calculated column does not add any new table while `map` computes a new collection (which makes computations less efficient). 
+It is similar to how `apply` works in `pandas` (and actually it relies on it in its implementation) but it is different from how `map` operation works because a calculated column does not add any new table while `map` computes a new collection (which makes computations less efficient). 
 
 The `Prosto` approach is somewhat similar to spreadsheets with the difference that new columns depend on only one coordinate - other columns - while cells in spreadsheets depend on two coordinates - row and column addresses. The both however are equally simple and natural.   
 
@@ -265,9 +266,11 @@ Note that the merge operation (as an explicit operation) is planned to become ob
 
 ### Rolling aggregation (instead of over-partition)
 
-This column will aggregate data located in "neighbor" rows of this same table which are selected using criteria in the window objects. For example, we can specify how many previous rows to select. 
+This column will aggregate data located in "neighbor" rows of this same table. These rows to be aggregated are selected using criteria in the `window` object. For example, we can specify how many previous rows to select.
 
 Currently, its logic is equivalent to that of the rolling aggregation in `pandas` with the difference that the result column is immediately added to the table and this operation is part of the whole workflow.
+
+The `roll` operation can distinguish different groups of rows and process them separately as if they were stored in different tables. We refer to this mode as rolling aggregation with grouping. If the `link` parameter is not empty then its value specifies a column or attribute used for grouping.
 
 Check out the `roll.ipynb` notebook for a working example of rolling aggregation.
 
@@ -292,7 +295,7 @@ Links:
 
 ### Populate table
 
-TBD
+A new table will be populated with data returned by the specified user-defined function. This operation is analogous to `compute` column operation with the difference that a complete table is returned rather than a complete column.
 
 ### Product of tables (instead of join)
 
