@@ -18,29 +18,27 @@
 
 # What is Prosto?
 
-`Prosto` is a data processing toolkit which significantly simplifies data processing and analysis. 
+`Prosto` is a Python data processing toolkit to programmatically author and execute complex data processing workflows. Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
 
-Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like Python `pandas`.
-
-`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. Accordingly, a `Prosto` workflow consists of two categories of operations:
+`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two categories of operations:
 
 * *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
 
-* *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which is a mapping of values from one set to another set.
+* *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which maps tuples from one set to another set.
 
 # Why Prosto?
 
 Prosto provides the following unique features and benefits:
 
-* *Processing data in multiple tables.* We can easily implement calculate columns (as demonstrated in examples) using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` is intended for and makes it easy to process data stored in many tables by relying on `link` columns which are also evaluated from the data.
+* *Processing data in multiple tables.* We can easily implement calculate columns using `apply` method of `pandas`. However, we cannot use this technique in the case of multiple tables. `Prosto` is intended for and makes it easy to process data stored in many tables by relying on `link` columns which are also evaluated from the data.
 
-* *Getting rid of joins.* Data in multiple tables can be processed using the relational join operation. However, it is tedious, error prone and requires high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are part of one workflow.
+* *Getting rid of joins.* Data in multiple tables can be processed using the relational join operation. However, it is tedious, error prone and requires high expertise especially in the case of many tables. `Prosto` does not use joins. Instead, it relies on `link` columns which also have definitions and are evaluated during workflow execution.
 
 * *Getting rid of group-by.* Data aggregation is typically performed using some kind of group-by operation. `Prosto` does not use this relational operation by providing column operations for that purpose which are simpler and more natural especially in describing complex analytical workflows.
 
 * *Flexibility via user-defined functions.* `Prosto` is very flexible in defining how data will be processed because it relies on user-defined functions which are its minimal units of data processing. They provide the logic of processing at the level of individual values while the logic of looping through the sets is implemented by the system according to the type of operation applied. User-defined functions can be as simple as format conversion and as complex as as a machine learning algorithm.
 
-* Data Dictionary (DD) for declaring schema, tables and columns, and Feature Store (FS) functions for definition operations over these data objects
+* Data Dictionary (DD) for declaring schema, tables and columns, and Feature Store (FS) for defining operations over these data objects
 
 * In future, `Prosto` will implement such features as *incremental evaluation* for processing only what has changed, *model training* for training models as part of the workflow, data/model persistence and other data processing and analysis operations.
 
