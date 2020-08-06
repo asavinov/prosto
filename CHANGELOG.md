@@ -1,5 +1,8 @@
 # Change Log
 
+* v0.4.0 (2020-xx-xx)
+  * documentation
+
 * v0.3.0 (2020-08-31)
   * rolling aggregation with grouping operation
   * aggregation for multiple input columns
