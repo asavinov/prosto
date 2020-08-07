@@ -1,4 +1,4 @@
-# Getting started with Prosto
+# Quick start
 
 ## Importing Prosto
 
@@ -25,7 +25,9 @@ prosto = pr.Prosto("My Prosto Workflow")
 
 Each table has some structure which is defined by its *attributes*. Table data is defined by the tuples it consists of and each tuple is a combination of some attribute values.
 
-There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `populate` operation. It relies on a *user-defined function* which is supposed to "know" how to populate this table by returning a `pandas` data frame with the data:
+There exist many different ways to populate a table with tuples (attribute values). One of the simplest one is a table `populate` operation. It relies on a *user-defined function* which is supposed to "know" how to populate this table by returning a `pandas` data frame with the data.
+
+Below we define a table with three attributes which will be populated by the specified user-defined function:
 
 ```python
 sales_data = {
