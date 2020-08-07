@@ -24,9 +24,9 @@ copyright = '2020, Prosto Data'
 author = 'Prosto Data'
 
 # The short X.Y version
-version = '0.3.0'
+version = 'latest'
 # The full version, including alpha/beta/rc tags
-release = '0.3.0'
+release = 'latest'
 
 
 # -- General configuration ---------------------------------------------------
