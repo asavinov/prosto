@@ -1,9 +1,9 @@
 ```
  ____                _        
-|  _ \ _ __ ___  ___| |_ ___   ___________________________________________
+|  _ \ _ __ ___  ___| |_ ___   ________________________________________________________
 | |_) | '__/ _ \/ __| __/ _ \ 
-|  __/| | | (_) \__ \ || (_) | Data Processing Toolkit - noSql-noMapReduce
-|_|   |_|  \___/|___/\__\___/  ___________________________________________
+|  __/| | | (_) \__ \ || (_) | Data Processing Toolkit - No join-groupby, No map-reduce
+|_|   |_|  \___/|___/\__\___/  ________________________________________________________
 ```
 [![Documentation Status](https://readthedocs.org/projects/prosto/badge/?version=latest)](https://prosto.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
@@ -17,6 +17,10 @@
 * *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
 
 * *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which maps tuples from one set to another set.
+
+An example of such a `Prosto` workflow consisting of 3 column operations is shown below. The main difference from traditional approaches is that this `Prosto` workflow will not modify any table - it changes only columns. Formally, if traditional approaches apply set operations by generating new sets from already inferred sets, then `Prosto` derives new *functions* from existing functions. In many cases, using functions (column operations) is much simpler and more natural.
+
+![Data processing workflow](docs/images/fig_1.png)
 
 More detailed information can be found in the documentation: http://prosto.readthedocs.io/. Below is a concise description of the project extracted from the documentation.
 

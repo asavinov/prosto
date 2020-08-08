@@ -9,6 +9,13 @@ Welcome to Prosto documentation!
 
 * *Column operations* produce (evaluate) new columns from existing columns. A column is an implementation of a mathematical *function* which maps tuples from one set to another set.
 
+An example of such a `Prosto` workflow consisting of 3 column operations is shown below. The main difference from traditional approaches is that this `Prosto` workflow will not modify any table - it changes only columns. Formally, if traditional approaches apply set operations by generating new sets from already inferred sets, then `Prosto` derives new *functions* from existing functions. In many cases, using functions (column operations) is much simpler and more natural.
+
+.. image:: images/fig_1.png
+   :width: 100 %
+   :alt: Data processing workflow
+   :align: center
+
 Contents
 ========
 
