@@ -51,8 +51,10 @@ class Topology:
                 #
                 # Find dependencies of this operation
                 #
-                if isinstance(op, (TableOperation, ColumnOperation)):
-                    dep_elems = op.get_dependencies()  # Get all element definitions this element depends upon
+                if isinstance(op, TableOperation):
+                    dep_elems = op.get_dependencies()
+                elif isinstance(op, ColumnOperation):
+                    dep_elems = op.get_dependency_objects()
                 else:
                     raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
                     #dep_elems = []

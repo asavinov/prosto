@@ -17,6 +17,135 @@ class ColumnOperation(Operation):
     def __init__(self, prosto, definition):
         super(ColumnOperation, self).__init__(prosto, definition)
 
+    def get_dependencies_names(self) -> dict:
+        """
+        Get all dependencies represented by names like table names and column names as they are specified in the definition.
+        These names are not resolved and might not be in the list of schema objects yet (like attributes or column paths).
+        :return: dict with table names as keys and lists of columns as values (empty in the case of only table as a dependency)
+        """
+
+        definition = self.definition
+        operation = definition.get('operation', 'UNKNOWN')
+
+        output_table_name = definition.get('table')
+
+        outputs = self.get_outputs()
+        output_column_name = outputs[0]
+
+        columns = self.get_columns()
+
+        dependencies = {}
+
+        # All derived columns depend on their table
+        dependencies[output_table_name] = []
+
+        #
+        # Collect operation-specific dependencies
+        #
+
+        if operation.lower().startswith('comp'):
+            # Input column objects for which we need to find definitions
+            dependencies[output_table_name].extend(columns)
+
+        elif operation.lower().startswith('calc'):
+            # Input column objects for which we need to find definitions
+            dependencies[output_table_name].extend(columns)
+
+        elif operation.lower().startswith('link'):
+            # Input (fact table) columns or column paths have to be evaluated
+            dependencies[output_table_name].extend(columns)
+
+            # Target (linked) table has to be populated
+            output_column_name = outputs[0]
+            output_column = self.prosto.get_column(output_table_name, output_column_name)
+            linked_table_name = output_column.definition.get('type', '')
+            dependencies[linked_table_name] = []
+
+            # Target columns have to be evaluated in order to contain values. However, they are supposed to be attributes and hence they will be set during population
+            linked_columns = definition.get('linked_columns', [])
+            dependencies[linked_table_name].extend(linked_columns)
+
+        elif operation.lower().startswith('merg'):
+            # Link column (first segment) has to be evaluated
+            link_column_name = columns[0]
+            dependencies[output_table_name].append(link_column_name)
+
+            # Linked table has to be populated. (Yet, it will be added to dependency by the link column.)
+            link_column = self.prosto.get_column(output_table_name, link_column_name)
+            linked_table_name = link_column.definition.get('type')
+            dependencies[linked_table_name] = []
+
+            # Linked column path (tail) in the linked table has to exist (recursion)
+            linked_column_name = columns[1]
+            dependencies[linked_table_name].append(linked_column_name)
+
+        elif operation.lower().startswith('roll'):
+            # Columns to be aggregated
+            dependencies[output_table_name].extend(columns)
+
+            # Link (group) column
+            link_column_name = definition.get('link')
+            if link_column_name:
+                dependencies[output_table_name].append(link_column_name)
+
+            # Linked table has to be populated. (Yet, it will be added to dependency by the link column.)
+            if link_column_name:
+                link_column = self.prosto.get_column(output_table_name, link_column_name)
+                if link_column:
+                    linked_table_name = link_column.definition.get('type')
+                    dependencies[linked_table_name] = []
+                else:
+                    pass  # Link (group) column could be an attribute with no definition and type table
+
+        elif operation.lower().startswith('aggr'):
+            # The fact table has to be already populated
+            tables = definition.get('tables')
+            source_table_name = tables[0]
+            dependencies[source_table_name] = []
+
+            # Measure columns of the fact table
+            dependencies[source_table_name].extend(columns)
+
+            # Link (group) column
+            link_column_name = definition.get('link')
+            dependencies[source_table_name].append(link_column_name)
+
+        elif operation.lower().startswith('disc'):
+            # Input column objects for which we need to find definitions
+            dependencies[output_table_name].extend(columns)
+
+        else:
+            raise ValueError("Unknown operation type '{}' in the definition of column '{}'.".format(operation, self.id))
+
+        return dependencies
+
+    def get_dependency_objects(self) -> List[Union[Table, Column]]:
+        """
+        Get dependencies as a list of objects of Table or Column resolved from the corresponding names.
+        Note that not all names can be resolved to objects, for example, attributes, column paths or expressions.
+        """
+        deps = self.get_dependencies_names()
+
+        dependencies = []
+
+        # Tables
+        for table_name in deps.keys():
+            # Resolve this table name into a table object
+            table = self.prosto.get_table(table_name)
+            dependencies.append(table)
+
+        # Columns
+        for table_name, column_names in deps.items():
+            for column_name in column_names:
+                # Resolve column name
+                column = self.prosto.get_column(table_name, column_name)
+                if column:
+                    dependencies.append(column)
+                else:
+                    pass  # It could be an attribute or column path
+
+        return dependencies
+
     def get_dependencies(self) -> List[Union[Table, Column]]:
         """Get tables and columns this column depends upon."""
         definition = self.definition
