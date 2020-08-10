@@ -24,10 +24,49 @@ class Topology:
     def translate(self) -> None:
         """Build a graph of operations by analyzing table and column dependencies."""
 
-        #
         # Collect all operations into one list
-        #
         all_operations = [x for x in self.prosto.operations]
+
+
+        #
+        # Augment topology
+        # Find undefined dependencies and try to define them as explicit operations (e.g., column paths)
+        #
+
+        for op in all_operations:
+
+            if isinstance(op, TableOperation):
+                pass  # Currently we do check table operations
+            elif isinstance(op, ColumnOperation):
+
+                deps = op.get_dependencies_names()
+
+                for table_name, column_names in deps.items():
+
+                    table = self.prosto.get_table(table_name)
+                    if not table:
+                        raise ValueError("Table not found. Operation '{}' generates table '{}' which is not found in the schema.".format(op.id, table_name))
+
+                    # Check if all columns/attributes really exist and if not then try to insert an operation for their generation
+                    for column_name in column_names:
+                        # Check if such a column exists
+                        column = self.prosto.get_column(table_name, column_name)
+                        # TODO: Check if an operation for this column generation exists and if yes then add the corresponding column and warn (or error - operation without output column object)
+                        #ops = self.prosto.get_column_operations(table_name, column_name)
+                        if column:
+                            continue
+                        # Check if it is an attribute
+                        is_attribute = self.prosto.has_attribute(table_name, column_name)
+                        if is_attribute:
+                            continue
+                        # TODO: Parse the name and check if it is a column path
+                        column_path = []
+                        if column_path:
+                            # Insert an (merge) operation for this column path. It will also add a column object(s)
+                            self.prosto.merg(column_name, table_name, column_path)
+
+            else:
+                raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
 
         #
         # Build graph of operations by analyzing dependencies
@@ -52,18 +91,17 @@ class Topology:
                 # Find dependencies of this operation
                 #
                 if isinstance(op, TableOperation):
-                    dep_elems = op.get_dependencies()
+                    deps = op.get_dependencies()
                 elif isinstance(op, ColumnOperation):
-                    dep_elems = op.get_dependency_objects()
+                    deps = op.get_dependency_objects()
                 else:
                     raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
-                    #dep_elems = []
 
                 #
                 # Find operations which generate these elements
                 #
                 dep_ops = []
-                for dep in dep_elems:
+                for dep in deps:
                     if isinstance(dep, Table):
                         ops = self.prosto.get_table_operations(dep.id)
                     elif isinstance(dep, Column):

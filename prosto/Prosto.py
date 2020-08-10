@@ -87,6 +87,14 @@ class Prosto:
     # Column methods
     #
 
+    def has_attribute(self, table_name, attribute_name) -> bool:
+        """Check if the attribute exists in the table"""
+        table = self.get_table(table_name)
+        if not table:
+            return False
+        attributes = table.definition.get("attributes", [])
+        return attribute_name in attributes
+
     def get_column(self, table_name, column_name) -> Column:
         """Find a column the specified name"""
         if not table_name: return None
