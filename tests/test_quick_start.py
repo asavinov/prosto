@@ -58,14 +58,6 @@ class ColumnQuickStartTestCase(unittest.TestCase):
         )
 
         #
-        # Merge column
-        #
-        merge_column = prosto.merge(
-            name="price", table=items.id,
-            columns=["product", "price"]
-        )
-
-        #
         # Calc column
         #
         calc_column = prosto.calculate(
@@ -73,7 +65,7 @@ class ColumnQuickStartTestCase(unittest.TestCase):
             name="amount", table=items.id,
 
             # Column operation is UDF, input columns and model
-            func=lambda x: x["quantity"] * x["price"], columns=["quantity", "price"]
+            func=lambda x: x["quantity"] * x["product::price"], columns=["quantity", "product::price"]
         )
 
         #
