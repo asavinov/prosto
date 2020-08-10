@@ -92,6 +92,45 @@ class ColumnAggregateTestCase(unittest.TestCase):
 
         pass
 
+    def test_aggregate_with_path(self):
+        """Aggregation with column paths as measures which have to be automatically produce merge operation."""
+        sch = Prosto("My Prosto")
+
+        # Facts
+        f_tbl = sch.populate(
+            table_name="Facts", attributes=["A", "M"],
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[]
+        )
+
+        # Groups
+        df = pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})
+        g_tbl = sch.populate(
+            table_name="Groups", attributes=["A"],
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})", tables=[]
+        )
+
+        # Link
+        l_clm = sch.link(
+            name="Link", table=f_tbl.id, type=g_tbl.id,
+            columns=["A"], linked_columns=["A"]
+        )
+
+        # Aggregation
+        a_clm = sch.aggregate(
+            name="Aggregate", table=g_tbl.id,
+            tables=["Facts"], link="Link",
+            func="lambda x, bias, **model: x.sum() + bias", columns=["Link::B"], model={"bias": 0.0}
+        )
+
+        sch.run()
+
+        a_clm_data = g_tbl.get_column_data('Aggregate')
+        self.assertEqual(a_clm_data[0], 6.0)
+        self.assertEqual(a_clm_data[1], 4.0)
+        self.assertEqual(a_clm_data[2], 0.0)
+
+        pass
+
 
 if __name__ == '__main__':
     unittest.main()

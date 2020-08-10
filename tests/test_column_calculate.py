@@ -36,7 +36,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
         self.assertIsInstance(v1, float)
         self.assertIsInstance(v2, float)
 
-    def test_all(self):
+    def test_compute(self):
         sch = Prosto("My Prosto")
 
         tbl = sch.populate(
@@ -75,6 +75,45 @@ class ColumnCalculateTestCase(unittest.TestCase):
         self.assertAlmostEqual(clm_data[0], 2.0)
         self.assertAlmostEqual(clm_data[1], 3.0)
         self.assertTrue(pd.isna(clm_data[2]))
+
+    def test_calculate_with_path(self):
+        """Calculation with column paths which have to be automatically produce merge operation."""
+        sch = Prosto("My Prosto")
+
+        # Facts
+        f_tbl = sch.populate(
+            table_name="Facts", attributes=["A", "M"],
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[]
+        )
+
+        # Groups
+        df = pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})
+        g_tbl = sch.populate(
+            table_name="Groups", attributes=["A"],
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})", tables=[]
+        )
+
+        # Link
+        l_clm = sch.link(
+            name="Link", table=f_tbl.id, type=g_tbl.id,
+            columns=["A"], linked_columns=["A"]
+        )
+
+        # Calculate
+        clm = sch.calculate(
+            name="My column", table=f_tbl.id,
+            func="lambda x: x['M'] + x['Link::B']", columns=["M", "Link::B"], model=None
+        )
+
+        sch.run()
+
+        clm_data = f_tbl.get_column_data('My column')
+        self.assertEqual(clm_data[0], 4.0)
+        self.assertEqual(clm_data[1], 5.0)
+        self.assertEqual(clm_data[2], 5.0)
+        self.assertEqual(clm_data[3], 6.0)
+
+        pass
 
 
 if __name__ == '__main__':

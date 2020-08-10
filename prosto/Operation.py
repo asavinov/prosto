@@ -33,7 +33,7 @@ class Operation:
         self.operation = definition.get("operation")
 
     def __repr__(self):
-        return '['+self.id+']'
+        return '['+self.id+'::'+self.definition.operation+']'
 
     def get_columns(self) -> List[str]:
         """Get a list of input column names specified in this definition."""

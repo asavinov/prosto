@@ -14,6 +14,8 @@ from prosto.Data import *
 class Topology:
     """Topology is a graph of operations built taking into account their dependencies."""
 
+    column_path_separator = "::"
+
     def __init__(self, prosto):
 
         self.prosto = prosto  # If context can be modified then make a copy: copy.deepcopy(prosto)
@@ -26,7 +28,6 @@ class Topology:
 
         # Collect all operations into one list
         all_operations = [x for x in self.prosto.operations]
-
 
         #
         # Augment topology
@@ -60,10 +61,10 @@ class Topology:
                         if is_attribute:
                             continue
                         # TODO: Parse the name and check if it is a column path
-                        column_path = []
-                        if column_path:
+                        column_path = column_name.split(Topology.column_path_separator)
+                        if len(column_path) > 1:
                             # Insert an (merge) operation for this column path. It will also add a column object(s)
-                            self.prosto.merg(column_name, table_name, column_path)
+                            self.prosto.merge(column_name, table_name, column_path)
 
             else:
                 raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
@@ -71,6 +72,8 @@ class Topology:
         #
         # Build graph of operations by analyzing dependencies
         #
+
+        all_operations = [x for x in self.prosto.operations]
 
         # Empty collection of already processed elements (they can be simultaneously removed from all)
         done = []
