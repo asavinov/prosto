@@ -25,7 +25,7 @@ class TableOperation(Operation):
         output_table_name = outputs[0]
         output_table = self.prosto.get_table(output_table_name)
 
-        tables = self.definition.get("tables")
+        tables = self.get_tables()
         input_tables = self.prosto.get_tables(tables)
 
         dependencies = []
@@ -142,7 +142,7 @@ class TableOperation(Operation):
         #
         # Stage 2. Prepare input data
         #
-        tables = self.definition.get("tables")
+        tables = self.get_tables()
         tables = self.prosto.get_tables(tables)
         if not tables: tables = []
 
@@ -201,7 +201,7 @@ class TableOperation(Operation):
         #
         # Stage 1. Prepare input data
         #
-        tables = self.definition.get("tables")
+        tables = self.get_tables()
         if not tables:
             raise ValueError("Table product operation must specify at least one table in the 'tables' field.".format())
         if len(tables) != len(attributes):
@@ -234,7 +234,7 @@ class TableOperation(Operation):
         #
         # Stage 1. Prepare input data
         #
-        tables = self.definition.get("tables")
+        tables = self.get_tables()
         if not tables:
             raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
         tables = self.prosto.get_tables(tables)
@@ -245,7 +245,7 @@ class TableOperation(Operation):
         #
         # Stage 2. Find filter column
         #
-        columns = self.definition.get("columns")
+        columns = self.get_columns()
         if not columns:
             raise ValueError("Filter operation must specify a boolean column from the base table in the 'columns' field.".format())
 
@@ -284,7 +284,7 @@ class TableOperation(Operation):
         #
         # Stage 1. Prepare input data
         #
-        tables = self.definition.get("tables")
+        tables = self.get_tables()
         if not tables:
             raise ValueError("Project operation must specify one input table in the 'tables' field".format())
         tables = self.prosto.get_tables(tables)
