@@ -238,8 +238,8 @@ class TableOperation(Operation):
         if not tables:
             raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
         tables = self.prosto.get_tables(tables)
-
         base_table = tables[0]
+
         base_table_data = base_table.get_data()
 
         #
