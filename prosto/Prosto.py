@@ -63,6 +63,83 @@ class Prosto:
         tables = filter(lambda x: x.id in table_names, self.tables)
         return list(tables)
 
+    def get_type_table(self, table_name, column_name) -> Table:
+        """Get type table for its specified column or attribute."""
+        if not table_name: return None
+
+        column = self.get_column(table_name, column_name)
+        is_attribute = self.has_attribute(table_name, column_name)
+
+        if column:
+            # Default
+            type_table_name = column.definition.get("type")
+
+            # Determine column operation type
+            ops = self.get_column_operations(table_name, column_name)
+            op = ops[0] if len(ops) > 0 else None
+
+            if not op:
+                pass
+
+            elif op.operation.lower().startswith('merg'):
+                # Merge columns do not have type in their definition - they provide only a column path
+                # So need to reconstruct the type by following this path
+                column_path = op.get_columns("columns")
+                type_table_name = table_name
+                for i, column_name in enumerate(column_path):
+                    # Find type table of one segment which has to be a link except for maybe last segment
+                    type_table_name = self.get_type_table(type_table_name, column_name)
+                    if not type_table_name:
+                        break
+
+            elif op.operation.lower().startswith('link'):
+                # Type is part of column definition (not operation) so we simply read it
+                pass
+
+            else:
+                # It is expected to be None but type field is also expected to be absent
+                pass
+
+        elif is_attribute:
+            # Default
+            type_table_name = None
+
+            # Determine table operation type
+            ops = self.get_table_operations(table_name)
+            op = ops[0] if len(ops) > 0 else None
+
+            if not op:
+                None
+
+            elif op.operation.lower().startswith('filt'):
+                # filter table, type is stored in the list of its tables in the definition (one table is possible)
+                # It is always the first and the only table
+                tables = op.get_tables()
+                if not tables:
+                    raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
+                type_table_name = tables[0]
+
+            elif op.operation.lower().startswith('prod'):
+                # product table, types are stored in the list of tables in the definition (the order corresponds to the order of attributes)
+                # We need to find the table which corresponds to the attribute index in the list
+                tables = op.get_tables()
+                if not tables:
+                    raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
+
+                table = self.get_table(table_name)
+                attributes = table.get("attributes", [])
+                index = attributes.index(column_name)
+
+                type_table_name = tables[index]
+
+            else:
+                pass
+
+        else:
+            raise ValueError("Name'{}'  not found. It is neither column nor attribute".format(column_name))
+
+        return type_table_name
+
     def remove_table(self, table_name) -> Table:
         """
         Remove the specified table if it exists or return None otherwise.
