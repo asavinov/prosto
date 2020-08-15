@@ -79,7 +79,7 @@ class Topology:
                         elif table_ops and table_op.operation.lower().startswith('filt'):
 
                             # Find its parent table (where we will search for our missing column)
-                            tables = table_op.definition.get("tables")
+                            tables = table_op.get_tables()
                             if not tables:
                                 raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
                             #tables = self.prosto.get_tables(tables)
