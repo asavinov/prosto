@@ -56,9 +56,7 @@ class ColumnOperation(Operation):
             dependencies[output_table_name].extend(columns)
 
             # Target (linked) table has to be populated
-            output_column_name = outputs[0]
-            output_column = self.prosto.get_column(output_table_name, output_column_name)
-            linked_table_name = output_column.definition.get("type")
+            linked_table_name = self.prosto.get_type_table(output_table_name, output_column_name)
             dependencies[linked_table_name] = []
 
             # Target columns have to be evaluated in order to contain values. However, they are supposed to be attributes and hence they will be set during population
@@ -71,8 +69,7 @@ class ColumnOperation(Operation):
             dependencies[output_table_name].append(link_column_name)
 
             # Linked table has to be populated. (Yet, it will be added to dependency by the link column.)
-            link_column = self.prosto.get_column(output_table_name, link_column_name)
-            linked_table_name = link_column.definition.get("type")
+            linked_table_name = self.prosto.get_type_table(output_table_name, link_column_name)
             dependencies[linked_table_name] = []
 
             # Linked column path (tail) in the linked table has to exist (recursion)
@@ -88,14 +85,11 @@ class ColumnOperation(Operation):
             if link_column_name:
                 dependencies[output_table_name].append(link_column_name)
 
-            # Linked table has to be populated. (Yet, it will be added to dependency by the link column.)
+            # Linked table (if any) has to be populated. (Yet, it will be added to dependency by the link column.)
             if link_column_name:
-                link_column = self.prosto.get_column(output_table_name, link_column_name)
-                if link_column:
-                    linked_table_name = link_column.definition.get("type")
+                linked_table_name = self.prosto.get_type_table(output_table_name, link_column_name)
+                if linked_table_name:
                     dependencies[linked_table_name] = []
-                else:
-                    pass  # Link (group) column could be an attribute with no definition and type table
 
         elif operation.lower().startswith("aggr"):
             # The fact table has to be already populated
@@ -176,7 +170,7 @@ class ColumnOperation(Operation):
 
         elif operation.lower().startswith("link"):
             # Target (linked) table has to be populated
-            linked_table_name = output_column.definition.get("type")
+            linked_table_name = self.prosto.get_type_table(output_table_name, output_column_name)
             linked_table = self.prosto.get_table(linked_table_name)
             dependencies.append(linked_table)
 
@@ -194,7 +188,7 @@ class ColumnOperation(Operation):
             dependencies.append(link_column)
 
             # Linked column path (tail) in the linked table has to exist (recursion)
-            linked_table_name = link_column.definition.get("type")
+            linked_table_name = self.prosto.get_type_table(output_table_name, link_column_name)
             linked_table = self.prosto.get_table(linked_table_name)
             linked_column_name = columns[1]
 
@@ -538,7 +532,7 @@ class ColumnOperation(Operation):
         if not all_columns_exist(main_keys, main_table.get_data()):
             raise ValueError("Not all key columns available in the link column definition.".format())
 
-        linked_table_name = output_column.definition.get("type")
+        linked_table_name = self.prosto.get_type_table(main_table_name, column_name)
         linked_table = self.prosto.get_table(linked_table_name)
         if not linked_table:
             raise ValueError("Linked table '{}' cannot be found in the link column definition.".format(linked_table))
@@ -611,6 +605,7 @@ class ColumnOperation(Operation):
         columns = self.get_columns()
         link_column_path = ""  # Column path composed of several separated column segment names
         df = output_table_data
+        main_table_name = output_table_name
         main_table = output_table
         for i, link_column_name in enumerate(columns):
             #
@@ -639,7 +634,7 @@ class ColumnOperation(Operation):
             #
             # Find the linked table
             #
-            linked_table_name = link_column.definition.get("type")
+            linked_table_name = self.prosto.get_type_table(main_table_name, link_column_name)
             linked_table = self.prosto.get_table(linked_table_name)
             linked_table_data = linked_table.get_data()
 
@@ -660,6 +655,7 @@ class ColumnOperation(Operation):
             )
 
             # Iterate
+            main_table_name = linked_table_name
             main_table = linked_table
 
         return out

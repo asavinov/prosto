@@ -77,7 +77,7 @@ class ColumnCalculateTestCase(unittest.TestCase):
         self.assertTrue(pd.isna(clm_data[2]))
 
     def test_calculate_with_path(self):
-        """Calculation with column paths which have to be automatically produce merge operation."""
+        """Test topology augmentation. Calculation with column paths which have to be automatically produce merge operation."""
         sch = Prosto("My Prosto")
 
         # Facts
