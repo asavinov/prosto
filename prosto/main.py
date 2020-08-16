@@ -6,7 +6,7 @@ import prosto as pr
 #from prosto.Prosto import *
 
 import logging
-log = logging.getLogger('prosto')
+log = logging.getLogger("prosto")
 
 
 def run(script_file):
@@ -19,20 +19,20 @@ def run(script_file):
 def main(args = None):
     if not args: args = sys.argv[1:]
 
-    programVersion = 'Version ' + pr.__version__
-    programDescription = 'Prosto data processing toolkit' + programVersion
+    programVersion = "Version " + pr.__version__
+    programDescription = "Prosto data processing toolkit" + programVersion
 
     parser = argparse.ArgumentParser(description=programDescription)
-    parser.add_argument('-v', '--version', action='version', version=programVersion)
+    parser.add_argument("-v", "--version", action="version", version=programVersion)
 
-    parser.add_argument('-l', '--log', dest="loglevel", required=False, choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], default='INFO', help="Set the logging level (default INFO)")
+    parser.add_argument("-l", "--log", dest="loglevel", required=False, choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], default="INFO", help="Set the logging level (default INFO)")
 
-    parser.add_argument('script_file', type=str, help='Script file name')
+    parser.add_argument("script_file", type=str, help="Script file name")
 
     arguments = parser.parse_args(args)
 
     # Configure logging
-    logging.basicConfig(stream=sys.stderr, level=arguments.loglevel, format='%(asctime)s - %(name)s - %(levelname)s: %(message)s')
+    logging.basicConfig(stream=sys.stderr, level=arguments.loglevel, format="%(asctime)s - %(name)s - %(levelname)s: %(message)s")
 
     # Environment
     log.info(programDescription)

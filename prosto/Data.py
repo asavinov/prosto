@@ -5,7 +5,7 @@ from collections import namedtuple
 from prosto.utils import *
 
 
-Range = namedtuple('Range', 'start end')
+Range = namedtuple("Range", "start end")
 
 class Data:
     """The class represents data physically stored as a pandas data frame."""
@@ -51,7 +51,7 @@ class Data:
         self.added_range = Range(0, 0)
 
     def __repr__(self):
-        return '['+self.id+']'
+        return "["+self.id+"]"
 
     def get_df(self) -> pd.DataFrame:
         return self.df
