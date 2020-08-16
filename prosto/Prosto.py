@@ -64,7 +64,7 @@ class Prosto:
         return list(tables)
 
     def get_type_table(self, table_name, column_name) -> Table:
-        """Get type table for its specified column or attribute."""
+        """Get type table (name) for its specified column or attribute."""
         if not table_name: return None
 
         column = self.get_column(table_name, column_name)

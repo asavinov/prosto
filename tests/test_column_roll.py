@@ -101,7 +101,7 @@ class ColumnRollTestCase(unittest.TestCase):
         sch = Prosto("My Prosto")
 
         tbl = sch.populate(
-            table_name="My table", attributes=["A", "B"],
+            table_name="My table", attributes=["G", "A", "B"],
             func="lambda **m: pd.DataFrame({'G': [1, 2, 1, 2], 'A': [1, 2, 3, 4], 'B': [4, 3, 2, 1]})", tables=[]
         )
 
