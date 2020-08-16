@@ -216,11 +216,11 @@ class Prosto:
 
     def get_table_operations(self, table_name) -> List[TableOperation]:
         """Find operations which generate the specified table. Such operations have this table name in its outputs."""
-        return [x for x in self.operations if isinstance(x, TableOperation) and table_name in x.definition.get("outputs", [])]
+        return [x for x in self.operations if isinstance(x, TableOperation) and table_name in x.get_outputs()]
 
     def get_column_operations(self, table_name, column_name) -> List[ColumnOperation]:
         """Find operations which generate the specified column. Such operations have this column name in its outputs as well as the specified table name (each column operation has a table field)."""
-        return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.definition.get("outputs", []) and table_name == x.definition.get("table")]
+        return [x for x in self.operations if isinstance(x, ColumnOperation) and column_name in x.get_outputs() and table_name == x.definition.get("table")]
 
     #
     # Table operations
@@ -669,7 +669,7 @@ class Prosto:
                 operation = op.definition.get("operation")
 
                 if isinstance(op, TableOperation):
-                    outputs = op.definition.get("outputs")
+                    outputs = op.get_outputs()
                     log.info("===> Start table population: id '{}', type = '{}', tables {}".format(op.id, operation, outputs))
                     op.evaluate()
                     log.info("<=== Finish table population".format())

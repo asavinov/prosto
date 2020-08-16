@@ -99,7 +99,7 @@ class ColumnOperation(Operation):
 
         elif operation.lower().startswith("aggr"):
             # The fact table has to be already populated
-            tables = definition.get("tables")
+            tables = self.get_tables()
             source_table_name = tables[0]
             dependencies[source_table_name] = []
 
@@ -220,7 +220,7 @@ class ColumnOperation(Operation):
 
         elif operation.lower().startswith("aggr"):
             # The fact table has to be already populated
-            tables = definition.get("tables")
+            tables = self.get_tables()
             source_table_name = tables[0]
             source_table = self.prosto.get_table(source_table_name)
             dependencies.append(source_table)
@@ -268,7 +268,7 @@ class ColumnOperation(Operation):
         output_table_name = definition.get("table")
         output_table = self.prosto.get_table(output_table_name)
 
-        outputs = definition.get("outputs")
+        outputs = self.get_outputs()
         output_column_name = outputs[0]
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
@@ -389,7 +389,7 @@ class ColumnOperation(Operation):
             #
             # Get parameters
             #
-            tables = definition.get("tables")
+            tables = self.get_tables()
             source_table_name = tables[0]
             source_table = self.prosto.get_table(source_table_name)
             if source_table is None:
@@ -530,7 +530,7 @@ class ColumnOperation(Operation):
         main_table_name = definition.get("table")
         main_table = self.prosto.get_table(main_table_name)
 
-        outputs = definition.get("outputs")
+        outputs = self.get_outputs()
         column_name = outputs[0]
         output_column = self.prosto.get_column(main_table_name, column_name)
 
@@ -602,7 +602,7 @@ class ColumnOperation(Operation):
         output_table = self.prosto.get_table(output_table_name)
         output_table_data = output_table.get_data()
 
-        outputs = definition.get("outputs")
+        outputs = self.get_outputs()
         output_column_name = outputs[0]
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
