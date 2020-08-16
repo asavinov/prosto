@@ -25,9 +25,9 @@ class ColumnOperation(Operation):
         """
 
         definition = self.definition
-        operation = definition.get('operation', 'UNKNOWN')
+        operation = definition.get("operation", "UNKNOWN")
 
-        output_table_name = definition.get('table')
+        output_table_name = definition.get("table")
 
         outputs = self.get_outputs()
         output_column_name = outputs[0]
@@ -43,48 +43,48 @@ class ColumnOperation(Operation):
         # Collect operation-specific dependencies
         #
 
-        if operation.lower().startswith('comp'):
+        if operation.lower().startswith("comp"):
             # Input column objects for which we need to find definitions
             dependencies[output_table_name].extend(columns)
 
-        elif operation.lower().startswith('calc'):
+        elif operation.lower().startswith("calc"):
             # Input column objects for which we need to find definitions
             dependencies[output_table_name].extend(columns)
 
-        elif operation.lower().startswith('link'):
+        elif operation.lower().startswith("link"):
             # Input (fact table) columns or column paths have to be evaluated
             dependencies[output_table_name].extend(columns)
 
             # Target (linked) table has to be populated
             output_column_name = outputs[0]
             output_column = self.prosto.get_column(output_table_name, output_column_name)
-            linked_table_name = output_column.definition.get('type', '')
+            linked_table_name = output_column.definition.get("type")
             dependencies[linked_table_name] = []
 
             # Target columns have to be evaluated in order to contain values. However, they are supposed to be attributes and hence they will be set during population
-            linked_columns = definition.get('linked_columns', [])
+            linked_columns = definition.get("linked_columns", [])
             dependencies[linked_table_name].extend(linked_columns)
 
-        elif operation.lower().startswith('merg'):
+        elif operation.lower().startswith("merg"):
             # Link column (first segment) has to be evaluated
             link_column_name = columns[0]
             dependencies[output_table_name].append(link_column_name)
 
             # Linked table has to be populated. (Yet, it will be added to dependency by the link column.)
             link_column = self.prosto.get_column(output_table_name, link_column_name)
-            linked_table_name = link_column.definition.get('type')
+            linked_table_name = link_column.definition.get("type")
             dependencies[linked_table_name] = []
 
             # Linked column path (tail) in the linked table has to exist (recursion)
             linked_column_name = columns[1]
             dependencies[linked_table_name].append(linked_column_name)
 
-        elif operation.lower().startswith('roll'):
+        elif operation.lower().startswith("roll"):
             # Columns to be aggregated
             dependencies[output_table_name].extend(columns)
 
             # Link (group) column
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
             if link_column_name:
                 dependencies[output_table_name].append(link_column_name)
 
@@ -92,14 +92,14 @@ class ColumnOperation(Operation):
             if link_column_name:
                 link_column = self.prosto.get_column(output_table_name, link_column_name)
                 if link_column:
-                    linked_table_name = link_column.definition.get('type')
+                    linked_table_name = link_column.definition.get("type")
                     dependencies[linked_table_name] = []
                 else:
                     pass  # Link (group) column could be an attribute with no definition and type table
 
-        elif operation.lower().startswith('aggr'):
+        elif operation.lower().startswith("aggr"):
             # The fact table has to be already populated
-            tables = definition.get('tables')
+            tables = definition.get("tables")
             source_table_name = tables[0]
             dependencies[source_table_name] = []
 
@@ -107,10 +107,10 @@ class ColumnOperation(Operation):
             dependencies[source_table_name].extend(columns)
 
             # Link (group) column
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
             dependencies[source_table_name].append(link_column_name)
 
-        elif operation.lower().startswith('disc'):
+        elif operation.lower().startswith("disc"):
             # Input column objects for which we need to find definitions
             dependencies[output_table_name].extend(columns)
 
@@ -149,9 +149,9 @@ class ColumnOperation(Operation):
     def get_dependencies(self) -> List[Union[Table, Column]]:
         """Get tables and columns this column depends upon."""
         definition = self.definition
-        operation = definition.get('operation', 'UNKNOWN')
+        operation = definition.get("operation", "UNKNOWN")
 
-        output_table_name = definition.get('table')
+        output_table_name = definition.get("table")
         output_table = self.prosto.get_table(output_table_name)
 
         outputs = self.get_outputs()
@@ -166,17 +166,17 @@ class ColumnOperation(Operation):
         # All derived columns depend on their table
         dependencies.append(output_table)
 
-        if operation.lower().startswith('comp'):
+        if operation.lower().startswith("comp"):
             # Input column objects for which we need to find definitions
             dependencies.extend(input_columns)
 
-        elif operation.lower().startswith('calc'):
+        elif operation.lower().startswith("calc"):
             # Input column objects for which we need to find definitions
             dependencies.extend(input_columns)
 
-        elif operation.lower().startswith('link'):
+        elif operation.lower().startswith("link"):
             # Target (linked) table has to be populated
-            linked_table_name = output_column.definition.get('type', '')
+            linked_table_name = output_column.definition.get("type")
             linked_table = self.prosto.get_table(linked_table_name)
             dependencies.append(linked_table)
 
@@ -184,17 +184,17 @@ class ColumnOperation(Operation):
             dependencies.extend(input_columns)
 
             # Target columns have to be evaluated in order to contain values. However, they are supposed to be attributes and hence they will be set during population.
-            linked_columns = definition.get('linked_columns', [])
+            linked_columns = definition.get("linked_columns", [])
             dependencies.extend(self.prosto.get_columns(linked_table_name, linked_columns))
 
-        elif operation.lower().startswith('merg'):
+        elif operation.lower().startswith("merg"):
             # Link column (first segment) has to be evaluated
             link_column_name = next(iter(columns), None)
             link_column = self.prosto.get_column(output_table_name, link_column_name)
             dependencies.append(link_column)
 
             # Linked column path (tail) in the linked table has to exist (recursion)
-            linked_table_name = link_column.definition.get('type')
+            linked_table_name = link_column.definition.get("type")
             linked_table = self.prosto.get_table(linked_table_name)
             linked_column_name = columns[1]
 
@@ -207,33 +207,33 @@ class ColumnOperation(Operation):
             # Lined table has to be populated. (Yet, it will be added to dependency by the link column.)
             dependencies.append(linked_table)
 
-        elif operation.lower().startswith('roll'):
+        elif operation.lower().startswith("roll"):
             # Columns to be aggregated
             dependencies.extend(input_columns)
 
             # Link (group) column
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
             if link_column_name:
                 link_column = output_table.get_column(link_column_name)
                 if link_column:  # Link column can be an attribute
                     dependencies.append(link_column)
 
-        elif operation.lower().startswith('aggr'):
+        elif operation.lower().startswith("aggr"):
             # The fact table has to be already populated
-            tables = definition.get('tables')
+            tables = definition.get("tables")
             source_table_name = tables[0]
             source_table = self.prosto.get_table(source_table_name)
             dependencies.append(source_table)
 
             # Link (group) column
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
             link_column = source_table.get_column(link_column_name)
             dependencies.append(link_column)
 
             # Measure columns
             dependencies.extend(self.prosto.get_columns(source_table_name, columns))
 
-        elif operation.lower().startswith('disc'):
+        elif operation.lower().startswith("disc"):
             # Input column objects for which we need to find definitions
             dependencies.extend(input_columns)
 
@@ -258,17 +258,17 @@ class ColumnOperation(Operation):
         - There are UDFs of two types: value or row based (returning a value or row), and column or table based (returning a whole column or table)
         """
         definition = self.definition
-        operation = definition.get('operation', 'UNKNOWN')
+        operation = definition.get("operation", "UNKNOWN")
 
-        input_length = definition.get('input_length', 'UNKNOWN')  # value for value-based functions or column for column-based functions
-        data_type = definition.get('data_type', 'Series')
+        input_length = definition.get("input_length", "UNKNOWN")  # value for value-based functions or column for column-based functions
+        data_type = definition.get("data_type", "Series")
 
-        model = definition.get('model')
+        model = definition.get("model")
 
-        output_table_name = definition.get('table')
+        output_table_name = definition.get("table")
         output_table = self.prosto.get_table(output_table_name)
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         output_column_name = outputs[0]
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
@@ -279,7 +279,7 @@ class ColumnOperation(Operation):
         #
 
         # Link columns use their own definition format different from computational (functional) definitions
-        if operation.lower().startswith('link'):
+        if operation.lower().startswith("link"):
             out = self._evaluate_link()
 
             self._impose_output_columns(out)
@@ -287,7 +287,7 @@ class ColumnOperation(Operation):
             return
 
         # Compose columns use their own definition format different from computational (functional) definitions
-        if operation.lower().startswith('merg'):
+        if operation.lower().startswith("merg"):
             out = self._evaluate_merge()
 
             self._impose_output_columns(out)
@@ -295,7 +295,7 @@ class ColumnOperation(Operation):
             return
 
         # Discretize column using some logic of partitioning represented in the model
-        if operation.lower().startswith('disc'):
+        if operation.lower().startswith("disc"):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
@@ -325,7 +325,7 @@ class ColumnOperation(Operation):
         # Operations with UDF
         #
 
-        func_name = definition.get('function')
+        func_name = definition.get("function")
         if not func_name:
             raise ValueError("Column function '{}' is not specified. Skip column definition.".format(func_name))
 
@@ -333,7 +333,7 @@ class ColumnOperation(Operation):
         if not func:
             raise ValueError("Cannot resolve user-defined function '{}'. Skip column definition.".format(func_name))
 
-        if operation.lower().startswith('comp') or operation.lower().startswith('calc'):
+        if operation.lower().startswith("comp") or operation.lower().startswith("calc"):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
@@ -352,14 +352,14 @@ class ColumnOperation(Operation):
                 data = output_table.data.get_full_slice(columns)
                 range = output_table.data.id_range()
 
-            if operation.lower().startswith('comp'):  # Equivalently: input_length == 'column'
+            if operation.lower().startswith("comp"):  # Equivalently: input_length == "column"
                 out = self._evaluate_compute(func, data, data_type, model)
-            elif operation.lower().startswith('calc'):  # Equivalently: input_length == 'value'
+            elif operation.lower().startswith("calc"):  # Equivalently: input_length == "value"
                 out = self._evaluate_calculate(func, data, data_type, model)
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
-        elif operation.lower().startswith('roll'):
+        elif operation.lower().startswith("roll"):
             # Determine input columns
             columns = self.get_columns()
             columns = get_columns(columns, data)
@@ -371,31 +371,31 @@ class ColumnOperation(Operation):
                 raise ValueError("Not all input columns available. Skip column definition.".format())
 
             # It exists only for rolling aggregation with grouping
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
 
             # Slice input according to the change status (incremental not implemented)
             data = output_table.data.get_full_slice(columns)
             range = output_table.data.id_range()
 
-            if input_length == 'value':
+            if input_length == "value":
                 raise NotImplementedError("Accumulation is not implemented.".format())
-            elif input_length == 'column':
+            elif input_length == "column":
                 gb = output_table._get_or_create_groupby(link_column_name) if link_column_name else None
                 out = self._evaluate_roll(func, gb, data, data_type, model)
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
-        elif operation.lower().startswith('aggr'):
+        elif operation.lower().startswith("aggr"):
             #
             # Get parameters
             #
-            tables = definition.get('tables')
+            tables = definition.get("tables")
             source_table_name = tables[0]
             source_table = self.prosto.get_table(source_table_name)
             if source_table is None:
                 raise ValueError("Cannot find the fact table '{}'.".format(source_table_name))
 
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
             link_column = source_table.get_column(link_column_name)
             if link_column is None:
                 raise ValueError("Cannot find the link column '{}'.".format(link_column_name))
@@ -414,14 +414,14 @@ class ColumnOperation(Operation):
 
             data = data[columns]  # Select only the specified *input* columns
 
-            data_type = definition.get('data_type')
+            data_type = definition.get("data_type")
 
             # No incremental. Select full *output* range
             range = output_table.data.id_range()
 
-            if input_length == 'value':
+            if input_length == "value":
                 raise NotImplementedError("Accumulation is not implemented.".format())
-            elif input_length == 'column':
+            elif input_length == "column":
                 gb = source_table._get_or_create_groupby(link_column_name)
                 out = self._evaluate_aggregate(func, gb, data, data_type, model)
             else:
@@ -445,7 +445,7 @@ class ColumnOperation(Operation):
             data_arg = data[data.columns[0]]  # Series
 
             # Determine format/type of representation
-            if data_type == 'ndarray':
+            if data_type == "ndarray":
                 data_arg = data_arg.values
 
             #
@@ -470,7 +470,7 @@ class ColumnOperation(Operation):
             # - model (arguments) cannot be None, so we need to guarantee that we do not pass None
 
             # Determine format/type of representation
-            if data_type == 'ndarray':
+            if data_type == "ndarray":
                 data_arg = data.values
                 raw_arg = True
             else:
@@ -502,7 +502,7 @@ class ColumnOperation(Operation):
             data_arg = data  # DataFrame
 
         # Determine format/type of representation
-        if data_type == 'ndarray':
+        if data_type == "ndarray":
             data_arg = data_arg.values
 
         #
@@ -527,10 +527,10 @@ class ColumnOperation(Operation):
         # Read and validate parameters
         #
 
-        main_table_name = definition.get('table')
+        main_table_name = definition.get("table")
         main_table = self.prosto.get_table(main_table_name)
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         column_name = outputs[0]
         output_column = self.prosto.get_column(main_table_name, column_name)
 
@@ -538,12 +538,12 @@ class ColumnOperation(Operation):
         if not all_columns_exist(main_keys, main_table.get_data()):
             raise ValueError("Not all key columns available in the link column definition.".format())
 
-        linked_table_name = output_column.definition.get('type', '')
+        linked_table_name = output_column.definition.get("type")
         linked_table = self.prosto.get_table(linked_table_name)
         if not linked_table:
             raise ValueError("Linked table '{}' cannot be found in the link column definition.".format(linked_table))
 
-        linked_columns = definition.get('linked_columns', [])
+        linked_columns = definition.get("linked_columns", [])
         if len(linked_columns) == 0:
             linked_columns = linked_table.definition.get("attributes", [])  # By default (e.g., for projection), we link to target table attributes
         if not all_columns_exist(linked_columns, linked_table.get_data()):
@@ -554,26 +554,26 @@ class ColumnOperation(Operation):
         # The reason is that we can only merge normal columns and not index.
         # The values of this index column will be copied to our new link column and hence will reference the linked rows
         #
-        index_column_name = '__row_id__' # It could be 'id', 'index' or whatever other convention
+        index_column_name = "__row_id__" # It could be "id", "index" or whatever other convention
         linked_table.get_data()[index_column_name] = linked_table.get_data().index
-        # df.reset_index(inplace=True).set_index('index', drop=False, inplace=True)  ä Alternative 1: reset will convert index to column, and then again create index
-        # df = df.rename_axis('index1').reset_index() # Alternative 2: New index1 column will be created
+        # df.reset_index(inplace=True).set_index("index", drop=False, inplace=True)  ä Alternative 1: reset will convert index to column, and then again create index
+        # df = df.rename_axis("index1").reset_index() # Alternative 2: New index1 column will be created
 
         #
         # 2. Create left join on the specified keys
         #
 
-        linked_prefix = column_name+'::'  # It will be prepended to each linked (secondary) column name
+        linked_prefix = column_name+"::"  # It will be prepended to each linked (secondary) column name
 
         out_df = pd.merge(
             main_table.get_data(),  # This table
             linked_table.get_data().rename(columns=lambda x: linked_prefix + x, inplace=False),  # Target table to link to. We rename columns (not in place - the original frame preserves column names)
-            how='left',  # This (main) table is not changed - we attach target records
+            how="left",  # This (main) table is not changed - we attach target records
             left_on=main_keys,  # List of main table key columns
             right_on= [linked_prefix + x for x in linked_columns],  # List of target table key columns. Note that we renamed them above so we use modified names
             left_index=False,
             right_index=False,
-            #suffixes=('', linked_suffix),  # We do not use suffixes because they cannot be enforced (they are used only in the case of equal column names)
+            #suffixes=("", linked_suffix),  # We do not use suffixes because they cannot be enforced (they are used only in the case of equal column names)
             sort=False  # Sorting decreases performance
         )
 
@@ -585,7 +585,7 @@ class ColumnOperation(Operation):
         #
 
         # Rename our link column by using only specified column name
-        out_df.rename({column_name+'::'+index_column_name: column_name}, axis='columns', inplace=True)
+        out_df.rename({column_name+"::"+index_column_name: column_name}, axis="columns", inplace=True)
 
         out = out_df[column_name]  # We need only one column from the result data frame
 
@@ -598,18 +598,18 @@ class ColumnOperation(Operation):
         #
         # Read and validate parameters
         #
-        output_table_name = definition.get('table')
+        output_table_name = definition.get("table")
         output_table = self.prosto.get_table(output_table_name)
         output_table_data = output_table.get_data()
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         output_column_name = outputs[0]
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
-        column_segment_separator = '::'
+        column_segment_separator = "::"
 
         columns = self.get_columns()
-        link_column_path = ''  # Column path composed of several separated column segment names
+        link_column_path = ""  # Column path composed of several separated column segment names
         df = output_table_data
         main_table = output_table
         for i, link_column_name in enumerate(columns):
@@ -639,7 +639,7 @@ class ColumnOperation(Operation):
             #
             # Find the linked table
             #
-            linked_table_name = link_column.definition.get('type')
+            linked_table_name = link_column.definition.get("type")
             linked_table = self.prosto.get_table(linked_table_name)
             linked_table_data = linked_table.get_data()
 
@@ -667,20 +667,20 @@ class ColumnOperation(Operation):
     def _merge_two_columns(self, source_df, link_column_name, target_df, linked_column_name):
         """Given source and target tables with link and linked columns, return a new column with the source table index and target column values."""
 
-        linked_prefix = link_column_name + '::'  # It will prepended to each linked (secondary) column name
+        linked_prefix = link_column_name + "::"  # It will prepended to each linked (secondary) column name
 
         out_df = pd.merge(
             source_df[[link_column_name]],
             target_df[[linked_column_name]].rename(columns=lambda x: linked_prefix + x, inplace=False),  # We rename target columns to avoid conflicts (not in place - the original frame preserves column names)
-            how='left',  # This (source) table is not changed - we want to attach target records
+            how="left",  # This (source) table is not changed - we want to attach target records
             left_on=link_column_name,  # Its values are row ids stored in the linked table index
             right_on=None,
             left_index=False,
             right_index=True,  # Use index because link column stores index values
-            #suffixes=('', linked_suffix),  # We do not use suffixes because they cannot be enforced (they are used only in the case of equal column names)
+            #suffixes=("", linked_suffix),  # We do not use suffixes because they cannot be enforced (they are used only in the case of equal column names)
             sort=False  # Sorting decreases performance
         )
-        # Here we get linked column names like 'Prefix::OriginalName'
+        # Here we get linked column names like "Prefix::OriginalName"
 
         return out_df
 
@@ -775,9 +775,9 @@ class ColumnOperation(Operation):
         #
         # Determine window size. The window parameter can be string, number or object (many arguments for rolling object)
         #
-        window = definition.get('window')
+        window = definition.get("window")
         window_size = int(window)
-        rolling_args = {'window': window_size}
+        rolling_args = {"window": window_size}
         # TODO: try/catch with exception if cannot get window size
 
         #
@@ -787,7 +787,7 @@ class ColumnOperation(Operation):
 
             in_column = data.columns.to_list()[0]
 
-            if data_type == 'ndarray':
+            if data_type == "ndarray":
                 raw_arg = True
             else:
                 raw_arg = False
@@ -841,7 +841,7 @@ class ColumnOperation(Operation):
                 df_window = data.loc[ids]  # Select rows of the window with the necessary ids
 
                 # Determine format/type of representation
-                if data_type == 'ndarray':
+                if data_type == "ndarray":
                     data_arg = df_window.values
                 else:
                     data_arg = df_window
@@ -950,10 +950,10 @@ class ColumnOperation(Operation):
         definition = self.definition
 
         outputs = self.get_outputs()
-        output_table_name = definition.get('table')
+        output_table_name = definition.get("table")
         output_table = self.prosto.get_table(output_table_name)
 
-        fillna_value = definition.get('fillna_value')
+        fillna_value = definition.get("fillna_value")
 
         #
         # Change format to dataframe

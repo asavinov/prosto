@@ -8,7 +8,7 @@ from prosto.ColumnOperation import *
 from prosto.Topology import *
 
 import logging
-log = logging.getLogger('prosto')
+log = logging.getLogger("prosto")
 
 
 class Prosto:
@@ -31,7 +31,7 @@ class Prosto:
         self.incremental = False
 
     def __repr__(self):
-        return '['+self.id+']'
+        return "["+self.id+"]"
 
     #
     # Table methods
@@ -81,7 +81,7 @@ class Prosto:
             if not op:
                 pass
 
-            elif op.operation.lower().startswith('merg'):
+            elif op.operation.lower().startswith("merg"):
                 # Merge columns do not have type in their definition - they provide only a column path
                 # So need to reconstruct the type by following this path
                 column_path = op.get_columns("columns")
@@ -92,7 +92,7 @@ class Prosto:
                     if not type_table_name:
                         break
 
-            elif op.operation.lower().startswith('link'):
+            elif op.operation.lower().startswith("link"):
                 # Type is part of column definition (not operation) so we simply read it
                 pass
 
@@ -111,7 +111,7 @@ class Prosto:
             if not op:
                 None
 
-            elif op.operation.lower().startswith('filt'):
+            elif op.operation.lower().startswith("filt"):
                 # filter table, type is stored in the list of its tables in the definition (one table is possible)
                 # It is always the first and the only table
                 tables = op.get_tables()
@@ -119,7 +119,7 @@ class Prosto:
                     raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
                 type_table_name = tables[0]
 
-            elif op.operation.lower().startswith('prod'):
+            elif op.operation.lower().startswith("prod"):
                 # product table, types are stored in the list of tables in the definition (the order corresponds to the order of attributes)
                 # We need to find the table which corresponds to the attribute index in the list
                 tables = op.get_tables()
@@ -250,14 +250,14 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'populate',
+            "operation": "populate",
 
             "outputs": [table_name],
 
             "function": func,
             "tables": tables,
             "model": model,
-            "input_length": 'table',
+            "input_length": "table",
         }
         operation = TableOperation(self, operation_def)
         self.operations.append(operation)
@@ -287,7 +287,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'product',
+            "operation": "product",
 
             "outputs": [table_name],
 
@@ -321,7 +321,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'filter',
+            "operation": "filter",
 
             "outputs": [table_name],
 
@@ -356,7 +356,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'project',
+            "operation": "project",
 
             "outputs": [table_name],
 
@@ -395,7 +395,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'compute',
+            "operation": "compute",
 
             "table": table,
             "outputs": [name],
@@ -403,7 +403,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": 'column',
+            "input_length": "column",
         }
         operation = ColumnOperation(self, operation_def)
         self.operations.append(operation)
@@ -433,7 +433,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'calculate',
+            "operation": "calculate",
 
             "table": table,
             "outputs": [name],
@@ -441,7 +441,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": 'value',
+            "input_length": "value",
         }
         operation = ColumnOperation(self, operation_def)
         self.operations.append(operation)
@@ -472,7 +472,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'link',
+            "operation": "link",
 
             "table": table,
             "outputs": [name],
@@ -509,7 +509,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'merge',
+            "operation": "merge",
 
             "table": table,
             "outputs": [name],
@@ -544,7 +544,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'rolling',
+            "operation": "rolling",
 
             "table": table,
             "outputs": [name],
@@ -557,7 +557,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": 'column',
+            "input_length": "column",
         }
         operation = ColumnOperation(self, operation_def)
         self.operations.append(operation)
@@ -587,7 +587,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'aggregate',
+            "operation": "aggregate",
 
             "table": table,
             "outputs": [name],
@@ -600,7 +600,7 @@ class Prosto:
             "function": func,
             "columns": columns,
             "model": model,
-            "input_length": 'column',
+            "input_length": "column",
 
             "initial_value": 0.0, # Pre-process like initial value
             "fillna_value": 0.0,  # Postprocess
@@ -632,7 +632,7 @@ class Prosto:
         # Create operation definition
         operation_def = {
             "id": None,
-            "operation": 'discretize',
+            "operation": "discretize",
 
             "table": table,
             "outputs": [name],
@@ -666,10 +666,10 @@ class Prosto:
         for layer in self.topology.layers:
             # Execute operations in one layer
             for op in layer:
-                operation = op.definition.get('operation')
+                operation = op.definition.get("operation")
 
                 if isinstance(op, TableOperation):
-                    outputs = op.definition.get('outputs')
+                    outputs = op.definition.get("outputs")
                     log.info("===> Start table population: id '{}', type = '{}', tables {}".format(op.id, operation, outputs))
                     op.evaluate()
                     log.info("<=== Finish table population".format())

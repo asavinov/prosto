@@ -22,10 +22,10 @@ class Table:
         """
 
         # Assign id
-        self.id = definition.get('id', None)
+        self.id = definition.get("id", None)
         if self.id is None:
             self.id = "___table___" + str(Table.table_no)
-            definition['id'] = self.id
+            definition["id"] = self.id
             Table.table_no += 1
 
         self.prosto = prosto
@@ -39,7 +39,7 @@ class Table:
 
 
     def __repr__(self):
-        return '['+self.id+']'
+        return "["+self.id+"]"
 
     def get_data(self) -> pd.DataFrame:
         return self.data.get_df()

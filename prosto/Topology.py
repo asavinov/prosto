@@ -76,7 +76,7 @@ class Topology:
                             self.prosto.merge(column_name, table_name, column_path)
 
                         # 2. Assume that it is inherited from a parent table (of this filter table)
-                        elif table_ops and table_op.operation.lower().startswith('filt'):
+                        elif table_ops and table_op.operation.lower().startswith("filt"):
 
                             # Find its parent table (where we will search for our missing column)
                             tables = table_op.get_tables()

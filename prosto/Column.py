@@ -19,10 +19,10 @@ class Column:
         """
 
         # Assign id
-        self.id = definition.get('id', None)
+        self.id = definition.get("id", None)
         if self.id is None:
             self.id = "___column___" + str(Column.column_no)
-            definition['id'] = self.id
+            definition["id"] = self.id
             Column.column_no += 1
 
         self.prosto = prosto
@@ -41,7 +41,7 @@ class Column:
 
 
     def __repr__(self):
-        return '[' + self.table.id + '::' + self.id+']'
+        return "[" + self.table.id + "::" + self.id+"]"
 
     def evaluate(self) -> None:
         """Find a column operation which generates this column and execute it."""

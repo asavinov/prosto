@@ -19,7 +19,7 @@ class TableOperation(Operation):
     def get_dependencies(self) -> List[Union[Table, Column]]:
         """Get tables and columns this table depends upon."""
         definition = self.definition
-        operation = definition.get('operation', 'UNKNOWN')
+        operation = definition.get("operation", "UNKNOWN")
 
         outputs = self.get_outputs()
         output_table_name = outputs[0]
@@ -32,7 +32,7 @@ class TableOperation(Operation):
 
         dependencies.extend(input_tables)
 
-        if operation.lower().startswith('popu'):
+        if operation.lower().startswith("popu"):
             # We want to evaluate *all* columns of the base table except for those which depend on this table
             for tab in input_tables:
                 # List all derived columns of the base table
@@ -46,25 +46,25 @@ class TableOperation(Operation):
 
                     dependencies.append(col)
 
-        elif operation.lower().startswith('prod'):
+        elif operation.lower().startswith("prod"):
             pass
 
-        elif operation.lower().startswith('filt'):
+        elif operation.lower().startswith("filt"):
             base_table = input_tables[0]
 
             # Base table filter column
-            columns = definition.get('columns')
+            columns = definition.get("columns")
             filter_column_name = columns[0]
             filter_column = base_table.get_column(filter_column_name)
             dependencies.append(filter_column)
 
-        elif operation.lower().startswith('proj'):
+        elif operation.lower().startswith("proj"):
             # Source table
             source_table_name = tables[0]
             source_table = input_tables[0]
 
             # Source table link column input keys (not the link column itself)
-            link_column_name = definition.get('link')
+            link_column_name = definition.get("link")
             link_column = source_table.get_column(link_column_name)
 
             # Input columns of the link column
@@ -81,35 +81,35 @@ class TableOperation(Operation):
     def evaluate(self) -> None:
         """Execute this operation by populating the output table. Only attribute columns are filled with values."""
         definition = self.definition
-        operation = definition.get('operation', 'UNKNOWN')
+        operation = definition.get("operation", "UNKNOWN")
 
-        input_length = definition.get('input_length', 'UNKNOWN')  # value for row-based functions or table for column-based functions
-        data_type = definition.get('data_type', 'DataFrame')
+        input_length = definition.get("input_length", "UNKNOWN")  # value for row-based functions or table for column-based functions
+        data_type = definition.get("data_type", "DataFrame")
 
-        model = definition.get('model')
+        model = definition.get("model")
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         output_table_name = outputs[0]
         output_table = self.prosto.get_table(output_table_name)
 
-        if operation.lower().startswith('noop'):
+        if operation.lower().startswith("noop"):
             new_data = None
-        if operation.lower().startswith('popu'):
+        if operation.lower().startswith("popu"):
 
-            if input_length == 'row':
+            if input_length == "row":
                 new_data = self._evaluate_populate_row()
-            elif input_length == 'table':
+            elif input_length == "table":
                 new_data = self._evaluate_populate_table()
             else:
                 raise ValueError("Unknown input_type parameter '{}'.".format(input_length))
 
-        elif operation.lower().startswith('prod'):
+        elif operation.lower().startswith("prod"):
             new_data = self._evaluate_product()
 
-        elif operation.lower().startswith('filt'):
+        elif operation.lower().startswith("filt"):
             new_data = self._evaluate_filter()
 
-        elif operation.lower().startswith('proj'):
+        elif operation.lower().startswith("proj"):
             new_data = self._evaluate_project()
 
         else:
@@ -131,7 +131,7 @@ class TableOperation(Operation):
         #
         # Stage 1. Resolve the function
         #
-        func_name = definition.get('function')
+        func_name = definition.get("function")
         if not func_name:
             raise ValueError("Table function '{}' is not specified. Skip table definition.".format(func_name))
 
@@ -149,7 +149,7 @@ class TableOperation(Operation):
         #
         # Stage 3. Prepare argument object to pass to the function as the second argument
         #
-        model = definition.get('model')
+        model = definition.get("model")
 
         #
         # Stage 4. Apply function
@@ -193,7 +193,7 @@ class TableOperation(Operation):
         """The output table is a Cartesian product of the input tables with attributes pointing to the input records they are made of."""
         definition = self.definition
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         output_table = self.prosto.get_table(outputs[0])
 
         attributes = output_table.definition.get("attributes", [])
@@ -228,7 +228,7 @@ class TableOperation(Operation):
         """A new (filtered) table is generated by using a boolen column to select rows."""
         definition = self.definition
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         output_table = self.prosto.get_table(outputs[0])
 
         #
@@ -266,11 +266,11 @@ class TableOperation(Operation):
         out = base_table_data[filter_column]
 
         #
-        # Stage 5. Convert base index into a 'super' link attribute
+        # Stage 5. Convert base index into a "super" link attribute
         #
         out = pd.DataFrame(index=out.index)  # We need only index
         out.reset_index(inplace=True, drop=False)  # Convert index into a normal column
-        out.rename(columns={'index': super_attribute}, inplace=True)  # Every new table has its own 0-based index
+        out.rename(columns={"index": super_attribute}, inplace=True)  # Every new table has its own 0-based index
 
         return out
 
@@ -278,7 +278,7 @@ class TableOperation(Operation):
         """Find unique combinations of the projected columns and store them as attributes in the populated table."""
         definition = self.definition
 
-        outputs = definition.get('outputs')
+        outputs = definition.get("outputs")
         output_table = self.prosto.get_table(outputs[0])
 
         #
@@ -295,7 +295,7 @@ class TableOperation(Operation):
         #
         # Stage 2. Find link column
         #
-        link_column_name = definition.get('link')
+        link_column_name = definition.get("link")
         if not link_column_name:
             raise ValueError("Project operation must specify a link column from the input table in the 'function' field.".format())
         link_column = source_table.get_column(link_column_name)
@@ -326,10 +326,10 @@ class TableOperation(Operation):
         #
         """
         INFO:
-        df_new = df.drop_duplicates(subset=['C1', 'C2', 'C3'])  # Drop duplicates
-        a_df = df.drop_duplicates(['col1', 'col2'])[['col1', 'col2']]
-        df = df.groupby(by=['C1', 'C2', 'C3'], as_index=False).first()  # Using groupby
-        np.unique(df[['col1', 'col2']], axis=0)  # Not for object data (error for object types)
+        df_new = df.drop_duplicates(subset=["C1", "C2", "C3"])  # Drop duplicates
+        a_df = df.drop_duplicates(["col1", "col2"])[["col1", "col2"]]
+        df = df.groupby(by=["C1", "C2", "C3"], as_index=False).first()  # Using groupby
+        np.unique(df[["col1", "col2"]], axis=0)  # Not for object data (error for object types)
         """
         out = source_table.data.get_df().drop_duplicates(subset=source_keys)  # Really do projection
 
