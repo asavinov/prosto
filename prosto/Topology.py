@@ -166,25 +166,12 @@ class Topology:
                             self.prosto.merge(column_name, table_name, column_path)
 
                         # 2. Assume that it is inherited from a parent table (of this filter table)
-                        elif table_ops and table_op.operation.lower().startswith("filt"):
+                        elif table_ops and (table_op.operation.lower().startswith("filt") or table_op.operation.lower().startswith("prod")):
 
                             column_path = self.find_in_super(table_name, column_name)
                             if column_path:
                                 # Insert a (merge) operation for this column path. It will also add a column object(s)
                                 self.prosto.merge(column_name, table_name, column_path)
-
-                        # 3. Assume that it is inherited from a parent table (of this product table)
-                        elif table_ops and table_op.operation.lower().startswith("prod"):
-
-                            # Find its parent table (where we will search for our missing column)
-                            tables = table_op.get_tables()
-                            if not tables:
-                                raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
-                            #tables = self.prosto.get_tables(tables)
-
-                            for base_table_name in tables:
-                                # TODO: Search for this missing column along this base link (same logic as in filter tables)
-                                pass
 
             else:
                 raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
@@ -204,11 +191,10 @@ class Topology:
         if is_attribute:  # Found
             return [column_name]
 
-        # Column search is commented out because we assume that inheritance (via filter and product) uses only attributes
-        #column = self.prosto.get_column(table_name, column_name)
-        #column_ops = self.prosto.get_column_operations(column_name)
-        #if column and column_ops:  # Found a column with definition
-        #    return [column_name]
+        column = self.prosto.get_column(table_name, column_name)
+        column_ops = self.prosto.get_column_operations(table_name, column_name)
+        if column and column_ops:  # Found a column with definition
+            return [column_name]
 
         # No such column/attribute in this table
 

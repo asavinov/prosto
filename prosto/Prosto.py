@@ -127,7 +127,7 @@ class Prosto:
                     raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
 
                 table = self.get_table(table_name)
-                attributes = table.get("attributes", [])
+                attributes = table.definition.get("attributes", [])
                 index = attributes.index(column_name)
 
                 type_table_name = tables[index]
