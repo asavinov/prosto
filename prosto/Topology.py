@@ -31,77 +31,8 @@ class Topology:
 
         #
         # Augment topology
-        # Find undefined dependencies and try to define them as explicit operations (e.g., column paths)
         #
-
-        for op in all_operations:
-
-            if isinstance(op, TableOperation):
-                pass  # Currently we do not check table operations
-
-            elif isinstance(op, ColumnOperation):
-
-                deps = op.get_dependencies_names()
-
-                for table_name, column_names in deps.items():
-
-                    table = self.prosto.get_table(table_name)
-                    if not table:
-                        raise ValueError("Table not found. Operation '{}' generates table '{}' which is not found in the schema.".format(op.id, table_name))
-
-                    table_ops = self.prosto.get_table_operations(table.id)
-                    if len(table_ops) > 1:
-                        raise ValueError("Several operations generat table '{}'".format(table_name))
-                    table_op = table_ops[0] if len(table_ops) > 0 else None
-
-                    #
-                    # For each missing dependency column, try to insert an operation for its generation
-                    #
-                    for column_name in column_names:
-                        # Check the existence of this column dependency
-                        column = self.prosto.get_column(table_name, column_name)
-                        is_attribute = self.prosto.has_attribute(table_name, column_name)
-                        if column or is_attribute:  # Found
-                            continue
-
-                        #
-                        # Column dependency does not exist.
-                        # Try to fix the problem by inserting an operation for its generation
-                        #
-
-                        # 1. Assume that it is a column path
-                        column_path = column_name.split(Topology.column_path_separator)
-                        if len(column_path) > 1:
-                            # Insert a (merge) operation for this column path. It will also add a column object(s)
-                            self.prosto.merge(column_name, table_name, column_path)
-
-                        # 2. Assume that it is inherited from a parent table (of this filter table)
-                        elif table_ops and table_op.operation.lower().startswith("filt"):
-
-                            # Find its parent table (where we will search for our missing column)
-                            tables = table_op.get_tables()
-                            if not tables:
-                                raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
-                            #tables = self.prosto.get_tables(tables)
-
-                            base_table_name = tables[0]
-
-                            # Check the existence of this column dependency
-                            column = self.prosto.get_column(base_table_name, column_name)
-                            is_attribute = self.prosto.has_attribute(base_table_name, column_name)
-                            if column or is_attribute:  # Found
-                                # Find link to the parent table
-                                attributes = table.definition.get("attributes", [])
-                                if len(attributes) != 1:
-                                    raise ValueError("Filter table must declare one attribute for linking to the base table.".format())
-                                super_attribute = attributes[0]
-
-                                # Insert a (merge) operation for this column path. It will also add a column object(s)
-                                self.prosto.merge(column_name, table_name, [super_attribute, column_name])
-                                # As an option, we might name the new column as a column path
-
-            else:
-                raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
+        self.augment(all_operations)
 
         #
         # Build graph of operations by analyzing dependencies
@@ -185,6 +116,133 @@ class Topology:
             elem_layers.append(elem_layer)
 
         self.elem_layers = elem_layers
+
+    def augment(self, all_operations) -> None:
+        """
+        Process all operations by resolving uncertainties, making optimizations and solving other problems.
+        Find undefined dependencies and try to define them as explicit operations (e.g., column paths).
+        Note that new operations and data elements are added to the schema directly without changing the argument.
+        """
+
+        for op in all_operations:
+
+            if isinstance(op, TableOperation):
+                pass  # Currently we do not check table operations
+
+            elif isinstance(op, ColumnOperation):
+
+                deps = op.get_dependencies_names()
+
+                for table_name, column_names in deps.items():
+
+                    table = self.prosto.get_table(table_name)
+                    if not table:
+                        raise ValueError("Table not found. Operation '{}' generates table '{}' which is not found in the schema.".format(op.id, table_name))
+
+                    table_ops = self.prosto.get_table_operations(table.id)
+                    if len(table_ops) > 1:
+                        raise ValueError("Several operations generate one table '{}'".format(table_name))
+                    table_op = table_ops[0] if len(table_ops) > 0 else None
+
+                    #
+                    # For each missing dependency column, try to insert an operation for its generation
+                    #
+                    for column_name in column_names:
+                        # Check the existence of this column dependency
+                        column = self.prosto.get_column(table_name, column_name)
+                        is_attribute = self.prosto.has_attribute(table_name, column_name)
+                        if column or is_attribute:  # Found
+                            continue
+
+                        #
+                        # Column dependency does not exist.
+                        # Try to fix the problem by inserting an operation for its generation
+                        #
+
+                        # 1. Assume that it is a column path
+                        column_path = column_name.split(Topology.column_path_separator)
+                        if len(column_path) > 1:
+                            # Insert a (merge) operation for this column path. It will also add a column object(s)
+                            self.prosto.merge(column_name, table_name, column_path)
+
+                        # 2. Assume that it is inherited from a parent table (of this filter table)
+                        elif table_ops and table_op.operation.lower().startswith("filt"):
+
+                            column_path = self.find_in_super(table_name, column_name)
+                            if column_path:
+                                # Insert a (merge) operation for this column path. It will also add a column object(s)
+                                self.prosto.merge(column_name, table_name, column_path)
+
+                        # 3. Assume that it is inherited from a parent table (of this product table)
+                        elif table_ops and table_op.operation.lower().startswith("prod"):
+
+                            # Find its parent table (where we will search for our missing column)
+                            tables = table_op.get_tables()
+                            if not tables:
+                                raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
+                            #tables = self.prosto.get_tables(tables)
+
+                            for base_table_name in tables:
+                                # TODO: Search for this missing column along this base link (same logic as in filter tables)
+                                pass
+
+            else:
+                raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
+
+    # TODO: Maybe make it a method of table
+    def find_in_super(self, table_name, column_name) -> List[str]:
+        """
+        Find the specified (simple) column name in the specified table as well as all its base (parent) tables and return a (link) path to it.
+        A base table is used in filter and product tables and it is accessed via a link attribute.
+        The last segment in the returned path is equal to the column argument.
+        If the column is not found then None is returned.
+        """
+        table = self.prosto.get_table(table_name)
+
+        # 1. Check the existence in the current node, if found, then return it, if not then
+        is_attribute = self.prosto.has_attribute(table_name, column_name)
+        if is_attribute:  # Found
+            return [column_name]
+
+        # Column search is commented out because we assume that inheritance (via filter and product) uses only attributes
+        #column = self.prosto.get_column(table_name, column_name)
+        #column_ops = self.prosto.get_column_operations(column_name)
+        #if column and column_ops:  # Found a column with definition
+        #    return [column_name]
+
+        # No such column/attribute in this table
+
+        # 2. Find a list of all direct links and their parent (type tables)
+        table_ops = self.prosto.get_table_operations(table_name)
+        if len(table_ops) > 1:
+            raise ValueError("Several operations generate one table '{}'".format(table_name))
+        if len(table_ops) == 0:
+            raise ValueError("No operations found that generates this table '{}'".format(table_name))
+        table_op = table_ops[0] if len(table_ops) > 0 else None
+
+        if table_op.operation.lower().startswith("filt") or table_op.operation.lower().startswith("prod"):
+            base_attribute_names = table.definition.get("attributes", [])
+
+            # Find its parent tables (where we will search for our missing column)
+            base_table_names = table_op.get_tables()
+            if not base_table_names:
+                raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
+            #base_tables = self.prosto.get_tables(base_table_names)
+
+            if len(base_attribute_names) != len(base_table_names):
+                raise ValueError("Table '{}' has different number of base attributes and base tables in its definition.".format(table_name))
+
+        else:
+            return []
+
+        # 3. Call this same function by passing one of these parent tables in a loop
+        for i in range(len(base_table_names)):
+            rest_path = self.find_in_super(base_table_names[i], column_name)
+            # TODO: Here we return the first path found, but maybe we should detect conflicts if more than one path found
+            if rest_path:  # Found
+                return [base_attribute_names[i]] + rest_path
+
+        return []
 
 
 if __name__ == '__main__':
