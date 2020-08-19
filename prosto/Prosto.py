@@ -14,6 +14,8 @@ log = logging.getLogger("prosto")
 class Prosto:
     """The class represents a context which stores lists of tables, columns and operations."""
 
+    column_path_separator = "::"
+
     prosto_no = 0
 
     def __init__(self, id):

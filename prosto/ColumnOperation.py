@@ -5,6 +5,7 @@ import math
 from prosto.utils import *
 from prosto.resolve import *
 
+import prosto as pr  # To resolve circular imports
 from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
@@ -557,7 +558,7 @@ class ColumnOperation(Operation):
         # 2. Create left join on the specified keys
         #
 
-        linked_prefix = column_name+"::"  # It will be prepended to each linked (secondary) column name
+        linked_prefix = column_name + pr.Prosto.column_path_separator  # It will be prepended to each linked (secondary) column name
 
         out_df = pd.merge(
             main_table.get_data(),  # This table
@@ -579,7 +580,7 @@ class ColumnOperation(Operation):
         #
 
         # Rename our link column by using only specified column name
-        out_df.rename({column_name+"::"+index_column_name: column_name}, axis="columns", inplace=True)
+        out_df.rename({column_name + pr.Prosto.column_path_separator + index_column_name: column_name}, axis="columns", inplace=True)
 
         out = out_df[column_name]  # We need only one column from the result data frame
 
@@ -600,8 +601,6 @@ class ColumnOperation(Operation):
         output_column_name = outputs[0]
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
-        column_segment_separator = "::"
-
         columns = self.get_columns()
         link_column_path = ""  # Column path composed of several separated column segment names
         df = output_table_data
@@ -615,7 +614,7 @@ class ColumnOperation(Operation):
             if i == 0:
                 link_column_path = link_column_name
             else:
-                link_column_path += column_segment_separator + link_column_name
+                link_column_path += pr.Prosto.column_path_separator + link_column_name
 
             #
             # Stop condition if there is no further segment to merge.
@@ -663,7 +662,7 @@ class ColumnOperation(Operation):
     def _merge_two_columns(self, source_df, link_column_name, target_df, linked_column_name):
         """Given source and target tables with link and linked columns, return a new column with the source table index and target column values."""
 
-        linked_prefix = link_column_name + "::"  # It will prepended to each linked (secondary) column name
+        linked_prefix = link_column_name + pr.Prosto.column_path_separator  # It will prepended to each linked (secondary) column name
 
         out_df = pd.merge(
             source_df[[link_column_name]],
