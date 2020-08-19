@@ -3,6 +3,7 @@ import copy
 
 from prosto.utils import *
 
+import prosto as pr  # To resolve circular imports
 from prosto.Prosto import *
 from prosto.Table import *
 from prosto.Column import *
@@ -13,8 +14,6 @@ from prosto.Data import *
 
 class Topology:
     """Topology is a graph of operations built taking into account their dependencies."""
-
-    column_path_separator = "::"
 
     def __init__(self, prosto):
 
@@ -160,7 +159,7 @@ class Topology:
                         #
 
                         # 1. Assume that it is a column path
-                        column_path = column_name.split(Topology.column_path_separator)
+                        column_path = column_name.split(pr.Prosto.column_path_separator)
                         if len(column_path) > 1:
                             # Insert a (merge) operation for this column path. It will also add a column object(s)
                             self.prosto.merge(column_name, table_name, column_path)
