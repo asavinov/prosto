@@ -71,6 +71,34 @@ class Operation:
 
         return outputs
 
+    def get_dependency_objects(self) -> List[Union[Table, Column]]:
+        """
+        Get dependencies as a list of objects of Table or Column resolved from the corresponding names.
+        Note that not all names can be resolved to objects, for example, attributes, column paths or expressions.
+        """
+        deps = self.get_dependencies_names()
+
+        dependencies = []
+
+        # Tables
+        for table_name in deps.keys():
+            # Resolve this table name into a table object
+            table = self.prosto.get_table(table_name)
+            if table not in dependencies:
+                dependencies.append(table)
+
+        # Columns
+        for table_name, column_names in deps.items():
+            for column_name in column_names:
+                # Resolve column name
+                column = self.prosto.get_column(table_name, column_name)
+                if column and column not in dependencies:
+                    dependencies.append(column)
+                else:
+                    pass  # It could be an attribute or column path
+
+        return dependencies
+
 
 if __name__ == "__main__":
     pass

@@ -16,8 +16,13 @@ class TableOperation(Operation):
     def __init__(self, prosto, definition):
         super(TableOperation, self).__init__(prosto, definition)
 
-    def get_dependencies(self) -> List[Union[Table, Column]]:
-        """Get tables and columns this table depends upon."""
+    def get_dependencies_names(self) -> dict:
+        """
+        Get all dependencies represented by names like table names and column names as they are specified in the definition.
+        These names are not resolved and might not be in the list of schema objects yet (like attributes or column paths).
+        :return: dict with table names as keys and lists of columns as values (empty in the case of only table as a dependency)
+        """
+
         definition = self.definition
         operation = definition.get("operation", "UNKNOWN")
 
@@ -26,55 +31,55 @@ class TableOperation(Operation):
         output_table = self.prosto.get_table(output_table_name)
 
         tables = self.get_tables()
-        input_tables = self.prosto.get_tables(tables)
+        #input_tables = self.prosto.get_tables(tables)
 
-        dependencies = []
-
-        dependencies.extend(input_tables)
+        # Insert several input tables as keys with empty column lists as values
+        dependencies = {k: [] for k in tables} if tables else {}
 
         if operation.lower().startswith("popu"):
-            # We want to evaluate *all* columns of the base table except for those which depend on this table
-            for tab in input_tables:
-                # List all derived columns of the base table
-                for col in tab.get_columns():
-                    if col.get("operation").startswith("attr"):
-                        continue
-                    # Get its dependencies
-                    deps = col.get_dependencies()
-                    if self.id in deps:
-                        continue  # Do NOT include in dependencies because it depends on this table
+            # We want to evaluate *all* columns of the base tables before this table except those *depending* on this table
+            # Essentially, this means cycle resolution but using only direct loops where a base column has this table in its dependencies
+            for table_name in tables:
+                # List all columns of the base table
+                for col in self.prosto.get_columns(table_name):
+                    # Get dependencies of this column (of the operation which generates this column)
+                    column_ops = self.prosto.get_column_operations(table_name, col.id)
+                    if len(column_ops) > 1:
+                        raise ValueError("Several operations generate one column '{}'".format(col.id))
+                    column_op = column_ops[0] if len(column_op) > 0 else None
 
-                    dependencies.append(col)
+                    deps = column_op.get_dependencies_names()
+                    if output_table_name in deps:
+                        continue  # Do NOT include this column in dependencies because it depends on this table
+
+                    dependencies[table_name].append(col.id)
 
         elif operation.lower().startswith("prod"):
+            # It depends on only base tables which have to be populated before and they are already included
             pass
 
         elif operation.lower().startswith("filt"):
-            base_table = input_tables[0]
+            base_table_name = tables[0]
 
             # Base table filter column
             columns = self.get_columns()
             filter_column_name = columns[0]
-            filter_column = base_table.get_column(filter_column_name)
-            dependencies.append(filter_column)
+            dependencies[base_table_name].append(filter_column_name)
 
         elif operation.lower().startswith("proj"):
             # Source table
             source_table_name = tables[0]
-            source_table = input_tables[0]
 
             # Source table link column input keys (not the link column itself)
+            # Input columns of the link column operation
             link_column_name = definition.get("link")
-            link_column = source_table.get_column(link_column_name)
-
-            # Input columns of the link column
             link_column_ops = self.prosto.get_column_operations(source_table_name, link_column_name)
             link_column_op = link_column_ops[0]
             source_keys = link_column_op.get_columns()
-            dependencies.extend(self.prosto.get_columns(source_table_name, source_keys))
+            dependencies[source_table_name].extend(source_keys)
 
         else:
-            raise ValueError("Unknown operation type '{}' in the definition of table '{}'.".format(operation, self.id))
+            raise ValueError("Unknown operation type '{}' in the definition of column '{}'.".format(operation, self.id))
 
         return dependencies
 

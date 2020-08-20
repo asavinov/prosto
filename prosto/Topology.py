@@ -58,7 +58,7 @@ class Topology:
                 # Find dependencies of this operation
                 #
                 if isinstance(op, TableOperation):
-                    deps = op.get_dependencies()
+                    deps = op.get_dependency_objects()
                 elif isinstance(op, ColumnOperation):
                     deps = op.get_dependency_objects()
                 else:
@@ -126,7 +126,8 @@ class Topology:
         for op in all_operations:
 
             if isinstance(op, TableOperation):
-                pass  # Currently we do not check table operations
+                # TODO: Currently we do not check table operations
+                pass
 
             elif isinstance(op, ColumnOperation):
 
