@@ -86,7 +86,7 @@ class Prosto:
             elif op.operation.lower().startswith("merg"):
                 # Merge columns do not have type in their definition - they provide only a column path
                 # So need to reconstruct the type by following this path
-                column_path = op.get_columns("columns")
+                column_path = op.get_columns()
                 type_table_name = table_name
                 for i, column_name in enumerate(column_path):
                     # Find type table of one segment which has to be a link except for maybe last segment
