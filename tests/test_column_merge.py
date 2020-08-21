@@ -132,6 +132,53 @@ class ColumnMergeTestCase(unittest.TestCase):
         m_data = f_tbl.get_column_data("Merge")
         self.assertEqual(m_data.to_list(), ['x', 'x', 'y', 'y'])
 
+    def test_merge_path2(self):
+        """
+        Here we do the same as previous test, but specify complex path using separators (rather than a list of simple segment names).
+        So only the definition of merge operation changes.
+        """
+        sch = Prosto("My Prosto")
+
+        # Facts
+        f_tbl = sch.populate(
+            table_name="Facts", attributes=["A"],
+            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
+        )
+
+        # Groups
+        g_tbl = sch.populate(
+            table_name="Groups", attributes=["A", "B"],
+            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
+        )
+        # Link
+        l_clm = sch.link(
+            name="Link", table=f_tbl.id, type=g_tbl.id,
+            columns=["A"], linked_columns=["A"]
+        )
+
+        # SuperGroups
+        sg_tbl = sch.populate(
+            table_name="SuperGroups", attributes=["B", "C"],
+            func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
+        )
+        # SuperLink
+        sl_clm = sch.link(
+            name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
+            columns=["B"], linked_columns=["B"]
+        )
+
+        # Merge
+        m_clm = sch.merge("Merge", f_tbl.id, ["Link::SuperLink::C"])
+
+        sch.run()
+
+        f_tbl_data = f_tbl.get_data()
+        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
+        self.assertEqual(len(f_tbl_data.columns), 3)
+
+        m_data = f_tbl.get_column_data("Merge")
+        self.assertEqual(m_data.to_list(), ['x', 'x', 'y', 'y'])
+
 
 if __name__ == '__main__':
     unittest.main()

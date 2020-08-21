@@ -105,7 +105,7 @@ class ColumnAggregateTestCase(unittest.TestCase):
         # Groups
         df = pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})
         g_tbl = sch.populate(
-            table_name="Groups", attributes=["A"],
+            table_name="Groups", attributes=["A", "B"],
             func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})", tables=[]
         )
 

@@ -65,17 +65,16 @@ class ColumnOperation(Operation):
             dependencies[linked_table_name].extend(linked_columns)
 
         elif operation.lower().startswith("merg"):
-            # Link column (first segment) has to be evaluated
-            link_column_name = columns[0]
-            dependencies[output_table_name].append(link_column_name)
+            segments = list()
+            for column_name in columns:
+                column_path = column_name.split(pr.Prosto.column_path_separator)
+                segments.extend(column_path)
 
-            # Linked table has to be populated. (Yet, it will be added to dependency by the link column.)
-            linked_table_name = self.prosto.get_type_table(output_table_name, link_column_name)
-            dependencies[linked_table_name] = []
+            type_table_names = self.prosto.get_type_tables(output_table_name, segments)
+            type_table_names.insert(0, output_table_name)
 
-            # Linked column path (tail) in the linked table has to exist (recursion)
-            linked_column_name = columns[1]
-            dependencies[linked_table_name].append(linked_column_name)
+            for i in range(len(segments)):
+                dependencies[type_table_names[i]] = [segments[i]]
 
         elif operation.lower().startswith("roll"):
             # Columns to be aggregated
@@ -479,11 +478,20 @@ class ColumnOperation(Operation):
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
         columns = self.get_columns()
+
+        # Find all simple segment names
+        segments = list()
+        for column_name in columns:
+            if not column_name:
+                raise ValueError("Empty column name in the list of columns of the merge operation {}.".format(self.id))
+
+            column_segments = column_name.split(pr.Prosto.column_path_separator)
+            segments.extend(column_segments)
+
         link_column_path = ""  # Column path composed of several separated column segment names
         df = output_table_data
         main_table_name = output_table_name
-        main_table = output_table
-        for i, link_column_name in enumerate(columns):
+        for i, link_column_name in enumerate(segments):
             #
             # Build link column path by appending a new column segment name
             # Note that this path is a name of the column in the data frame and it does not have a definition
@@ -496,16 +504,11 @@ class ColumnOperation(Operation):
             #
             # Stop condition if there is no further segment to merge.
             #
-            if i == len(columns) - 1:
+            if i == len(segments) - 1:
                 # Rename the last merged column path to the desired column name as specified in the definition
                 df.rename(columns={link_column_path: output_column_name}, inplace=True)
                 out = df[output_column_name]
                 break
-
-            #
-            # Find link column definition
-            #
-            link_column = main_table.get_column(link_column_name)
 
             #
             # Find the linked table
@@ -517,7 +520,7 @@ class ColumnOperation(Operation):
             #
             # Find the target linked column in the linked table
             #
-            linked_column_name = columns[i+1]
+            linked_column_name = segments[i+1]
             #linked_column = linked_table.get_column(linked_column_name)
 
             #
