@@ -65,7 +65,7 @@ class Prosto:
         tables = filter(lambda x: x.id in table_names, self.tables)
         return list(tables)
 
-    def get_type_table(self, table_name, column_name) -> Table:
+    def get_type_table(self, table_name, column_name) -> str:
         """Get type table (name) for its specified column or attribute."""
         if not table_name: return None
 
@@ -141,6 +141,22 @@ class Prosto:
             raise ValueError("Name'{}'  not found. It is neither column nor attribute".format(column_name))
 
         return type_table_name
+
+    def get_type_tables(self, table_name, column_names) -> List[str]:
+        """
+        Get a sequence (list) of table names which are types of the specified column path.
+        Each table in this sequence is a type of the corresponding column segment.
+        """
+        if not table_name: return None
+
+        type_tables = list()
+        main_table_name = table_name
+        for column_name in column_names:
+            type_table_name = self.get_type_table(main_table_name, column_name)
+            type_tables.append(type_table_name)
+            main_table_name = type_table_name
+
+        return type_tables
 
     def remove_table(self, table_name) -> Table:
         """

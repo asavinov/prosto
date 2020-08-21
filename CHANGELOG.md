@@ -1,6 +1,9 @@
 # Change Log
 
 * v0.4.0 (2020-xx-xx)
+  * specifying column paths using a separator in addition to column lists
+  * topology augmentation: inheritance of columns in filter operation
+  * topology augmentation: usage of column paths in other operations
   * documentation
 
 * v0.3.0 (2020-08-31)
