@@ -360,7 +360,9 @@ class Prosto:
         """
         Create a new project table.
 
-        The output table consists of all unique combinations of the specified attributes in the input table.
+        The output table consists of all unique combinations of the specified columns in the input table.
+        The columns to be used for projection are not listed in this definition.
+        Instead, we specify a link column and this link column lists all columns used for projection.
         """
 
         # Create a table definition

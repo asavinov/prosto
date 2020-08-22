@@ -118,63 +118,55 @@ class Topology:
 
     def augment(self, all_operations) -> None:
         """
-        Process all operations by resolving uncertainties, making optimizations and solving other problems.
+        Process all operations by resolving ambiguities, making optimizations and solving other problems.
         Find undefined dependencies and try to define them as explicit operations (e.g., column paths).
         Note that new operations and data elements are added to the schema directly without changing the argument.
         """
 
         for op in all_operations:
 
-            if isinstance(op, TableOperation):
-                # TODO: Currently we do not check table operations
-                pass
+            deps = op.get_dependencies_names()
 
-            elif isinstance(op, ColumnOperation):
+            for table_name, column_names in deps.items():
 
-                deps = op.get_dependencies_names()
+                table = self.prosto.get_table(table_name)
+                if not table:
+                    # Currently, we cannot fix missing tables by inserting an appropriate operation for their generation
+                    raise ValueError("Table not found. Operation '{}' generates table '{}' which is not found in the schema.".format(op.id, table_name))
 
-                for table_name, column_names in deps.items():
+                table_ops = self.prosto.get_table_operations(table.id)
+                if len(table_ops) > 1:
+                    raise ValueError("Several operations generate one table '{}'".format(table_name))
+                table_op = table_ops[0] if len(table_ops) > 0 else None
 
-                    table = self.prosto.get_table(table_name)
-                    if not table:
-                        raise ValueError("Table not found. Operation '{}' generates table '{}' which is not found in the schema.".format(op.id, table_name))
-
-                    table_ops = self.prosto.get_table_operations(table.id)
-                    if len(table_ops) > 1:
-                        raise ValueError("Several operations generate one table '{}'".format(table_name))
-                    table_op = table_ops[0] if len(table_ops) > 0 else None
+                #
+                # For each missing dependency column, try to insert an operation for its generation
+                #
+                for column_name in column_names:
+                    # Check the existence of this column dependency
+                    column = self.prosto.get_column(table_name, column_name)
+                    is_attribute = self.prosto.has_attribute(table_name, column_name)
+                    if column or is_attribute:  # Found
+                        continue
 
                     #
-                    # For each missing dependency column, try to insert an operation for its generation
+                    # Column dependency does not exist.
+                    # Try to fix the problem by inserting an operation for its generation
                     #
-                    for column_name in column_names:
-                        # Check the existence of this column dependency
-                        column = self.prosto.get_column(table_name, column_name)
-                        is_attribute = self.prosto.has_attribute(table_name, column_name)
-                        if column or is_attribute:  # Found
-                            continue
 
-                        #
-                        # Column dependency does not exist.
-                        # Try to fix the problem by inserting an operation for its generation
-                        #
+                    # 1. Assume that it is a column path
+                    column_path = column_name.split(pr.Prosto.column_path_separator)
+                    if len(column_path) > 1:
+                        # Insert a (merge) operation for this column path. It will also add a column object(s)
+                        self.prosto.merge(column_name, table_name, column_path)
 
-                        # 1. Assume that it is a column path
-                        column_path = column_name.split(pr.Prosto.column_path_separator)
-                        if len(column_path) > 1:
+                    # 2. Assume that it is inherited from a parent table (of this filter table)
+                    elif table_ops and (table_op.operation.lower().startswith("filt") or table_op.operation.lower().startswith("prod")):
+
+                        column_path = self.find_in_super(table_name, column_name)
+                        if column_path:
                             # Insert a (merge) operation for this column path. It will also add a column object(s)
                             self.prosto.merge(column_name, table_name, column_path)
-
-                        # 2. Assume that it is inherited from a parent table (of this filter table)
-                        elif table_ops and (table_op.operation.lower().startswith("filt") or table_op.operation.lower().startswith("prod")):
-
-                            column_path = self.find_in_super(table_name, column_name)
-                            if column_path:
-                                # Insert a (merge) operation for this column path. It will also add a column object(s)
-                                self.prosto.merge(column_name, table_name, column_path)
-
-            else:
-                raise ValueError("Operation '{}' with unknown class found while building topology.".format(op.id))
 
     # TODO: Maybe make it a method of table
     def find_in_super(self, table_name, column_name) -> List[str]:
