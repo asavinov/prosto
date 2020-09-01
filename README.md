@@ -10,6 +10,9 @@
 [![Python 3.6](https://img.shields.io/badge/python-3.6-brightgreen.svg)](https://www.python.org/downloads/release/python-370/)
 [![PyPI version](https://badge.fury.io/py/prosto.svg)](https://badge.fury.io/py/prosto)
 
+
+[--- [**Why Prosto?**](#why-prosto) --- [**Quick start**](#quick-start) --- [**How to use**](#how-to-use) --- [**Documentation**](http://prosto.readthedocs.io/) ---]
+
 `Prosto` is a Python data processing toolkit to programmatically author and execute complex data processing workflows. Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
 
 `Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
@@ -28,7 +31,7 @@ More detailed information can be found in the documentation: http://prosto.readt
 
 Main motivation:
 
-Processing data using only set operations is counter-intuitive in many quite important cases. In particular, this is why SQL, map-reduce and similar approaches require high expertise. Prosto adds mathemtical functions (columns) to its model by significantly simplifying data processing and analysis.
+Processing data using only set operations is counter-intuitive in many quite important cases. In particular, this is why SQL, map-reduce and similar approaches require high expertise. Prosto adds mathemtical *functions* (columns) to its model by significantly simplifying data processing and analysis.
 
 Prosto provides the following unique features and benefits:
 
@@ -129,7 +132,7 @@ print(df)
 
 Although it looks like a normal table, the last column was derived from the data in other columns. In more complex cases, column data and table data will be derived from columns in other tables.
 
-# Install and test
+# How to use
 
 ## Install from source code
 
