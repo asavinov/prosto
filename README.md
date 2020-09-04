@@ -9,13 +9,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-brightgreen.svg)](https://www.python.org/downloads/release/python-370/)
 [![PyPI version](https://badge.fury.io/py/prosto.svg)](https://badge.fury.io/py/prosto)
+[![Paper PDF](https://img.shields.io/badge/Paper-PDF-brightgreen.svg)](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf)
 
-
-[--- [**Why Prosto?**](#why-prosto) --- [**Quick start**](#quick-start) --- [**How to use**](#how-to-use) --- [**Documentation**](http://prosto.readthedocs.io/) ---]
+[ [**Why Prosto?**](#why-prosto) • [**Quick start**](#quick-start) • [**How to use**](#how-to-use) • [**References**](#references) • [**Documentation**](http://prosto.readthedocs.io/) ]
 
 `Prosto` is a Python data processing toolkit to programmatically author and execute complex data processing workflows. Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
 
-`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm which treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
+`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm: concept-oriented model of data [1]. It treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
 
 * *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
 
@@ -169,3 +169,7 @@ or
 ```console
 $ python setup.py test
 ```
+
+# References
+
+[1] A.Savinov. Concept-oriented model: Modeling and processing data using functions, Eprint: [arXiv:1606.02237](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf) [cs.DB], 2019. https://www.researchgate.net/publication/337336089_Concept-oriented_model_Modeling_and_processing_data_using_functions
