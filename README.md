@@ -11,11 +11,11 @@
 [![PyPI version](https://badge.fury.io/py/prosto.svg)](https://badge.fury.io/py/prosto)
 [![Paper PDF](https://img.shields.io/badge/Paper-PDF-brightgreen.svg)](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf)
 
-[ [**Why Prosto?**](#why-prosto) • [**Quick start**](#quick-start) • [**How to use**](#how-to-use) • [**References**](#references) • [**Documentation**](http://prosto.readthedocs.io/) ]
+• [**Why Prosto?**](#why-prosto) • [**Quick start**](#quick-start) • [**How to use**](#how-to-use) • [**References**](#references) • [**Documentation**](http://prosto.readthedocs.io/) •
 
 `Prosto` is a Python data processing toolkit to programmatically author and execute complex data processing workflows. Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
 
-`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm: concept-oriented model of data [1]. It treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
+`Prosto` radically changes the way data is processed by relying on a novel data processing paradigm: concept-oriented model of data [[1]](#1). It treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
 
 * *Table operations* produce (populate) new tables from existing tables. A table is an implementation of a mathematical *set* which is a collection of tuples.
 
@@ -25,7 +25,9 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
 
 ![Data processing workflow](docs/images/fig_1.png)
 
-More detailed information can be found in the documentation: http://prosto.readthedocs.io/. Below is a concise description of the project extracted from the documentation.
+`Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/prostodata/prosto/tree/master/notebooks
+
+More detailed information can be found in the documentation: http://prosto.readthedocs.io 
 
 # Why Prosto?
 
@@ -40,7 +42,7 @@ Prosto provides the following unique features and benefits:
 * Getting rid of group-by
 * Flexibility via user-defined functions
 
-More information can be found in the documentation: https://prosto.readthedocs.io/en/latest/text/why.html
+More info: [Why Prosto?](https://prosto.readthedocs.io/en/latest/text/why.html)
 
 # Quick start
 
@@ -59,6 +61,8 @@ A workflow contains *definitions* of data elements (tables and columns) as well 
 ```python
 prosto = pr.Prosto("My Prosto Workflow")
 ```
+
+More info: [Workflow and operations](https://prosto.readthedocs.io/en/latest/text/workflow.html)
 
 ## Defining a table
 
@@ -84,6 +88,8 @@ The user-defined function in this example returns a `pandas` data frame with in-
 
 Other table operations like `project`, `product` and `filter` allow for processing table data from already existing input tables which in turn could be populated using other operations.
 
+More info: [Table operations](https://prosto.readthedocs.io/en/latest/text/tables.html)
+
 ## Defining a column
 
 A column is formally interpreted as a mathematical function which maps tuples (defined by table attributes) of this table to tuples in another table.
@@ -103,6 +109,8 @@ calc_column = prosto.calculate(
 This new column will store the amount computed for each record as a product of quantity and price. Note that the input columns could be also derived columns computed from some other data in this or other tables.
 
 Other column operations like `link`, `aggregate` or `roll` allow for producing link columns referencing records in other tables and aggregate data.
+
+More info: [Column operations](https://prosto.readthedocs.io/en/latest/text/columns.html)
 
 ## Executing a workflow
 
@@ -130,7 +138,9 @@ print(df)
 4  chips        1        4.0   4.0
 ```
 
-Although it looks like a normal table, the last column was derived from the data in other columns. In more complex cases, column data and table data will be derived from columns in other tables.
+Although it looks like a normal table, the last column was derived from the data in other columns. If we change input data, then we can again run this workflow and the derived column will contain updated results.
+
+The full power of `Prosto` is in processing data in multiple tables by definining derived links (instead of joins) and then aggregating data based on these links (without groupby). Note that both linking and aggregation do not require producing new tables: only columns are defined and evaluated.
 
 # How to use
 
@@ -172,4 +182,5 @@ $ python setup.py test
 
 # References
 
-[1] A.Savinov. Concept-oriented model: Modeling and processing data using functions, Eprint: [arXiv:1606.02237](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf) [cs.DB], 2019. https://www.researchgate.net/publication/337336089_Concept-oriented_model_Modeling_and_processing_data_using_functions
+<a id="1"></a>[1]: A.Savinov. Concept-oriented model: Modeling and processing data using functions, Eprint: [arXiv:1606.02237](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf) [cs.DB], 2019. https://www.researchgate.net/publication/337336089_Concept-oriented_model_Modeling_and_processing_data_using_functions
+
