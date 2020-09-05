@@ -6,6 +6,11 @@ TBD
 
 ## List of operations
 
+`Prosto` provides two types of operations which can be used in a workflow:
+
+* A *table population operation* adds new records to the table given records from one or more input tables
+* A *column evaluation operation* generates values of the column given values of one or more input columns
+
 `Prosto` currently supports the following operations:
 
 * Column operations
