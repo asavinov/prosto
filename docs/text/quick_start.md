@@ -16,10 +16,7 @@ A workflow contains *definitions* of data elements (tables and columns) as well 
 prosto = pr.Prosto("My Prosto Workflow")
 ```
 
-`Prosto` provides two types of operations which can be used in a workflow:
-
-* A *table population operation* adds new records to the table given records from one or more input tables
-* A *column evaluation operation* generates values of the column given values of one or more input columns
+More info: [Workflow and operations](https://prosto.readthedocs.io/en/latest/text/workflow.html)
 
 ## Defining a table
 
@@ -49,6 +46,8 @@ The user-defined function in this example returns a `pandas` data frame with in-
 
 Other table operations like `project`, `product` and `filter` allow for processing table data from already existing input tables which in turn could be populated using other operations.
 
+More info: [Table operations](https://prosto.readthedocs.io/en/latest/text/tables.html)
+
 ## Defining a column
 
 A column is formally interpreted as a mathematical function which maps tuples (defined by table attributes) of this table to tuples in another table.
@@ -68,6 +67,8 @@ calc_column = prosto.calculate(
 This new column will store the amount computed for each record as a product of quantity and price. Note that the input columns could be also derived columns computed from some other data in this or other tables.
 
 Other column operations like `link`, `aggregate` or `roll` allow for producing link columns referencing records in other tables and aggregate data.
+
+More info: [Column operations](https://prosto.readthedocs.io/en/latest/text/columns.html)
 
 ## Executing a workflow
 
@@ -95,4 +96,6 @@ print(df)
 4  chips        1        4.0   4.0
 ```
 
-Although it looks like a normal table, the last column was derived from the data in other columns. In more complex cases, column data and table data will be derived from columns in other tables.
+Although it looks like a normal table, the last column was derived from the data in other columns. If we change input data, then we can again run this workflow and the derived column will contain updated results.
+
+The full power of `Prosto` is in processing data in multiple tables by definining derived links (instead of joins) and then aggregating data based on these links (without groupby). Note that both linking and aggregation do not require producing new tables: only columns are defined and evaluated.
