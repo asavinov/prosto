@@ -1,12 +1,12 @@
 # Change Log
 
-* v0.4.0 (2020-xx-xx)
+* v0.4.0 (2020-09-05)
   * specifying column paths using a separator in addition to column lists
   * topology augmentation: inheritance of columns in filter operation
   * topology augmentation: usage of column paths in other operations
   * documentation
 
-* v0.3.0 (2020-08-31)
+* v0.3.0 (2020-07-31)
   * rolling aggregation with grouping operation
   * aggregation for multiple input columns
   * implement compute column operation

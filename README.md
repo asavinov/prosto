@@ -1,9 +1,9 @@
 ```
  ____                _        
-|  _ \ _ __ ___  ___| |_ ___   ________________________________________________________
+|  _ \ _ __ ___  ___| |_ ___   _________________________________________________
 | |_) | '__/ _ \/ __| __/ _ \ 
-|  __/| | | (_) \__ \ || (_) | Data Processing Toolkit - No join-groupby, No map-reduce
-|_|   |_|  \___/|___/\__\___/  ________________________________________________________
+|  __/| | | (_) \__ \ || (_) | Functions matter! No map-reduce. No join-groupby.
+|_|   |_|  \___/|___/\__\___/  _________________________________________________
 ```
 [![Documentation Status](https://readthedocs.org/projects/prosto/badge/?version=latest)](https://prosto.readthedocs.io/en/latest/?badge=latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
@@ -13,7 +13,7 @@
 
 • [**Why Prosto?**](#why-prosto) • [**Quick start**](#quick-start) • [**How to use**](#how-to-use) • [**References**](#references) • [**Documentation**](http://prosto.readthedocs.io/) •
 
-`Prosto` is a Python data processing toolkit to programmatically author and execute complex data processing workflows. Conceptually, it is an alternative to *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
+`Prosto` is a Python data processing toolkit to programmatically author and execute complex data processing workflows. Conceptually, it is an alternative to purely *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
 
 `Prosto` radically changes the way data is processed by relying on a novel data processing paradigm: concept-oriented model of data [[1]](#1). It treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
 
@@ -140,7 +140,7 @@ print(df)
 
 Although it looks like a normal table, the last column was derived from the data in other columns. If we change input data, then we can again run this workflow and the derived column will contain updated results.
 
-The full power of `Prosto` is in processing data in multiple tables by definining derived links (instead of joins) and then aggregating data based on these links (without groupby). Note that both linking and aggregation do not require producing new tables: only columns are defined and evaluated.
+The full power of `Prosto` comes from the ability to process data in multiple tables by definining derived links (instead of joins) and then aggregating data based on these links (without groupby). Note that both linking and aggregation do not require and will not produce new tables: only columns are defined and evaluated. For example, we might use column paths like `my_derived_link::my_column` in operations in order to access data in other tables.
 
 # How to use
 
