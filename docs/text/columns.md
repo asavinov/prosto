@@ -33,11 +33,16 @@ Check out the `link.ipynb` notebook for a working example of the `link` operaito
 
 ## Merge column (instead of join)
 
-Once we have defined link columns and interlinked our (initially isolated) set of tables, the question is how we can use these links? Currently, the only way is to move data between table by copying linked columns performed by the merge operation. It copies a column from the target linked table into this table. In this sense, it simply copies data between tables. Its definition is very simple: we need to specify only the link column and the target column. 
+Once we have defined link columns and interlinked our (initially isolated) set of tables, the question is how we can use these links? There are two major conceptual alternatives: 
 
-The copied (merged) columns can be then used in other operations like calculate columns or aggregate columns.   
+* move the whole linked columns to the source tables as one dedicated operation performed before the data in this column is used 
+* do not move the whole column but rather use this link to access individual data values in the linked column from within each operation which needs this data. 
 
-Note that the merge operation (as an explicit operation) is planned to become obsolete in future versions (but can still be used behind the scenes). Yet, currently it is the only way to access data in other tables using link columns. 
+The second approach requires less memory because the (linked) data is used where it resides but it is less efficient because each value is accessed via the link. The first approach require more memory because we duplicate the linked column by moving it to the table where it will be used. However, access to this data will be as fast as to all other columns within this source table.
+
+Currently, the first approach is implemented via the dedicated `merge` column operation. This operation specified a sequence of link columns from the source table to a target column in another table. Its result is a new column in this source table which contains the same data as in the target column and it can be used precisely as any other column in this table. The merged (copied) column can be then used in other operations like calculate columns or aggregate columns.
+
+It is important that it is not necessary to use this operation explicitly. In other words, if we want to use a linked column in some operation, then we could merge it first but it is an explict and optional way. A simpler approach is to specify a *column path* as our column name in the operation. A column path is a sequence of simple column names separated by some symbol, '::' (two colons) by default. The translator will find such column paths and automatically insert the necessary merge operation.
 
 ## Rolling aggregation (instead of over-partition)
 
@@ -64,4 +69,4 @@ Let us assume that we have a numeric column but we want to partition it into a f
 How the groups are identified and how the input space is partitioned is defined in the model. In the simplest case, there is one numeric column and the model defines intervals with equal length. These intervals are identified by their border value (left or right). The output columm will contain border values for the intervals input values belong to. For example, if we have temperature values in the input column like 21.1, 23.3, 22.2 etc. but we want to use discrete values like 21, 23, 22, then we need to define a `discretize` column. In this case, it is similar to rounding (which can be implemented using a `calculate` column) but the logic of discretization can be more complicated.
 
 Links:
-* https://numpy.org/doc/stable/reference/generated/numpy.digitize.html
+* <https://numpy.org/doc/stable/reference/generated/numpy.digitize.html>

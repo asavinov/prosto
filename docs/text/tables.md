@@ -30,5 +30,5 @@ Not implemented yet.
 This operation populates a table with one attribute which contains values from a range described in the model. A range specification typically has such parameters as `start`, `end`, `step` size (or frequency), `origin` and others depending on the range type.
 
 Links:
-* https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html
-* https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#generating-ranges-of-timestamps
+* <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html>
+* <https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#generating-ranges-of-timestamps>
