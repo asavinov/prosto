@@ -29,20 +29,31 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
 
 More detailed information can be found in the documentation: http://prosto.readthedocs.io 
 
-# Why Prosto?
+# Motivation: Why Prosto?
 
-Main motivation:
+## Why functions and column-orientation?
 
-Processing data using only set operations is counter-intuitive in many quite important cases. In particular, this is why SQL, map-reduce and similar approaches require high expertise. Prosto adds mathemtical *functions* (columns) to its model by significantly simplifying data processing and analysis.
+In traditional approaches to data processing we frequently need to produce a new table even though we need to define a new attribute. For example, in SQL, a new relation has to be produced even if we want to define a new calculated attribute. We also need to produce a new relation (using join) if we want to process data from another table. Data aggregation by means of groupy operation produces a new relation too although the goal is to compute a new attribute.
 
-Prosto provides the following unique features and benefits:
+Thus processing data using *only* set operations is in many quite important cases counter-intuitive. In particular, this is why map-reduce, join-groupby (including SQL) and similar approaches require high expertise and are error-prone. The main unique novel feature of `Prosto` is that it adds mathematical *functions* (implemented as columns) to its model by significantly simplifying data processing and analysis. Now, if we want to define a new attribute then we can do it directly without defining new unnecessary table, collection or relation.
 
-* Processing data in multiple tables
-* Getting rid of joins
-* Getting rid of group-by
-* Flexibility via user-defined functions
+More info: [Motivation: Why Prosto?](https://prosto.readthedocs.io/en/latest/text/why.html#why-functions-and-column-orientation)
 
-More info: [Why Prosto?](https://prosto.readthedocs.io/en/latest/text/why.html)
+## Benefits of Prosto 
+
+`Prosto` provides the following unique features and benefits:
+
+* Easily processing data in multiple tables. New derived columns are added directly to tables  without creating multiple intermediate tables
+
+* Getting rid of join and group-by. Column definitions such as link columns and aggregate columns are used instead of join and groupby set operations
+
+* Flexibility and modularization via user-defined functions. UDFs describe what needs to be done with the data only in this operation using arbitrary Python code. If UDF for an operation changes then it is not necessary to update other operations
+
+* Parameterization of operations by a model object. A model can be as simple as one value and as complex as a trained deep neural network. This feature leads to a novel view of how data analysis should be organized by combining feature engineering and machine learning so that both model training and model use (predictions or transformations) are part of one data processing workflow. Currently models are supported only as static parameters but in future there will be a possibility to train model within the same workflow
+
+* Future directions. Incremental evaluation and data dictionary
+
+More info: [Motivation: Why Prosto?](https://prosto.readthedocs.io/en/latest/text/why.html#benefits-of-prosto)
 
 # Quick start
 
