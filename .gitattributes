@@ -1,5 +1,5 @@
 docs/* linguist-vendored
-#notebooks/* linguist-vendored
+notebooks/* linguist-vendored
 
 # Basic .gitattributes for a python repo.
 
