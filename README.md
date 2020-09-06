@@ -37,7 +37,7 @@ In traditional approaches to data processing we frequently need to produce a new
 
 Thus processing data using *only* set operations is in many quite important cases counter-intuitive. In particular, this is why map-reduce, join-groupby (including SQL) and similar approaches require high expertise and are error-prone. The main unique novel feature of `Prosto` is that it adds mathematical *functions* (implemented as columns) to its model by significantly simplifying data processing and analysis. Now, if we want to define a new attribute then we can do it directly without defining new unnecessary table, collection or relation.
 
-More info: [Motivation: Why Prosto?](https://prosto.readthedocs.io/en/latest/text/why.html#why-functions-and-column-orientation)
+More info: [Why functions and column-orientation?](https://prosto.readthedocs.io/en/latest/text/why.html#why-functions-and-column-orientation)
 
 ## Benefits of Prosto 
 
@@ -53,7 +53,7 @@ More info: [Motivation: Why Prosto?](https://prosto.readthedocs.io/en/latest/tex
 
 * Future directions. Incremental evaluation and data dictionary
 
-More info: [Motivation: Why Prosto?](https://prosto.readthedocs.io/en/latest/text/why.html#benefits-of-prosto)
+More info: [Benefits of Prosto](https://prosto.readthedocs.io/en/latest/text/why.html#benefits-of-prosto)
 
 # Quick start
 
