@@ -1,98 +1,89 @@
-import unittest
+import pytest
 
 import pandas as pd
 
 import prosto as pr
 
-class ColumnQuickStartTestCase(unittest.TestCase):
+def test_quick_start():
+    prosto = pr.Prosto("My Prosto Workflow")
 
-    def setUp(self):
-        pass
+    #
+    # First (facts) table
+    #
+    items_data = {
+        'name': ["beer", "chips", "chips", "beer", "chips"],
+        'quantity': [1, 2, 3, 2, 1],
+    }
+    items_df = pd.DataFrame(data=items_data)
 
-    def test_quick_start(self):
-        prosto = pr.Prosto("My Prosto Workflow")
+    items = prosto.populate(
+        # A table definition consists of a name and a list of attributes
+        table_name="Items", attributes=["name", "quantity"],
 
-        #
-        # First (facts) table
-        #
-        items_data = {
-            'name': ["beer", "chips", "chips", "beer", "chips"],
-            'quantity': [1, 2, 3, 2, 1],
-        }
-        items_df = pd.DataFrame(data=items_data)
+        # Table operation is UDF, input tables and model
+        func=lambda **m: items_df, tables=[]
+    )
 
-        items = prosto.populate(
-            # A table definition consists of a name and a list of attributes
-            table_name="Items", attributes=["name", "quantity"],
+    #
+    # Second (group) table
+    #
+    products_data = {
+        'name': ["beer", "chips", "tee"],
+        'price': [10.0, 4.0, 2],
+    }
+    products_df = pd.DataFrame(data=products_data)
 
-            # Table operation is UDF, input tables and model
-            func=lambda **m: items_df, tables=[]
-        )
+    products = prosto.populate(
+        # A table definition consists of a name and a list of attributes
+        table_name="Products", attributes=["name", "price"],
 
-        #
-        # Second (group) table
-        #
-        products_data = {
-            'name': ["beer", "chips", "tee"],
-            'price': [10.0, 4.0, 2],
-        }
-        products_df = pd.DataFrame(data=products_data)
+        # Table operation is UDF, input tables and model
+        func=lambda **m: products_df, tables=[]
+    )
 
-        products = prosto.populate(
-            # A table definition consists of a name and a list of attributes
-            table_name="Products", attributes=["name", "price"],
+    #
+    # Link column
+    #
+    link_column = prosto.link(
+        # In contrast to other columns, a link column specifies its target table name
+        name="product", table=items.id, type=products.id,
 
-            # Table operation is UDF, input tables and model
-            func=lambda **m: products_df, tables=[]
-        )
+        # It is a criterion of linking: all input columns have to be equal to the output columns
+        columns=["name"], linked_columns=["name"]
+    )
 
-        #
-        # Link column
-        #
-        link_column = prosto.link(
-            # In contrast to other columns, a link column specifies its target table name
-            name="product", table=items.id, type=products.id,
+    #
+    # Calc column
+    #
+    calc_column = prosto.calculate(
+        # Column definition consists of a name and a table it belongs to
+        name="amount", table=items.id,
 
-            # It is a criterion of linking: all input columns have to be equal to the output columns
-            columns=["name"], linked_columns=["name"]
-        )
+        # Column operation is UDF, input columns and model
+        func=lambda x: x["quantity"] * x["product::price"], columns=["quantity", "product::price"]
+    )
 
-        #
-        # Calc column
-        #
-        calc_column = prosto.calculate(
-            # Column definition consists of a name and a table it belongs to
-            name="amount", table=items.id,
+    #
+    # Aggregate column
+    #
+    total = prosto.aggregate(
+        # Column description
+        name="total", table=products.id,
+        # How to group
+        tables=["Items"], link="product",
+        # How to aggregate
+        func="lambda x: x.sum()", columns=["amount"], model={}
+    )
 
-            # Column operation is UDF, input columns and model
-            func=lambda x: x["quantity"] * x["product::price"], columns=["quantity", "product::price"]
-        )
+    #
+    # Execute workflow
+    #
+    prosto.run()
 
-        #
-        # Aggregate column
-        #
-        total = prosto.aggregate(
-            # Column description
-            name="total", table=products.id,
-            # How to group
-            tables=["Items"], link="product",
-            # How to aggregate
-            func="lambda x: x.sum()", columns=["amount"], model={}
-        )
+    total = products.get_column_data("total")
 
-        #
-        # Execute workflow
-        #
-        prosto.run()
+    assert total[0] == 30.0
+    assert total[1] == 24.0
+    assert total[2] == 0.0
 
-        total = products.get_column_data("total")
-
-        self.assertEqual(total[0], 30.0)
-        self.assertEqual(total[1], 24.0)
-        self.assertEqual(total[2], 0.0)
-
-        pass
-
-
-if __name__ == '__main__':
-    unittest.main()
+    pass

@@ -1,4 +1,4 @@
-__version__= "0.4.0"
+__version__= "0.5.0.dev"
 from prosto.Prosto import Prosto
 from prosto.Table import Table
 from prosto.Column import Column

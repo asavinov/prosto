@@ -1,78 +1,69 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class TableProductTestCase(unittest.TestCase):
+def test_product():
+    sch = Prosto("My Prosto")
 
-    def setUp(self):
-        pass
+    t1 = sch.populate(
+        table_name="Table 1", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
+    )
 
-    def test_product(self):
-        sch = Prosto("My Prosto")
+    t2 = sch.populate(
+        table_name="Table 2", attributes=["B"],
+        func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[]
+    )
 
-        t1 = sch.populate(
-            table_name="Table 1", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
-        )
+    product = sch.product(
+        table_name="Product", attributes=["t1", "t2"],
+        tables=["Table 1", "Table 2"]
+    )
 
-        t2 = sch.populate(
-            table_name="Table 2", attributes=["B"],
-            func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[]
-        )
+    t1.evaluate()
+    t2.evaluate()
+    product.evaluate()
 
-        product = sch.product(
-            table_name="Product", attributes=["t1", "t2"],
-            tables=["Table 1", "Table 2"]
-        )
+    assert len(product.get_data().columns) == 2
+    assert len(product.get_data()) == 9
 
-        t1.evaluate()
-        t2.evaluate()
-        product.evaluate()
+    assert product.get_data().columns.to_list() == ["t1", "t2"]
 
-        self.assertEqual(len(product.get_data().columns), 2)
-        self.assertEqual(len(product.get_data()), 9)
+def test_product_inheritance():
+    """
+    We add an addition calculate column to the product table which uses a column of a base table.
+    The system has to automatically insert a new operation by resolving this missing column.
+    """
+    sch = Prosto("My Prosto")
 
-        self.assertEqual(product.get_data().columns.to_list(), ["t1", "t2"])
+    t1 = sch.populate(
+        table_name="Table 1", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
+    )
 
-    def test_product_inheritance(self):
-        """
-        We add an addition calculate column to the product table which uses a column of a base table.
-        The system has to automatically insert a new operation by resolving this missing column.
-        """
-        sch = Prosto("My Prosto")
+    t2 = sch.populate(
+        table_name="Table 2", attributes=["B"],
+        func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[]
+    )
 
-        t1 = sch.populate(
-            table_name="Table 1", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
-        )
+    product = sch.product(
+        table_name="Product", attributes=["t1", "t2"],
+        tables=["Table 1", "Table 2"]
+    )
 
-        t2 = sch.populate(
-            table_name="Table 2", attributes=["B"],
-            func="lambda **m: pd.DataFrame({'B': ['x', 'y', 'z']})", tables=[]
-        )
+    # In this calculate column, we use a column of the product table which actually exists only in a base table
+    clm = sch.calculate(
+        name="My column", table=product.id,
+        func="lambda x: x + 1.0", columns=["A"], model=None
+    )
 
-        product = sch.product(
-            table_name="Product", attributes=["t1", "t2"],
-            tables=["Table 1", "Table 2"]
-        )
+    sch.run()
 
-        # In this calculate column, we use a column of the product table which actually exists only in a base table
-        clm = sch.calculate(
-            name="My column", table=product.id,
-            func="lambda x: x + 1.0", columns=["A"], model=None
-        )
+    # We get two columns in addition to two attributes: one merge (augmented) and one calculate column
+    assert len(product.get_data().columns) == 4
 
-        sch.run()
+    clm_data = product.get_column_data('My column')
 
-        # We get two columns in addition to two attributes: one merge (augmented) and one calculate column
-        self.assertEqual(len(product.get_data().columns), 4)
+    assert clm_data.to_list() == [2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0]
 
-        clm_data = product.get_column_data('My column')
-
-        self.assertEqual(clm_data.to_list(), [2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0])
-
-        pass
-
-
-if __name__ == '__main__':
-    unittest.main()
+    pass

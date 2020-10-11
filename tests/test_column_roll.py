@@ -1,125 +1,116 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class ColumnRollTestCase(unittest.TestCase):
+def test_roll_single():
+    sch = Prosto("My Prosto")
 
-    def setUp(self):
-        pass
+    tbl = sch.populate(
+        table_name="My table", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
+    )
 
-    def test_roll_single(self):
-        sch = Prosto("My Prosto")
+    clm = sch.roll(
+        name="Roll", table=tbl.id,
+        window="2", link=None,
+        func="lambda x: x.sum()", columns=["A"], model={}
+    )
 
-        tbl = sch.populate(
-            table_name="My table", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0]})", tables=[]
-        )
+    tbl.evaluate()
+    clm.evaluate()
 
-        clm = sch.roll(
-            name="Roll", table=tbl.id,
-            window="2", link=None,
-            func="lambda x: x.sum()", columns=["A"], model={}
-        )
+    clm_data = tbl.get_column_data('Roll')
 
-        tbl.evaluate()
-        clm.evaluate()
+    assert pd.isna(clm_data[0])
+    assert np.isclose(clm_data[1], 3.0)
+    assert np.isclose(clm_data[2], 5.0)
 
-        clm_data = tbl.get_column_data('Roll')
+def test_roll_multiple():
+    sch = Prosto("My Prosto")
 
-        self.assertTrue(pd.isna(clm_data[0]))
-        self.assertAlmostEqual(clm_data[1], 3.0)
-        self.assertAlmostEqual(clm_data[2], 5.0)
+    tbl = sch.populate(
+        table_name="My table", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': [1, 2, 3], 'B': [3, 2, 1]})", tables=[]
+    )
 
-    def test_roll_multiple(self):
-        sch = Prosto("My Prosto")
+    clm = sch.roll(
+        name="Roll", table=tbl.id,
+        window="2", link=None,
+        func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}
+    )
 
-        tbl = sch.populate(
-            table_name="My table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1, 2, 3], 'B': [3, 2, 1]})", tables=[]
-        )
+    tbl.evaluate()
+    clm.evaluate()
 
-        clm = sch.roll(
-            name="Roll", table=tbl.id,
-            window="2", link=None,
-            func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}
-        )
+    clm_data = tbl.get_column_data('Roll')
 
-        tbl.evaluate()
-        clm.evaluate()
+    assert pd.isna(clm_data[0])
+    assert np.isclose(clm_data[1], 8.0)
+    assert np.isclose(clm_data[2], 8.0)
 
-        clm_data = tbl.get_column_data('Roll')
+    #
+    # Test topology
+    #
+    topology = Topology(sch)
+    topology.translate()  # All data will be reset
+    layers = topology.elem_layers
 
-        self.assertTrue(pd.isna(clm_data[0]))
-        self.assertAlmostEqual(clm_data[1], 8.0)
-        self.assertAlmostEqual(clm_data[2], 8.0)
+    assert len(layers) == 2
 
-        #
-        # Test topology
-        #
-        topology = Topology(sch)
-        topology.translate()  # All data will be reset
-        layers = topology.elem_layers
+    assert set([x.id for x in layers[0]]) == set(["My table"])
+    assert set([x.id for x in layers[1]]) == set(["Roll"])
 
-        self.assertEqual(len(layers), 2)
+    sch.run()
 
-        self.assertTrue(set([x.id for x in layers[0]]) == set(["My table"]))
-        self.assertTrue(set([x.id for x in layers[1]]) == set(["Roll"]))
+    clm_data = tbl.get_column_data('Roll')
+    assert pd.isna(clm_data[0])
+    assert np.isclose(clm_data[1], 8.0)
+    assert np.isclose(clm_data[2], 8.0)
 
-        sch.run()
+def test_groll_single():
+    sch = Prosto("My Prosto")
 
-        clm_data = tbl.get_column_data('Roll')
-        self.assertTrue(pd.isna(clm_data[0]))
-        self.assertAlmostEqual(clm_data[1], 8.0)
-        self.assertAlmostEqual(clm_data[2], 8.0)
+    tbl = sch.populate(
+        table_name="My table", attributes=["G", "A"],
+        func="lambda **m: pd.DataFrame({'G': [1, 2, 1, 2], 'A': [1.0, 2.0, 3.0, 4.0]})", tables=[]
+    )
 
-    def test_groll_single(self):
-        sch = Prosto("My Prosto")
+    clm = sch.roll(
+        name="Roll", table=tbl.id,
+        window="2", link="G",
+        func="lambda x: x.sum()", columns=["A"], model={}
+    )
 
-        tbl = sch.populate(
-            table_name="My table", attributes=["G", "A"],
-            func="lambda **m: pd.DataFrame({'G': [1, 2, 1, 2], 'A': [1.0, 2.0, 3.0, 4.0]})", tables=[]
-        )
+    sch.run()
 
-        clm = sch.roll(
-            name="Roll", table=tbl.id,
-            window="2", link="G",
-            func="lambda x: x.sum()", columns=["A"], model={}
-        )
+    clm_data = tbl.get_column_data('Roll')
 
-        sch.run()
+    assert pd.isna(clm_data[0])
+    assert pd.isna(clm_data[1])
+    assert np.isclose(clm_data[2], 4.0)
+    assert np.isclose(clm_data[3], 6.0)
 
-        clm_data = tbl.get_column_data('Roll')
+    pass
 
-        self.assertTrue(pd.isna(clm_data[0]))
-        self.assertTrue(pd.isna(clm_data[1]))
-        self.assertAlmostEqual(clm_data[2], 4.0)
-        self.assertAlmostEqual(clm_data[3], 6.0)
+def test_groll_multiple():
+    sch = Prosto("My Prosto")
 
-        pass
+    tbl = sch.populate(
+        table_name="My table", attributes=["G", "A", "B"],
+        func="lambda **m: pd.DataFrame({'G': [1, 2, 1, 2], 'A': [1, 2, 3, 4], 'B': [4, 3, 2, 1]})", tables=[]
+    )
 
-    def test_groll_multiple(self):
-        sch = Prosto("My Prosto")
+    clm = sch.roll(
+        name="Roll", table=tbl.id,
+        window="2", link="G",
+        func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}
+    )
 
-        tbl = sch.populate(
-            table_name="My table", attributes=["G", "A", "B"],
-            func="lambda **m: pd.DataFrame({'G': [1, 2, 1, 2], 'A': [1, 2, 3, 4], 'B': [4, 3, 2, 1]})", tables=[]
-        )
+    sch.run()
 
-        clm = sch.roll(
-            name="Roll", table=tbl.id,
-            window="2", link="G",
-            func="lambda x: x['A'].sum() + x['B'].sum()", columns=["A", "B"], model={}
-        )
+    clm_data = tbl.get_column_data('Roll')
 
-        sch.run()
-
-        clm_data = tbl.get_column_data('Roll')
-
-        self.assertTrue(pd.isna(clm_data[0]))
-        self.assertTrue(pd.isna(clm_data[1]))
-        self.assertAlmostEqual(clm_data[2], 10.0)
-        self.assertAlmostEqual(clm_data[3], 10.0)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    assert pd.isna(clm_data[0])
+    assert pd.isna(clm_data[1])
+    assert np.isclose(clm_data[2], 10.0)
+    assert np.isclose(clm_data[3], 10.0)

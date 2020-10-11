@@ -1,94 +1,85 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class TableFilterTestCase(unittest.TestCase):
+def test_filter_table():
+    sch = Prosto("My Prosto")
 
-    def setUp(self):
-        pass
+    tbl = sch.populate(
+        table_name="Base table", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
+    )
 
-    def test_filter_table(self):
-        sch = Prosto("My Prosto")
+    # This (boolean) column will be used for filtering
+    clm = sch.compute(
+        name="filter_column", table=tbl.id,
+        func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
+        columns=["A", "B"], model={"param": 1.5}
+    )
 
-        tbl = sch.populate(
-            table_name="Base table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
-        )
+    tbl.evaluate()
+    clm.evaluate()
 
-        # This (boolean) column will be used for filtering
-        clm = sch.compute(
-            name="filter_column", table=tbl.id,
-            func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
-            columns=["A", "B"], model={"param": 1.5}
-        )
+    tbl = sch.filter(
+        table_name="Filtered table", attributes=["super"],
+        func=None, tables=["Base table"], columns=["filter_column"]
+    )
 
-        tbl.evaluate()
-        clm.evaluate()
+    tbl.evaluate()
 
-        tbl = sch.filter(
-            table_name="Filtered table", attributes=["super"],
-            func=None, tables=["Base table"], columns=["filter_column"]
-        )
+    assert len(tbl.get_data().columns) == 1  # Only one link-attribute is created
+    assert len(tbl.get_data()) == 1
+    assert tbl.get_data()['super'][0] == 1
 
-        tbl.evaluate()
+    #
+    # Test topology
+    #
+    topology = Topology(sch)
+    topology.translate()
+    layers = topology.elem_layers
 
-        self.assertEqual(len(tbl.get_data().columns), 1)  # Only one link-attribute is created
-        self.assertEqual(len(tbl.get_data()), 1)
-        self.assertEqual(tbl.get_data()['super'][0], 1)
+    assert len(layers) == 3
 
-        #
-        # Test topology
-        #
-        topology = Topology(sch)
-        topology.translate()
-        layers = topology.elem_layers
+    assert set([x.id for x in layers[0]]) == set(["Base table"])
+    assert set([x.id for x in layers[1]]) == set(["filter_column"])
+    assert set([x.id for x in layers[2]]) == set(["Filtered table"])
 
-        self.assertEqual(len(layers), 3)
+def test_filter_inheritance():
+    """Test topology augmentation. Use columns from the parent table by automatically adding the merge operation to topology."""
+    sch = Prosto("My Prosto")
 
-        self.assertTrue(set([x.id for x in layers[0]]) == set(["Base table"]))
-        self.assertTrue(set([x.id for x in layers[1]]) == set(["filter_column"]))
-        self.assertTrue(set([x.id for x in layers[2]]) == set(["Filtered table"]))
+    base_tbl = sch.populate(
+        table_name="Base table", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
+    )
 
-    def test_filter_inheritance(self):
-        """Test topology augmentation. Use columns from the parent table by automatically adding the merge operation to topology."""
-        sch = Prosto("My Prosto")
+    # This (boolean) column will be used for filtering
+    clm = sch.compute(
+        name="filter_column", table=base_tbl.id,
+        func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
+        columns=["A", "B"], model={"param": 1.5}
+    )
 
-        base_tbl = sch.populate(
-            table_name="Base table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
-        )
+    f_tbl = sch.filter(
+        table_name="Filtered table", attributes=["super"],
+        func=None, tables=["Base table"], columns=["filter_column"]
+    )
 
-        # This (boolean) column will be used for filtering
-        clm = sch.compute(
-            name="filter_column", table=base_tbl.id,
-            func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
-            columns=["A", "B"], model={"param": 1.5}
-        )
+    # In this calculate column, we use a column of the filtered table which actually exists only in the base table
+    clm = sch.calculate(
+        name="My column", table=f_tbl.id,
+        func="lambda x: x + 1.0", columns=["A"], model=None
+    )
 
-        f_tbl = sch.filter(
-            table_name="Filtered table", attributes=["super"],
-            func=None, tables=["Base table"], columns=["filter_column"]
-        )
+    sch.run()
 
-        # In this calculate column, we use a column of the filtered table which actually exists only in the base table
-        clm = sch.calculate(
-            name="My column", table=f_tbl.id,
-            func="lambda x: x + 1.0", columns=["A"], model=None
-        )
+    clm_data = f_tbl.get_column_data('My column')
 
-        sch.run()
+    assert np.isclose(len(clm_data), 1)
+    assert np.isclose(clm_data[0], 3.0)
 
-        clm_data = f_tbl.get_column_data('My column')
-
-        self.assertAlmostEqual(len(clm_data), 1)
-        self.assertAlmostEqual(clm_data[0], 3.0)
-
-        # This column had to be added automatically by the augmentation procedure
-        # It is inherited from the base table and materialized via merge operation
-        # It stores original values of the inherited base column
-        clm_data = f_tbl.get_column_data('A')
-        self.assertAlmostEqual(clm_data[0], 2)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    # This column had to be added automatically by the augmentation procedure
+    # It is inherited from the base table and materialized via merge operation
+    # It stores original values of the inherited base column
+    clm_data = f_tbl.get_column_data('A')
+    assert np.isclose(clm_data[0], 2)

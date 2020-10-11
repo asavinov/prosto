@@ -1,116 +1,107 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class ColumnLinkTestCase(unittest.TestCase):
+def test_one_key():
+    sch = Prosto("My Prosto")
 
-    def setUp(self):
-        pass
+    # Facts
+    f_tbl = sch.populate(
+        table_name="Facts", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
+    )
 
-    def test_one_key(self):
-        sch = Prosto("My Prosto")
+    # Groups
+    g_tbl = sch.populate(
+        table_name="Groups", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[]
+    )
 
-        # Facts
-        f_tbl = sch.populate(
-            table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
-        )
+    # Link
+    l_clm = sch.link(
+        name="Link", table=f_tbl.id, type=g_tbl.id,
+        columns=["A"], linked_columns=["A"]
+    )
 
-        # Groups
-        g_tbl = sch.populate(
-            table_name="Groups", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c']})", tables=[]
-        )
+    f_tbl.evaluate()
+    g_tbl.evaluate()
 
-        # Link
-        l_clm = sch.link(
-            name="Link", table=f_tbl.id, type=g_tbl.id,
-            columns=["A"], linked_columns=["A"]
-        )
+    l_clm.evaluate()
 
-        f_tbl.evaluate()
-        g_tbl.evaluate()
+    f_tbl_data = f_tbl.get_data()
+    assert len(f_tbl_data) == 4  # Same number of rows
+    assert len(f_tbl_data.columns) == 2
 
-        l_clm.evaluate()
+    l_data = f_tbl.get_column_data("Link")
+    assert l_data[0] == 0
+    assert l_data[1] == 0
+    assert l_data[2] == 1
+    assert l_data[3] == 1
 
-        f_tbl_data = f_tbl.get_data()
-        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
-        self.assertEqual(len(f_tbl_data.columns), 2)
+    #
+    # Test topology
+    #
+    topology = Topology(sch)
+    topology.translate()  # All data will be reset
+    layers = topology.elem_layers
 
-        l_data = f_tbl.get_column_data("Link")
-        self.assertEqual(l_data[0], 0)
-        self.assertEqual(l_data[1], 0)
-        self.assertEqual(l_data[2], 1)
-        self.assertEqual(l_data[3], 1)
+    assert len(layers) == 2
 
-        #
-        # Test topology
-        #
-        topology = Topology(sch)
-        topology.translate()  # All data will be reset
-        layers = topology.elem_layers
+    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
+    assert set([x.id for x in layers[1]]) == set(["Link"])
 
-        self.assertEqual(len(layers), 2)
+def test_two_keys():
+    sch = Prosto("My Prosto")
 
-        self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups"]))
-        self.assertTrue(set([x.id for x in layers[1]]) == set(["Link"]))
+    # Facts
+    f_tbl = sch.populate(
+        table_name="Facts", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[]
+    )
 
-    def test_two_keys(self):
-        sch = Prosto("My Prosto")
+    # Groups
+    g_tbl = sch.populate(
+        table_name="Groups", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'a'], 'B': ['b', 'c', 'c'], 'C': [1, 2, 3]})", tables=[]
+    )
 
-        # Facts
-        f_tbl = sch.populate(
-            table_name="Facts", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'b', 'a'], 'B': ['b', 'c', 'c', 'a']})", tables=[]
-        )
+    # Link
+    l_clm = sch.link(
+        name="Link", table=f_tbl.id, type=g_tbl.id,
+        columns=["A", "B"], linked_columns=["A", "B"]
+    )
 
-        # Groups
-        g_tbl = sch.populate(
-            table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'a'], 'B': ['b', 'c', 'c'], 'C': [1, 2, 3]})", tables=[]
-        )
+    f_tbl.evaluate()
+    g_tbl.evaluate()
 
-        # Link
-        l_clm = sch.link(
-            name="Link", table=f_tbl.id, type=g_tbl.id,
-            columns=["A", "B"], linked_columns=["A", "B"]
-        )
+    l_clm.evaluate()
 
-        f_tbl.evaluate()
-        g_tbl.evaluate()
+    f_tbl_data = f_tbl.get_data()
+    assert len(f_tbl_data) == 4  # Same number of rows
+    assert len(f_tbl_data.columns) == 3
 
-        l_clm.evaluate()
+    l_data = f_tbl.get_column_data("Link")
+    assert l_data[0] == 0
+    assert l_data[1] == 1
+    assert l_data[2] == 1
+    assert pd.isna(l_data[3])
 
-        f_tbl_data = f_tbl.get_data()
-        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
-        self.assertEqual(len(f_tbl_data.columns), 3)
+    #
+    # Test topology
+    #
+    topology = Topology(sch)
+    topology.translate()  # All data will be reset
+    layers = topology.elem_layers
 
-        l_data = f_tbl.get_column_data("Link")
-        self.assertEqual(l_data[0], 0)
-        self.assertEqual(l_data[1], 1)
-        self.assertEqual(l_data[2], 1)
-        self.assertTrue(pd.isna(l_data[3]))
+    assert len(layers) == 2
 
-        #
-        # Test topology
-        #
-        topology = Topology(sch)
-        topology.translate()  # All data will be reset
-        layers = topology.elem_layers
+    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
+    assert set([x.id for x in layers[1]]) == set(["Link"])
 
-        self.assertEqual(len(layers), 2)
+    sch.run()
 
-        self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups"]))
-        self.assertTrue(set([x.id for x in layers[1]]) == set(["Link"]))
-
-        sch.run()
-
-        l_data = f_tbl.get_column_data("Link")
-        self.assertEqual(l_data[0], 0)
-        self.assertEqual(l_data[1], 1)
-        self.assertEqual(l_data[2], 1)
-        self.assertTrue(pd.isna(l_data[3]))
-
-
-if __name__ == '__main__':
-    unittest.main()
+    l_data = f_tbl.get_column_data("Link")
+    assert l_data[0] == 0
+    assert l_data[1] == 1
+    assert l_data[2] == 1
+    assert pd.isna(l_data[3])

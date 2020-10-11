@@ -1,5 +1,8 @@
 # Change Log
 
+* v0.5.0.dev
+  * switch to pytest for unit tests
+
 * v0.4.0 (2020-09-05)
   * specifying column paths using a separator in addition to column lists
   * topology augmentation: inheritance of columns in filter operation

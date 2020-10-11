@@ -1,77 +1,68 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class IncrementalTestCase(unittest.TestCase):
+def test_calculate_value():
+    sch = Prosto("My Prosto")
+    sch.incremental = True
 
-    def setUp(self):
-        pass
+    tbl = sch.create_table(
+        table_name="My table", attributes=["A"],
+    )
 
-    def test_calculate_value(self):
-        sch = Prosto("My Prosto")
-        sch.incremental = True
+    clm = sch.calculate(
+        name="My column", table=tbl.id,
+        func="lambda x: float(x)", columns=["A"], model=None
+    )
 
-        tbl = sch.create_table(
-            table_name="My table", attributes=["A"],
-        )
+    sch.run()  # Inference on empty data
 
-        clm = sch.calculate(
-            name="My column", table=tbl.id,
-            func="lambda x: float(x)", columns=["A"], model=None
-        )
+    tbl.data.add({"A": 1})  # New record is added and marked as added
 
-        sch.run()  # Inference on empty data
+    # Assert new change status
+    assert tbl.data.added_length() == 1
 
-        tbl.data.add({"A": 1})  # New record is added and marked as added
+    sch.run()
 
-        # Assert new change status
-        self.assertEqual(tbl.data.added_length(), 1)
+    # Assert clean change status and results of inference
+    assert tbl.data.added_length() == 0
 
-        sch.run()
+    tbl.data.add({"A": 2})
+    tbl.data.add({"A": 3})
 
-        # Assert clean change status and results of inference
-        self.assertEqual(tbl.data.added_length(), 0)
+    # Assert new change status
+    assert tbl.data.added_length() == 2
 
-        tbl.data.add({"A": 2})
-        tbl.data.add({"A": 3})
+    # For debug purpose, modify an old row (which has not been recently added but was evaluated before)
+    tbl_df = tbl.data.get_df()
+    tbl_df['A'][0] = 10  # Old value is 1. Prosto does not see this change
 
-        # Assert new change status
-        self.assertEqual(tbl.data.added_length(), 2)
+    sch.run()
 
-        # For debug purpose, modify an old row (which has not been recently added but was evaluated before)
-        tbl_df = tbl.data.get_df()
-        tbl_df['A'][0] = 10  # Old value is 1. Prosto does not see this change
+    # The manual modification is invisible for Prosto and hence it should not be re-computed and the derived column will have to have the old value
+    assert tbl_df['My column'][0] == 1
 
-        sch.run()
+    # Assert clean change status and results of inference
+    assert tbl.data.added_length() == 0
 
-        # The manual modification is invisible for Prosto and hence it should not be re-computed and the derived column will have to have the old value
-        self.assertEqual(tbl_df['My column'][0], 1)
+    tbl.data.remove(1)  # Remove one oldest record by marking it as removed
 
-        # Assert clean change status and results of inference
-        self.assertEqual(tbl.data.added_length(), 0)
+    # Assert new change status
+    assert tbl.data.removed_length() == 1
 
-        tbl.data.remove(1)  # Remove one oldest record by marking it as removed
+    sch.run()
 
-        # Assert new change status
-        self.assertEqual(tbl.data.removed_length(), 1)
+    # Assert clean change status and results of inference
+    assert tbl.data.removed_length() == 0
 
-        sch.run()
+    tbl.data.remove_all()  # Remove all records by marking them as removed
 
-        # Assert clean change status and results of inference
-        self.assertEqual(tbl.data.removed_length(), 0)
+    # Assert new change status
 
-        tbl.data.remove_all()  # Remove all records by marking them as removed
+    sch.run()
 
-        # Assert new change status
-
-        sch.run()
-
-        # Assert clean change status and results of inference
-        self.assertEqual(tbl.data.added_range.start, 3)
-        self.assertEqual(tbl.data.added_range.end, 3)
-        self.assertEqual(tbl.data.removed_range.start, 3)
-        self.assertEqual(tbl.data.removed_range.end, 3)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    # Assert clean change status and results of inference
+    assert tbl.data.added_range.start == 3
+    assert tbl.data.added_range.end == 3
+    assert tbl.data.removed_range.start == 3
+    assert tbl.data.removed_range.end == 3

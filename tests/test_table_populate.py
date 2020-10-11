@@ -1,42 +1,33 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class TablePopulateTestCase(unittest.TestCase):
+def test_populate():
+    sch = Prosto("My Prosto")
 
-    def setUp(self):
-        pass
+    tbl = sch.populate(
+        table_name="My table", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']})", tables=[], model={"nrows": 3}
+    )
 
-    def test_populate(self):
-        sch = Prosto("My Prosto")
+    tbl.evaluate()
 
-        tbl = sch.populate(
-            table_name="My table", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']})", tables=[], model={"nrows": 3}
-        )
+    assert len(tbl.get_data().columns) == 2
+    assert len(tbl.get_data()) == 3
 
-        tbl.evaluate()
+def test_populate2():
+    sch = Prosto("My Prosto")
 
-        self.assertEqual(len(tbl.get_data().columns), 2)
-        self.assertEqual(len(tbl.get_data()), 3)
+    data = {'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']}
 
-    def test_populate2(self):
-        sch = Prosto("My Prosto")
+    populate_fn = lambda **m: pd.DataFrame(data)
 
-        data = {'A': [1.0, 2.0, 3.0], 'B': ['x', 'y', 'z']}
+    tbl = sch.populate(
+        table_name="My table", attributes=["A", "B"],
+        func=populate_fn, tables=[], model={"nrows": 3}
+    )
 
-        populate_fn = lambda **m: pd.DataFrame(data)
+    tbl.evaluate()
 
-        tbl = sch.populate(
-            table_name="My table", attributes=["A", "B"],
-            func=populate_fn, tables=[], model={"nrows": 3}
-        )
-
-        tbl.evaluate()
-
-        self.assertEqual(len(tbl.get_data().columns), 2)
-        self.assertEqual(len(tbl.get_data()), 3)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    assert len(tbl.get_data().columns) == 2
+    assert len(tbl.get_data()) == 3

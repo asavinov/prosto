@@ -1,184 +1,175 @@
-import unittest
+import pytest
 
 from prosto.Prosto import *
 
-class ColumnMergeTestCase(unittest.TestCase):
+def test_merge():
+    sch = Prosto("My Prosto")
 
-    def setUp(self):
-        pass
+    # Facts
+    f_tbl = sch.populate(
+        table_name="Facts", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
+    )
 
-    def test_merge(self):
-        sch = Prosto("My Prosto")
+    # Groups
+    g_tbl = sch.populate(
+        table_name="Groups", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [1.0, 2.0, 3.0]})", tables=[]
+    )
 
-        # Facts
-        f_tbl = sch.populate(
-            table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
-        )
+    # Link
+    l_clm = sch.link(
+        name="Link", table=f_tbl.id, type=g_tbl.id,
+        columns=["A"], linked_columns=["A"]
+    )
 
-        # Groups
-        g_tbl = sch.populate(
-            table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [1.0, 2.0, 3.0]})", tables=[]
-        )
+    # Merge
+    m_clm = sch.merge("Merge", f_tbl.id, ["Link", "B"])
 
-        # Link
-        l_clm = sch.link(
-            name="Link", table=f_tbl.id, type=g_tbl.id,
-            columns=["A"], linked_columns=["A"]
-        )
+    f_tbl.evaluate()
+    g_tbl.evaluate()
 
-        # Merge
-        m_clm = sch.merge("Merge", f_tbl.id, ["Link", "B"])
+    l_clm.evaluate()
+    m_clm.evaluate()
 
-        f_tbl.evaluate()
-        g_tbl.evaluate()
+    f_tbl_data = f_tbl.get_data()
+    assert len(f_tbl_data) == 4  # Same number of rows
+    assert len(f_tbl_data.columns) == 3
 
-        l_clm.evaluate()
-        m_clm.evaluate()
+    m_data = f_tbl.get_column_data("Merge")
+    assert m_data[0] == 1.0
+    assert m_data[1] == 1.0
+    assert m_data[2] == 2.0
+    assert m_data[3] == 2.0
 
-        f_tbl_data = f_tbl.get_data()
-        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
-        self.assertEqual(len(f_tbl_data.columns), 3)
+    #
+    # Test topology
+    #
+    topology = Topology(sch)
+    topology.translate()  # All data will be reset
+    layers = topology.elem_layers
 
-        m_data = f_tbl.get_column_data("Merge")
-        self.assertEqual(m_data[0], 1.0)
-        self.assertEqual(m_data[1], 1.0)
-        self.assertEqual(m_data[2], 2.0)
-        self.assertEqual(m_data[3], 2.0)
+    assert len(layers) == 3
 
-        #
-        # Test topology
-        #
-        topology = Topology(sch)
-        topology.translate()  # All data will be reset
-        layers = topology.elem_layers
+    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
+    assert set([x.id for x in layers[1]]) == set(["Link"])
+    assert set([x.id for x in layers[2]]) == set(["Merge"])
 
-        self.assertEqual(len(layers), 3)
+    sch.run()
 
-        self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups"]))
-        self.assertTrue(set([x.id for x in layers[1]]) == set(["Link"]))
-        self.assertTrue(set([x.id for x in layers[2]]) == set(["Merge"]))
+    m_data = f_tbl.get_column_data("Merge")
+    assert m_data.to_list() == [1.0, 1.0, 2.0, 2.0]
 
-        sch.run()
+def test_merge_path():
+    sch = Prosto("My Prosto")
 
-        m_data = f_tbl.get_column_data("Merge")
-        self.assertEqual(m_data.to_list(), [1.0, 1.0, 2.0, 2.0])
+    # Facts
+    f_tbl = sch.populate(
+        table_name="Facts", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
+    )
 
-    def test_merge_path(self):
-        sch = Prosto("My Prosto")
+    # Groups
+    g_tbl = sch.populate(
+        table_name="Groups", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
+    )
+    # Link
+    l_clm = sch.link(
+        name="Link", table=f_tbl.id, type=g_tbl.id,
+        columns=["A"], linked_columns=["A"]
+    )
 
-        # Facts
-        f_tbl = sch.populate(
-            table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
-        )
+    # SuperGroups
+    sg_tbl = sch.populate(
+        table_name="SuperGroups", attributes=["B", "C"],
+        func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
+    )
+    # SuperLink
+    sl_clm = sch.link(
+        name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
+        columns=["B"], linked_columns=["B"]
+    )
 
-        # Groups
-        g_tbl = sch.populate(
-            table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
-        )
-        # Link
-        l_clm = sch.link(
-            name="Link", table=f_tbl.id, type=g_tbl.id,
-            columns=["A"], linked_columns=["A"]
-        )
+    # Merge
+    m_clm = sch.merge("Merge", f_tbl.id, ["Link", "SuperLink", "C"])
 
-        # SuperGroups
-        sg_tbl = sch.populate(
-            table_name="SuperGroups", attributes=["B", "C"],
-            func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
-        )
-        # SuperLink
-        sl_clm = sch.link(
-            name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
-            columns=["B"], linked_columns=["B"]
-        )
+    f_tbl.evaluate()
+    g_tbl.evaluate()
+    sg_tbl.evaluate()
 
-        # Merge
-        m_clm = sch.merge("Merge", f_tbl.id, ["Link", "SuperLink", "C"])
+    l_clm.evaluate()
+    sl_clm.evaluate()
+    m_clm.evaluate()
 
-        f_tbl.evaluate()
-        g_tbl.evaluate()
-        sg_tbl.evaluate()
+    f_tbl_data = f_tbl.get_data()
+    assert len(f_tbl_data) == 4  # Same number of rows
+    assert len(f_tbl_data.columns) == 3
 
-        l_clm.evaluate()
-        sl_clm.evaluate()
-        m_clm.evaluate()
+    m_data = f_tbl.get_column_data("Merge")
+    assert m_data.to_list() == ['x', 'x', 'y', 'y']
 
-        f_tbl_data = f_tbl.get_data()
-        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
-        self.assertEqual(len(f_tbl_data.columns), 3)
+    #
+    # Test topology
+    #
+    topology = Topology(sch)
+    topology.translate()  # All data will be reset
+    layers = topology.elem_layers
 
-        m_data = f_tbl.get_column_data("Merge")
-        self.assertEqual(m_data.to_list(), ['x', 'x', 'y', 'y'])
+    assert len(layers) == 3
 
-        #
-        # Test topology
-        #
-        topology = Topology(sch)
-        topology.translate()  # All data will be reset
-        layers = topology.elem_layers
+    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups", "SuperGroups"])
+    assert set([x.id for x in layers[1]]) == set(["Link", "SuperLink"])
+    assert set([x.id for x in layers[2]]) == set(["Merge"])
 
-        self.assertEqual(len(layers), 3)
+    sch.run()
 
-        self.assertTrue(set([x.id for x in layers[0]]) == set(["Facts", "Groups", "SuperGroups"]))
-        self.assertTrue(set([x.id for x in layers[1]]) == set(["Link", "SuperLink"]))
-        self.assertTrue(set([x.id for x in layers[2]]) == set(["Merge"]))
+    m_data = f_tbl.get_column_data("Merge")
+    assert m_data.to_list() == ['x', 'x', 'y', 'y']
 
-        sch.run()
+def test_merge_path2():
+    """
+    Here we do the same as previous test, but specify complex path using separators (rather than a list of simple segment names).
+    So only the definition of merge operation changes.
+    """
+    sch = Prosto("My Prosto")
 
-        m_data = f_tbl.get_column_data("Merge")
-        self.assertEqual(m_data.to_list(), ['x', 'x', 'y', 'y'])
+    # Facts
+    f_tbl = sch.populate(
+        table_name="Facts", attributes=["A"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
+    )
 
-    def test_merge_path2(self):
-        """
-        Here we do the same as previous test, but specify complex path using separators (rather than a list of simple segment names).
-        So only the definition of merge operation changes.
-        """
-        sch = Prosto("My Prosto")
+    # Groups
+    g_tbl = sch.populate(
+        table_name="Groups", attributes=["A", "B"],
+        func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
+    )
+    # Link
+    l_clm = sch.link(
+        name="Link", table=f_tbl.id, type=g_tbl.id,
+        columns=["A"], linked_columns=["A"]
+    )
 
-        # Facts
-        f_tbl = sch.populate(
-            table_name="Facts", attributes=["A"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
-        )
+    # SuperGroups
+    sg_tbl = sch.populate(
+        table_name="SuperGroups", attributes=["B", "C"],
+        func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
+    )
+    # SuperLink
+    sl_clm = sch.link(
+        name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
+        columns=["B"], linked_columns=["B"]
+    )
 
-        # Groups
-        g_tbl = sch.populate(
-            table_name="Groups", attributes=["A", "B"],
-            func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
-        )
-        # Link
-        l_clm = sch.link(
-            name="Link", table=f_tbl.id, type=g_tbl.id,
-            columns=["A"], linked_columns=["A"]
-        )
+    # Merge
+    m_clm = sch.merge("Merge", f_tbl.id, ["Link::SuperLink::C"])
 
-        # SuperGroups
-        sg_tbl = sch.populate(
-            table_name="SuperGroups", attributes=["B", "C"],
-            func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
-        )
-        # SuperLink
-        sl_clm = sch.link(
-            name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
-            columns=["B"], linked_columns=["B"]
-        )
+    sch.run()
 
-        # Merge
-        m_clm = sch.merge("Merge", f_tbl.id, ["Link::SuperLink::C"])
+    f_tbl_data = f_tbl.get_data()
+    assert len(f_tbl_data) == 4  # Same number of rows
+    assert len(f_tbl_data.columns) == 3
 
-        sch.run()
-
-        f_tbl_data = f_tbl.get_data()
-        self.assertEqual(len(f_tbl_data), 4)  # Same number of rows
-        self.assertEqual(len(f_tbl_data.columns), 3)
-
-        m_data = f_tbl.get_column_data("Merge")
-        self.assertEqual(m_data.to_list(), ['x', 'x', 'y', 'y'])
-
-
-if __name__ == '__main__':
-    unittest.main()
+    m_data = f_tbl.get_column_data("Merge")
+    assert m_data.to_list() == ['x', 'x', 'y', 'y']
