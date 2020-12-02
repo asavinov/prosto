@@ -27,7 +27,7 @@ $ pip install prosto
 Run tests from the project root:
 
 ```console
-$ python -m unittest discover -s ./tests
+$ python -m pytest
 ```
 
 or
