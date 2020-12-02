@@ -5,11 +5,13 @@
 |  __/| | | (_) \__ \ || (_) | Functions matter! No map-reduce. No join-groupby.
 |_|   |_|  \___/|___/\__\___/  _________________________________________________
 ```
-[![Documentation Status](https://readthedocs.org/projects/prosto/badge/?version=latest)](https://prosto.readthedocs.io/en/latest/?badge=latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
-[![Python 3.6](https://img.shields.io/badge/python-3.6-brightgreen.svg)](https://www.python.org/downloads/release/python-370/)
-[![PyPI version](https://badge.fury.io/py/prosto.svg)](https://badge.fury.io/py/prosto)
 [![Paper PDF](https://img.shields.io/badge/Paper-PDF-brightgreen.svg)](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
+[![PyPI](https://img.shields.io/pypi/v/prosto)](https://github.com/prostodata/prosto)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/prosto)](https://github.com/prostodata/prosto)
+[![Python 3.6](https://img.shields.io/badge/python-3.6-brightgreen.svg)](https://www.python.org/downloads/release/python-370/)
+[![Documentation Status](https://readthedocs.org/projects/prosto/badge/?version=latest)](https://prosto.readthedocs.io/en/latest/?badge=latest)
+[![Unit Tests](https://github.com/prostodata/prosto/workflows/CI/badge.svg)](https://github.com/prostodata/prosto/actions)
 
 • [**Why Prosto?**](#why-prosto) • [**Quick start**](#quick-start) • [**How to use**](#how-to-use) • [**References**](#references) • [**Documentation**](http://prosto.readthedocs.io/) •
 
@@ -182,7 +184,7 @@ $ pip install prosto
 Run tests from the project root:
 
 ```console
-$ python -m unittest discover -s ./tests
+$ python -m pytest
 ```
 
 or
@@ -194,4 +196,3 @@ $ python setup.py test
 # References
 
 <a id="1"></a>[1]: A.Savinov. Concept-oriented model: Modeling and processing data using functions, Eprint: [arXiv:1606.02237](https://arxiv.org/ftp/arxiv/papers/1911/1911.07225.pdf) [cs.DB], 2019. https://www.researchgate.net/publication/337336089_Concept-oriented_model_Modeling_and_processing_data_using_functions
-
