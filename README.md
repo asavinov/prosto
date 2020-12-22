@@ -5,12 +5,12 @@
 |  __/| | | (_) \__ \ || (_) | Functions matter! No map-reduce. No join-groupby.
 |_|   |_|  \___/|___/\__\___/  _________________________________________________
 ```
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/prostodata/prosto/blob/master/LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://github.com/asavinov/prosto/blob/master/LICENSE)
 [![PyPI](https://img.shields.io/pypi/v/prosto)](https://pypi.python.org/pypi/prosto)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/prosto)](https://github.com/prostodata/prosto)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/prosto)](https://github.com/asavinov/prosto)
 [![Python 3.6](https://img.shields.io/badge/python-3.6-brightgreen.svg)](https://www.python.org/downloads/release/python-370/)
 [![Documentation Status](https://readthedocs.org/projects/prosto/badge/?version=latest)](https://prosto.readthedocs.io/en/latest/?badge=latest)
-[![Unit Tests](https://github.com/prostodata/prosto/workflows/CI/badge.svg)](https://github.com/prostodata/prosto/actions)
+[![Unit Tests](https://github.com/asavinov/prosto/workflows/CI/badge.svg)](https://github.com/asavinov/prosto/actions)
 
 [![Paper](https://img.shields.io/badge/Paper-PDF-blueviolet.svg)](https://www.researchgate.net/publication/337336089_Concept-oriented_model_Modeling_and_processing_data_using_functions)
 [![Paper](https://img.shields.io/badge/Paper-PDF-blueviolet.svg)](https://www.researchgate.net/publication/316551218_From_Group-by_to_Accumulation_Data_Aggregation_Revisited)
@@ -32,7 +32,7 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
 
 ![Data processing workflow](docs/images/fig_1.png)
 
-`Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/prostodata/prosto/tree/master/notebooks
+`Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/asavinov/prosto/tree/master/notebooks
 
 More detailed information can be found in the documentation: http://prosto.readthedocs.io 
 

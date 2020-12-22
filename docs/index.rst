@@ -16,7 +16,7 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
    :alt: Data processing workflow
    :align: center
 
-`Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/prostodata/prosto/tree/master/notebooks
+`Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/asavinov/prosto/tree/master/notebooks
 
 Contents
 ========
