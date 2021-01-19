@@ -32,11 +32,11 @@ def test_merge():
     l_clm.evaluate()
     m_clm.evaluate()
 
-    f_tbl_data = f_tbl.get_data()
+    f_tbl_data = f_tbl.get_df()
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 3
 
-    m_data = f_tbl.get_column_data("Merge")
+    m_data = f_tbl.get_column_series("Merge")
     assert m_data[0] == 1.0
     assert m_data[1] == 1.0
     assert m_data[2] == 2.0
@@ -57,7 +57,7 @@ def test_merge():
 
     sch.run()
 
-    m_data = f_tbl.get_column_data("Merge")
+    m_data = f_tbl.get_column_series("Merge")
     assert m_data.to_list() == [1.0, 1.0, 2.0, 2.0]
 
 def test_merge_path():
@@ -102,11 +102,11 @@ def test_merge_path():
     sl_clm.evaluate()
     m_clm.evaluate()
 
-    f_tbl_data = f_tbl.get_data()
+    f_tbl_data = f_tbl.get_df()
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 3
 
-    m_data = f_tbl.get_column_data("Merge")
+    m_data = f_tbl.get_column_series("Merge")
     assert m_data.to_list() == ['x', 'x', 'y', 'y']
 
     #
@@ -124,7 +124,7 @@ def test_merge_path():
 
     sch.run()
 
-    m_data = f_tbl.get_column_data("Merge")
+    m_data = f_tbl.get_column_series("Merge")
     assert m_data.to_list() == ['x', 'x', 'y', 'y']
 
 def test_merge_path2():
@@ -167,9 +167,9 @@ def test_merge_path2():
 
     sch.run()
 
-    f_tbl_data = f_tbl.get_data()
+    f_tbl_data = f_tbl.get_df()
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 3
 
-    m_data = f_tbl.get_column_data("Merge")
+    m_data = f_tbl.get_column_series("Merge")
     assert m_data.to_list() == ['x', 'x', 'y', 'y']

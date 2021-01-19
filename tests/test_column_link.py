@@ -28,11 +28,11 @@ def test_one_key():
 
     l_clm.evaluate()
 
-    f_tbl_data = f_tbl.get_data()
+    f_tbl_data = f_tbl.get_df()
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 2
 
-    l_data = f_tbl.get_column_data("Link")
+    l_data = f_tbl.get_column_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 0
     assert l_data[2] == 1
@@ -76,11 +76,11 @@ def test_two_keys():
 
     l_clm.evaluate()
 
-    f_tbl_data = f_tbl.get_data()
+    f_tbl_data = f_tbl.get_df()
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 3
 
-    l_data = f_tbl.get_column_data("Link")
+    l_data = f_tbl.get_column_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 1
     assert l_data[2] == 1
@@ -100,7 +100,7 @@ def test_two_keys():
 
     sch.run()
 
-    l_data = f_tbl.get_column_data("Link")
+    l_data = f_tbl.get_column_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 1
     assert l_data[2] == 1

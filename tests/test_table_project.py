@@ -29,11 +29,11 @@ def test_one_key():
 
     l_clm.evaluate()
 
-    g_tbl_data = g_tbl.get_data()
+    g_tbl_data = g_tbl.get_df()
     assert len(g_tbl_data) == 2
     assert len(g_tbl_data.columns) == 1
 
-    l_data = f_tbl.get_column_data("Link")
+    l_data = f_tbl.get_column_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 0
     assert l_data[2] == 1
@@ -79,11 +79,11 @@ def test_two_keys():
 
     l_clm.evaluate()
 
-    g_tbl_data = g_tbl.get_data()
+    g_tbl_data = g_tbl.get_df()
     assert len(g_tbl_data) == 3
     assert len(g_tbl_data.columns) == 2
 
-    l_data = f_tbl.get_column_data("Link")
+    l_data = f_tbl.get_column_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 1
     assert l_data[2] == 1
@@ -102,11 +102,11 @@ def test_two_keys():
     assert set([x.id for x in layers[1]]) == set(["Groups"])
     assert set([x.id for x in layers[2]]) == set(["Link"])
 
-    g_tbl_data = g_tbl.get_data()
+    g_tbl_data = g_tbl.get_df()
     g_tbl_data.drop(g_tbl_data.index, inplace=True)  # Empty
 
     sch.run()
 
-    g_tbl_data = g_tbl.get_data()
+    g_tbl_data = g_tbl.get_df()
     assert len(g_tbl_data) == 3
     assert len(g_tbl_data.columns) == 2

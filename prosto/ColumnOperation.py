@@ -143,7 +143,7 @@ class ColumnOperation(Operation):
         output_column_name = outputs[0]
         output_column = self.prosto.get_column(output_table_name, output_column_name)
 
-        data = output_table.get_data()
+        data = output_table.get_df()
 
         #
         # Operations without UDF
@@ -271,7 +271,7 @@ class ColumnOperation(Operation):
             if link_column is None:
                 raise ValueError("Cannot find the link column '{}'.".format(link_column_name))
 
-            data = source_table.get_data()  # Data (to be processed) is a (source) table which is different from the output table
+            data = source_table.get_df()  # Data (to be processed) is a (source) table which is different from the output table
 
             # Determine input columns
             columns = self.get_columns()
@@ -406,7 +406,7 @@ class ColumnOperation(Operation):
         output_column = self.prosto.get_column(main_table_name, column_name)
 
         main_keys = self.get_columns()
-        if not all_columns_exist(main_keys, main_table.get_data()):
+        if not all_columns_exist(main_keys, main_table.get_df()):
             raise ValueError("Not all key columns available in the link column definition.".format())
 
         linked_table_name = self.prosto.get_type_table(main_table_name, column_name)
@@ -417,7 +417,7 @@ class ColumnOperation(Operation):
         linked_columns = definition.get("linked_columns", [])
         if len(linked_columns) == 0:
             linked_columns = linked_table.definition.get("attributes", [])  # By default (e.g., for projection), we link to target table attributes
-        if not all_columns_exist(linked_columns, linked_table.get_data()):
+        if not all_columns_exist(linked_columns, linked_table.get_df()):
             raise ValueError("Not all linked key columns available in the link column definition.".format())
 
         #
@@ -426,7 +426,7 @@ class ColumnOperation(Operation):
         # The values of this index column will be copied to our new link column and hence will reference the linked rows
         #
         index_column_name = "__row_id__" # It could be "id", "index" or whatever other convention
-        linked_table.get_data()[index_column_name] = linked_table.get_data().index
+        linked_table.get_df()[index_column_name] = linked_table.get_df().index
         # df.reset_index(inplace=True).set_index("index", drop=False, inplace=True)  ä Alternative 1: reset will convert index to column, and then again create index
         # df = df.rename_axis("index1").reset_index() # Alternative 2: New index1 column will be created
 
@@ -437,8 +437,8 @@ class ColumnOperation(Operation):
         linked_prefix = column_name + pr.Prosto.column_path_separator  # It will be prepended to each linked (secondary) column name
 
         out_df = pd.merge(
-            main_table.get_data(),  # This table
-            linked_table.get_data().rename(columns=lambda x: linked_prefix + x, inplace=False),  # Target table to link to. We rename columns (not in place - the original frame preserves column names)
+            main_table.get_df(),  # This table
+            linked_table.get_df().rename(columns=lambda x: linked_prefix + x, inplace=False),  # Target table to link to. We rename columns (not in place - the original frame preserves column names)
             how="left",  # This (main) table is not changed - we attach target records
             left_on=main_keys,  # List of main table key columns
             right_on= [linked_prefix + x for x in linked_columns],  # List of target table key columns. Note that we renamed them above so we use modified names
@@ -449,7 +449,7 @@ class ColumnOperation(Operation):
         )
 
         # We do not need this column anymore - it was merged (copied) to the result as a link column
-        linked_table.get_data().drop(columns=[index_column_name], inplace=True)
+        linked_table.get_df().drop(columns=[index_column_name], inplace=True)
 
         #
         # 3. Rename according to our convention and store the result
@@ -471,7 +471,7 @@ class ColumnOperation(Operation):
         #
         output_table_name = definition.get("table")
         output_table = self.prosto.get_table(output_table_name)
-        output_table_data = output_table.get_data()
+        output_table_data = output_table.get_df()
 
         outputs = self.get_outputs()
         output_column_name = outputs[0]
@@ -515,7 +515,7 @@ class ColumnOperation(Operation):
             #
             linked_table_name = self.prosto.get_type_table(main_table_name, link_column_name)
             linked_table = self.prosto.get_table(linked_table_name)
-            linked_table_data = linked_table.get_data()
+            linked_table_data = linked_table.get_df()
 
             #
             # Find the target linked column in the linked table

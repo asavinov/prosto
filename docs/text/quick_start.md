@@ -83,7 +83,7 @@ prosto.run()
 Now we can explore the result by reading data form the table along with the calculate column:
 
 ```python
-df = table.get_data()
+df = table.get_df()
 print(df)
 ```
 

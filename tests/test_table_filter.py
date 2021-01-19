@@ -27,9 +27,9 @@ def test_filter_table():
 
     tbl.evaluate()
 
-    assert len(tbl.get_data().columns) == 1  # Only one link-attribute is created
-    assert len(tbl.get_data()) == 1
-    assert tbl.get_data()['super'][0] == 1
+    assert len(tbl.get_df().columns) == 1  # Only one link-attribute is created
+    assert len(tbl.get_df()) == 1
+    assert tbl.get_df()['super'][0] == 1
 
     #
     # Test topology
@@ -73,7 +73,7 @@ def test_filter_inheritance():
 
     sch.run()
 
-    clm_data = f_tbl.get_column_data('My column')
+    clm_data = f_tbl.get_column_series('My column')
 
     assert np.isclose(len(clm_data), 1)
     assert np.isclose(clm_data[0], 3.0)
@@ -81,5 +81,5 @@ def test_filter_inheritance():
     # This column had to be added automatically by the augmentation procedure
     # It is inherited from the base table and materialized via merge operation
     # It stores original values of the inherited base column
-    clm_data = f_tbl.get_column_data('A')
+    clm_data = f_tbl.get_column_series('A')
     assert np.isclose(clm_data[0], 2)

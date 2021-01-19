@@ -678,9 +678,8 @@ class Prosto:
         """Execute the whole workflow."""
         log.info("Start executing workflow '{}'.".format(self.id))
 
-        # Translate if necessary
-        if self.topology is None:
-            self.translate()
+        # Translate
+        self.translate()
 
         # Execute operations in the graph
         for layer in self.topology.layers:

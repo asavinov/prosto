@@ -18,7 +18,7 @@ def test_calculate_value():
     tbl.evaluate()
     clm.evaluate()
 
-    clm_data = tbl.get_column_data('My column')
+    clm_data = tbl.get_column_series('My column')
     v0 = clm_data[0]
     v1 = clm_data[1]
     v2 = clm_data[2]
@@ -47,7 +47,7 @@ def test_compute():
     tbl.evaluate()
     clm.evaluate()
 
-    clm_data = tbl.get_column_data('My column')
+    clm_data = tbl.get_column_series('My column')
     assert np.isclose(clm_data[0], 2.0)
     assert np.isclose(clm_data[1], 3.0)
     assert pd.isna(clm_data[2])
@@ -66,7 +66,7 @@ def test_compute():
 
     sch.run()
 
-    clm_data = tbl.get_column_data('My column')
+    clm_data = tbl.get_column_series('My column')
     assert np.isclose(clm_data[0], 2.0)
     assert np.isclose(clm_data[1], 3.0)
     assert pd.isna(clm_data[2])
@@ -102,7 +102,7 @@ def test_calculate_with_path():
 
     sch.run()
 
-    clm_data = f_tbl.get_column_data('My column')
+    clm_data = f_tbl.get_column_series('My column')
     assert clm_data[0] == 4.0
     assert clm_data[1] == 5.0
     assert clm_data[2] == 5.0

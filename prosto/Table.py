@@ -41,11 +41,11 @@ class Table:
     def __repr__(self):
         return "["+self.id+"]"
 
-    def get_data(self) -> pd.DataFrame:
+    def get_df(self) -> pd.DataFrame:
         return self.data.get_df()
 
-    def get_column_data(self, column_name) -> pd.Series:
-        return self.get_data()[column_name]
+    def get_column_series(self, column_name) -> pd.Series:
+        return self.get_df()[column_name]
 
     #
     # Column getters
@@ -77,7 +77,7 @@ class Table:
         # Use link column (with target row ids) to build a groupby object (it will build a group for each target row id)
         try:
             # Option 1:
-            gb = self.get_data().groupby(link_column_name, sort=False, as_index=True)
+            gb = self.get_df().groupby(link_column_name, sort=False, as_index=True)
             # Option 2:
             #gb = self.get_data().groupby([link_column_name], sort=False, as_index=False)
             # Option 3: group by index - grouping column will be retained via index

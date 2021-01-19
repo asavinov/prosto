@@ -168,15 +168,15 @@ class TableOperation(Operation):
 
         elif len(tables) == 1:  # Pass a single data frame
             if model:
-                out = func(tables[0].get_data(), **model)
+                out = func(tables[0].get_df(), **model)
             else:
-                out = func(tables[0].get_data())
+                out = func(tables[0].get_df())
 
         else:  # Pass a list of data frames
             if model:
-                out = func([t.get_data() for t in tables], **model)
+                out = func([t.get_df() for t in tables], **model)
             else:
-                out = func([t.get_data() for t in tables])
+                out = func([t.get_df() for t in tables])
 
         #
         # Stage 5. Check that the result includes all declared attributes
@@ -213,7 +213,7 @@ class TableOperation(Operation):
             raise ValueError("Number of input tables must be equal to the number of attributes in product table definition.".format())
 
         tables = self.prosto.get_tables(tables)
-        table_datas = [x.get_data() for x in tables]
+        table_datas = [x.get_df() for x in tables]
 
         #
         # Compute Cartesian product of all tables on their indexes
@@ -245,7 +245,7 @@ class TableOperation(Operation):
         tables = self.prosto.get_tables(tables)
         base_table = tables[0]
 
-        base_table_data = base_table.get_data()
+        base_table_data = base_table.get_df()
 
         #
         # Stage 2. Find filter column
@@ -255,7 +255,7 @@ class TableOperation(Operation):
             raise ValueError("Filter operation must specify a boolean column from the base table in the 'columns' field.".format())
 
         filter_column_name = columns[0]
-        filter_column = base_table.get_column_data(filter_column_name)
+        filter_column = base_table.get_column_series(filter_column_name)
 
         #
         # Stage 3. Find name of the super link-attribute which will point from this table to the base table
@@ -295,7 +295,7 @@ class TableOperation(Operation):
         tables = self.prosto.get_tables(tables)
 
         source_table = tables[0]
-        source_table_data = source_table.get_data()
+        source_table_data = source_table.get_df()
 
         #
         # Stage 2. Find link column

@@ -24,10 +24,10 @@ def test_product():
     t2.evaluate()
     product.evaluate()
 
-    assert len(product.get_data().columns) == 2
-    assert len(product.get_data()) == 9
+    assert len(product.get_df().columns) == 2
+    assert len(product.get_df()) == 9
 
-    assert product.get_data().columns.to_list() == ["t1", "t2"]
+    assert product.get_df().columns.to_list() == ["t1", "t2"]
 
 def test_product_inheritance():
     """
@@ -60,9 +60,9 @@ def test_product_inheritance():
     sch.run()
 
     # We get two columns in addition to two attributes: one merge (augmented) and one calculate column
-    assert len(product.get_data().columns) == 4
+    assert len(product.get_df().columns) == 4
 
-    clm_data = product.get_column_data('My column')
+    clm_data = product.get_column_series('My column')
 
     assert clm_data.to_list() == [2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0]
 
