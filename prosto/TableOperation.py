@@ -255,7 +255,7 @@ class TableOperation(Operation):
             raise ValueError("Filter operation must specify a boolean column from the base table in the 'columns' field.".format())
 
         filter_column_name = columns[0]
-        filter_column = base_table.get_column_series(filter_column_name)
+        filter_column = base_table.get_series(filter_column_name)
 
         #
         # Stage 3. Find name of the super link-attribute which will point from this table to the base table

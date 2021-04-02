@@ -19,7 +19,7 @@ def test_integers():
 
     sch.run()
 
-    clm_data = tbl.get_column_series('My column')
+    clm_data = tbl.get_series('My column')
     assert list(clm_data) == [-2, -1, -1, -1, 0, 0, 0, 1, 1]
 
 def test_integers2():
@@ -39,5 +39,5 @@ def test_integers2():
 
     sch.run()
 
-    clm_data = tbl.get_column_series('My column')
+    clm_data = tbl.get_series('My column')
     assert list(clm_data) == [-1, -1, 0, 0, 0, 1, 1, 1, 2]

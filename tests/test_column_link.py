@@ -32,7 +32,7 @@ def test_one_key():
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 2
 
-    l_data = f_tbl.get_column_series("Link")
+    l_data = f_tbl.get_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 0
     assert l_data[2] == 1
@@ -80,7 +80,7 @@ def test_two_keys():
     assert len(f_tbl_data) == 4  # Same number of rows
     assert len(f_tbl_data.columns) == 3
 
-    l_data = f_tbl.get_column_series("Link")
+    l_data = f_tbl.get_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 1
     assert l_data[2] == 1
@@ -100,7 +100,7 @@ def test_two_keys():
 
     sch.run()
 
-    l_data = f_tbl.get_column_series("Link")
+    l_data = f_tbl.get_series("Link")
     assert l_data[0] == 0
     assert l_data[1] == 1
     assert l_data[2] == 1

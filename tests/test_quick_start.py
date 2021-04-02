@@ -80,7 +80,7 @@ def test_quick_start():
     #
     prosto.run()
 
-    total = products.get_column_series("total")
+    total = products.get_series("total")
 
     assert total[0] == 30.0
     assert total[1] == 24.0

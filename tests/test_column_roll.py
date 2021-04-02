@@ -19,7 +19,7 @@ def test_roll_single():
     tbl.evaluate()
     clm.evaluate()
 
-    clm_data = tbl.get_column_series('Roll')
+    clm_data = tbl.get_series('Roll')
 
     assert pd.isna(clm_data[0])
     assert np.isclose(clm_data[1], 3.0)
@@ -42,7 +42,7 @@ def test_roll_multiple():
     tbl.evaluate()
     clm.evaluate()
 
-    clm_data = tbl.get_column_series('Roll')
+    clm_data = tbl.get_series('Roll')
 
     assert pd.isna(clm_data[0])
     assert np.isclose(clm_data[1], 8.0)
@@ -62,7 +62,7 @@ def test_roll_multiple():
 
     sch.run()
 
-    clm_data = tbl.get_column_series('Roll')
+    clm_data = tbl.get_series('Roll')
     assert pd.isna(clm_data[0])
     assert np.isclose(clm_data[1], 8.0)
     assert np.isclose(clm_data[2], 8.0)
@@ -83,7 +83,7 @@ def test_groll_single():
 
     sch.run()
 
-    clm_data = tbl.get_column_series('Roll')
+    clm_data = tbl.get_series('Roll')
 
     assert pd.isna(clm_data[0])
     assert pd.isna(clm_data[1])
@@ -108,7 +108,7 @@ def test_groll_multiple():
 
     sch.run()
 
-    clm_data = tbl.get_column_series('Roll')
+    clm_data = tbl.get_series('Roll')
 
     assert pd.isna(clm_data[0])
     assert pd.isna(clm_data[1])

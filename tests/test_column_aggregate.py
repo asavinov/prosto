@@ -41,7 +41,7 @@ def test_aggregate():
     assert len(g_tbl_data) == 3  # Same number of rows
     assert len(g_tbl_data.columns) == 2  # One aggregate column was added (and one technical "id" column was added which might be removed in future)
 
-    a_clm_data = g_tbl.get_column_series('Aggregate')
+    a_clm_data = g_tbl.get_series('Aggregate')
     assert a_clm_data[0] == 3.0
     assert a_clm_data[1] == 7.0
     assert a_clm_data[2] == 0.0
@@ -61,7 +61,7 @@ def test_aggregate():
 
     sch.run()
 
-    a_clm_data = g_tbl.get_column_series('Aggregate')
+    a_clm_data = g_tbl.get_series('Aggregate')
     assert a_clm_data[0] == 3.0
     assert a_clm_data[1] == 7.0
     assert a_clm_data[2] == 0.0
@@ -80,7 +80,7 @@ def test_aggregate():
     sch.translate()  # All data will be reset
     sch.run()  # A new column is NOT added to the existing data frame (not clear where it is)
 
-    a_clm2_data = g_tbl.get_column_series('Aggregate 2')
+    a_clm2_data = g_tbl.get_series('Aggregate 2')
     assert a_clm2_data[0] == 10.0
     assert a_clm2_data[1] == 10.0
     assert a_clm2_data[2] == 0.0
@@ -119,7 +119,7 @@ def test_aggregate_with_path():
 
     sch.run()
 
-    a_clm_data = g_tbl.get_column_series('Aggregate')
+    a_clm_data = g_tbl.get_series('Aggregate')
     assert a_clm_data[0] == 6.0
     assert a_clm_data[1] == 4.0
     assert a_clm_data[2] == 0.0

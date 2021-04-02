@@ -44,8 +44,8 @@ class Table:
     def get_df(self) -> pd.DataFrame:
         return self.data.get_df()
 
-    def get_column_series(self, column_name) -> pd.Series:
-        return self.get_df()[column_name]
+    def get_series(self, column_name) -> pd.Series:
+        return self.data.get_series(column_name)
 
     #
     # Column getters

@@ -62,7 +62,7 @@ def test_product_inheritance():
     # We get two columns in addition to two attributes: one merge (augmented) and one calculate column
     assert len(product.get_df().columns) == 4
 
-    clm_data = product.get_column_series('My column')
+    clm_data = product.get_series('My column')
 
     assert clm_data.to_list() == [2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0]
 

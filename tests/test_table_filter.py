@@ -73,7 +73,7 @@ def test_filter_inheritance():
 
     sch.run()
 
-    clm_data = f_tbl.get_column_series('My column')
+    clm_data = f_tbl.get_series('My column')
 
     assert np.isclose(len(clm_data), 1)
     assert np.isclose(clm_data[0], 3.0)
@@ -81,5 +81,5 @@ def test_filter_inheritance():
     # This column had to be added automatically by the augmentation procedure
     # It is inherited from the base table and materialized via merge operation
     # It stores original values of the inherited base column
-    clm_data = f_tbl.get_column_series('A')
+    clm_data = f_tbl.get_series('A')
     assert np.isclose(clm_data[0], 2)
