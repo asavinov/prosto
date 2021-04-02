@@ -162,11 +162,18 @@ class Prosto:
         """
         Remove the specified table if it exists or return None otherwise.
         Note that the removed table might be produced or consumed by some operations.
+        The operation(s) that produce this table is also removed.
         """
         table = self.get_table(table_name)
         if table is None:
             return None
         self.tables.remove(table)
+
+        # Remove operation(s) which generate this table
+        ops = self.get_table_operations(table_name)
+        for op in ops:
+            self.operations.remove(op)
+
         return table
 
     def add_table(self, table: Table) -> Table:
@@ -211,11 +218,18 @@ class Prosto:
         """
         Remove the specified column if it exists or return None otherwise.
         Note that the removed column might be produced or consumed by some operations.
+        The operation(s) that produce this column is also removed.
         """
         column = self.get_column(table_name, column_name)
         if column is None:
             return None
         self.columns.remove(column)
+
+        # Remove operation(s) which generate this column
+        ops = self.get_column_operations(table_name, column_name)
+        for op in ops:
+            self.operations.remove(op)
+
         return column
 
     def add_column(self, column: Column) -> Column:
