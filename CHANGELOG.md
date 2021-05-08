@@ -1,6 +1,8 @@
 # Change Log
 
-* v0.5.0.dev
+* v0.5.0 (2021-05-08)
+  * bug fixes, improvements and renamings
+  * new notebook
   * switch to pytest for unit tests
 
 * v0.4.0 (2020-09-05)
