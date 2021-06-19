@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_merge():
     sch = Prosto("My Prosto")
 
@@ -59,6 +60,7 @@ def test_merge():
 
     m_data = f_tbl.get_series("Merge")
     assert m_data.to_list() == [1.0, 1.0, 2.0, 2.0]
+
 
 def test_merge_path():
     sch = Prosto("My Prosto")
@@ -126,6 +128,7 @@ def test_merge_path():
 
     m_data = f_tbl.get_series("Merge")
     assert m_data.to_list() == ['x', 'x', 'y', 'y']
+
 
 def test_merge_path2():
     """

@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_product():
     sch = Prosto("My Prosto")
 
@@ -28,6 +29,7 @@ def test_product():
     assert len(product.get_df()) == 9
 
     assert product.get_df().columns.to_list() == ["t1", "t2"]
+
 
 def test_product_inheritance():
     """
@@ -65,5 +67,3 @@ def test_product_inheritance():
     clm_data = product.get_series('My column')
 
     assert clm_data.to_list() == [2.0, 2.0, 2.0, 3.0, 3.0, 3.0, 4.0, 4.0, 4.0]
-
-    pass

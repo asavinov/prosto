@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_one_key():
     sch = Prosto("My Prosto")
 
@@ -51,6 +52,7 @@ def test_one_key():
     assert set([x.id for x in layers[0]]) == set(["Facts"])
     assert set([x.id for x in layers[1]]) == set(["Groups"])
     assert set([x.id for x in layers[2]]) == set(["Link"])
+
 
 def test_two_keys():
     sch = Prosto("My Prosto")

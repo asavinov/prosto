@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_aggregate():
     sch = Prosto("My Prosto")
 
@@ -85,7 +86,6 @@ def test_aggregate():
     assert a_clm2_data[1] == 10.0
     assert a_clm2_data[2] == 0.0
 
-    pass
 
 def test_aggregate_with_path():
     """Aggregation with column paths as measures which have to be automatically produce merge operation."""
@@ -123,5 +123,3 @@ def test_aggregate_with_path():
     assert a_clm_data[0] == 6.0
     assert a_clm_data[1] == 4.0
     assert a_clm_data[2] == 0.0
-
-    pass

@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_roll_single():
     sch = Prosto("My Prosto")
 
@@ -24,6 +25,7 @@ def test_roll_single():
     assert pd.isna(clm_data[0])
     assert np.isclose(clm_data[1], 3.0)
     assert np.isclose(clm_data[2], 5.0)
+
 
 def test_roll_multiple():
     sch = Prosto("My Prosto")
@@ -67,6 +69,7 @@ def test_roll_multiple():
     assert np.isclose(clm_data[1], 8.0)
     assert np.isclose(clm_data[2], 8.0)
 
+
 def test_groll_single():
     sch = Prosto("My Prosto")
 
@@ -90,7 +93,6 @@ def test_groll_single():
     assert np.isclose(clm_data[2], 4.0)
     assert np.isclose(clm_data[3], 6.0)
 
-    pass
 
 def test_groll_multiple():
     sch = Prosto("My Prosto")

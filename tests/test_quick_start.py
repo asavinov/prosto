@@ -4,6 +4,7 @@ import pandas as pd
 
 import prosto as pr
 
+
 def test_quick_start():
     prosto = pr.Prosto("My Prosto Workflow")
 
@@ -85,5 +86,3 @@ def test_quick_start():
     assert total[0] == 30.0
     assert total[1] == 24.0
     assert total[2] == 0.0
-
-    pass

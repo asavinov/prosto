@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_integers():
     sch = Prosto("My Prosto")
 
@@ -21,6 +22,7 @@ def test_integers():
 
     clm_data = tbl.get_series('My column')
     assert list(clm_data) == [-2, -1, -1, -1, 0, 0, 0, 1, 1]
+
 
 def test_integers2():
     sch = Prosto("My Prosto")

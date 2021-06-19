@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_calculate_value():
     sch = Prosto("My Prosto")
     sch.incremental = True

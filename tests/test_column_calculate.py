@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_calculate_value():
     sch = Prosto("My Prosto")
 
@@ -30,6 +31,7 @@ def test_calculate_value():
     assert isinstance(v0, float)
     assert isinstance(v1, float)
     assert isinstance(v2, float)
+
 
 def test_compute():
     sch = Prosto("My Prosto")
@@ -70,6 +72,7 @@ def test_compute():
     assert np.isclose(clm_data[0], 2.0)
     assert np.isclose(clm_data[1], 3.0)
     assert pd.isna(clm_data[2])
+
 
 def test_calculate_with_path():
     """Test topology augmentation. Calculation with column paths which have to be automatically produce merge operation."""

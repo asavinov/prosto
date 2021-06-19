@@ -1,5 +1,7 @@
 # Change Log
 
+* v0.6.0.dev - in progress
+
 * v0.5.0 (2021-05-08)
   * bug fixes, improvements and renamings
   * new notebook

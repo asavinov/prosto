@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_populate():
     sch = Prosto("My Prosto")
 
@@ -14,6 +15,7 @@ def test_populate():
 
     assert len(tbl.get_df().columns) == 2
     assert len(tbl.get_df()) == 3
+
 
 def test_populate2():
     sch = Prosto("My Prosto")

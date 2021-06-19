@@ -2,6 +2,7 @@ import pytest
 
 from prosto.Prosto import *
 
+
 def test_filter_table():
     sch = Prosto("My Prosto")
 
@@ -43,6 +44,7 @@ def test_filter_table():
     assert set([x.id for x in layers[0]]) == set(["Base table"])
     assert set([x.id for x in layers[1]]) == set(["filter_column"])
     assert set([x.id for x in layers[2]]) == set(["Filtered table"])
+
 
 def test_filter_inheritance():
     """Test topology augmentation. Use columns from the parent table by automatically adding the merge operation to topology."""
