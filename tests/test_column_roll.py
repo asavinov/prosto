@@ -59,8 +59,8 @@ def test_roll_multiple():
 
     assert len(layers) == 2
 
-    assert set([x.id for x in layers[0]]) == set(["My table"])
-    assert set([x.id for x in layers[1]]) == set(["Roll"])
+    assert set([x.id for x in layers[0]]) == {"My table"}
+    assert set([x.id for x in layers[1]]) == {"Roll"}
 
     sch.run()
 

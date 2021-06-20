@@ -49,9 +49,9 @@ def test_one_key():
 
     assert len(layers) == 3
 
-    assert set([x.id for x in layers[0]]) == set(["Facts"])
-    assert set([x.id for x in layers[1]]) == set(["Groups"])
-    assert set([x.id for x in layers[2]]) == set(["Link"])
+    assert set([x.id for x in layers[0]]) == {"Facts"}
+    assert set([x.id for x in layers[1]]) == {"Groups"}
+    assert set([x.id for x in layers[2]]) == {"Link"}
 
 
 def test_two_keys():
@@ -100,9 +100,9 @@ def test_two_keys():
 
     assert len(layers) == 3
 
-    assert set([x.id for x in layers[0]]) == set(["Facts"])
-    assert set([x.id for x in layers[1]]) == set(["Groups"])
-    assert set([x.id for x in layers[2]]) == set(["Link"])
+    assert set([x.id for x in layers[0]]) == {"Facts"}
+    assert set([x.id for x in layers[1]]) == {"Groups"}
+    assert set([x.id for x in layers[2]]) == {"Link"}
 
     g_tbl_data = g_tbl.get_df()
     g_tbl_data.drop(g_tbl_data.index, inplace=True)  # Empty

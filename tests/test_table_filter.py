@@ -41,9 +41,9 @@ def test_filter_table():
 
     assert len(layers) == 3
 
-    assert set([x.id for x in layers[0]]) == set(["Base table"])
-    assert set([x.id for x in layers[1]]) == set(["filter_column"])
-    assert set([x.id for x in layers[2]]) == set(["Filtered table"])
+    assert set([x.id for x in layers[0]]) == {"Base table"}
+    assert set([x.id for x in layers[1]]) == {"filter_column"}
+    assert set([x.id for x in layers[2]]) == {"Filtered table"}
 
 
 def test_filter_inheritance():

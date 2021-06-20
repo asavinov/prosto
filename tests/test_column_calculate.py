@@ -63,8 +63,8 @@ def test_compute():
 
     assert len(layers) == 2
 
-    assert set([x.id for x in layers[0]]) == set(["My table"])
-    assert set([x.id for x in layers[1]]) == set(["My column"])
+    assert set([x.id for x in layers[0]]) == {"My table"}
+    assert set([x.id for x in layers[1]]) == {"My column"}
 
     sch.run()
 

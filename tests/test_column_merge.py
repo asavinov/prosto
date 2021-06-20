@@ -52,9 +52,9 @@ def test_merge():
 
     assert len(layers) == 3
 
-    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
-    assert set([x.id for x in layers[1]]) == set(["Link"])
-    assert set([x.id for x in layers[2]]) == set(["Merge"])
+    assert set([x.id for x in layers[0]]) == {"Facts", "Groups"}
+    assert set([x.id for x in layers[1]]) == {"Link"}
+    assert set([x.id for x in layers[2]]) == {"Merge"}
 
     sch.run()
 
@@ -120,9 +120,9 @@ def test_merge_path():
 
     assert len(layers) == 3
 
-    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups", "SuperGroups"])
-    assert set([x.id for x in layers[1]]) == set(["Link", "SuperLink"])
-    assert set([x.id for x in layers[2]]) == set(["Merge"])
+    assert set([x.id for x in layers[0]]) == {"Facts", "Groups", "SuperGroups"}
+    assert set([x.id for x in layers[1]]) == {"Link", "SuperLink"}
+    assert set([x.id for x in layers[2]]) == {"Merge"}
 
     sch.run()
 

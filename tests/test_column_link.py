@@ -48,8 +48,8 @@ def test_one_key():
 
     assert len(layers) == 2
 
-    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
-    assert set([x.id for x in layers[1]]) == set(["Link"])
+    assert set([x.id for x in layers[0]]) == {"Facts", "Groups"}
+    assert set([x.id for x in layers[1]]) == {"Link"}
 
 
 def test_two_keys():
@@ -97,8 +97,8 @@ def test_two_keys():
 
     assert len(layers) == 2
 
-    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
-    assert set([x.id for x in layers[1]]) == set(["Link"])
+    assert set([x.id for x in layers[0]]) == {"Facts", "Groups"}
+    assert set([x.id for x in layers[1]]) == {"Link"}
 
     sch.run()
 

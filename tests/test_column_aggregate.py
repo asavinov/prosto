@@ -56,9 +56,9 @@ def test_aggregate():
 
     assert len(layers) == 3
 
-    assert set([x.id for x in layers[0]]) == set(["Facts", "Groups"])
-    assert set([x.id for x in layers[1]]) == set(["Link"])
-    assert set([x.id for x in layers[2]]) == set(["Aggregate"])
+    assert set([x.id for x in layers[0]]) == {"Facts", "Groups"}
+    assert set([x.id for x in layers[1]]) == {"Link"}
+    assert set([x.id for x in layers[2]]) == {"Aggregate"}
 
     sch.run()
 
