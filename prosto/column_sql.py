@@ -1,11 +1,9 @@
-import re
-
 from prosto.Prosto import *
 
 
 def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
     # Parse query and extract parameters
-    op, entries, func_str, args_str = parse_column_sql(query)
+    op, entries, func_str, args_str, win_str = parse_column_sql(query)
 
     if func is None:
         func = func_str
@@ -21,6 +19,11 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
         columns = entries[0][1:]
         name = entries[1][0]
         definition = pr.calculate(name, table, func, columns=columns, model=None if not args else args)
+    elif op == 'ROLL':
+        raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
+    elif op == 'LINK':
+        # TODO: WINDOW clause need to be parsed and returned from the parser
+        raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
 
@@ -29,7 +32,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
 
 def parse_column_sql(query: str):
     # TODO: Parse names with spaces and other signs in brackets like [My bla-bla, column.]
-    #   In brackets, we may have everything - they are elementary names
+    #   In brackets, we may have everything - they represent name literals
     # TODO: Parse column paths (separator as a parameter) by returning a list/tuple or special structure
 
     #
@@ -42,32 +45,52 @@ def parse_column_sql(query: str):
     #
     # FUNC, ARGS, WINDOW
     #
-    # TODO: WINDOW. Maybe return as a tuple (func, args, window) and do it in arbitrary order (after arrows)
 
     func_start = query.lower().find("func")
     args_start = query.lower().find("args")
+    win_start = query.lower().find("window")
 
+    # Alternatively, use regex
     # re.search('(?i)Mandy Pande:', line)
     # re.search('mandy', 'Mandy Pande', re.IGNORECASE)
     # re.match("mandy", "MaNdY", re.IGNORECASE)
 
+    # FUNC
     if func_start >= 0:
         if args_start >= 0:
             func_end = args_start
-            args_end = len(query)
-            args_str = query[args_start + len("ARGS"):args_end]
-            args_str = args_str.strip()
+        elif win_start >= 0:
+            func_end = win_start
         else:
             func_end = len(query)
-            args_str = ""
-        func_str = query[func_start + len("FUNC"):func_end]
-        func_str = func_str.strip()
+        func_str = query[func_start + len("FUNC"):func_end].strip()
     else:
         func_str = ""
+
+    # ARGS
+    if args_start >= 0:
+        if win_start >= 0:
+            args_end = win_start
+        else:
+            args_end = len(query)
+        args_str = query[args_start + len("ARGS"):args_end].strip()
+    else:
         args_str = ""
 
+    # WINDOW
+    if win_start >= 0:
+        win_end = len(query)
+        win_str = query[win_start + len("WINDOW"):win_end].strip()
+    else:
+        win_str = ""
+
+    # Remove FUNC, ARGS, WINDOW clauses
     if func_start >= 0:
         query = query[0:func_start]
+    elif args_start >= 0:
+        query = query[0:args_start]
+    elif win_start >= 0:
+        query = query[0:win_start]
 
     #
     # Parse arrows into a list of sub-strings
@@ -98,4 +121,4 @@ def parse_column_sql(query: str):
 
         entries.append(entry)
 
-    return op, entries, func_str, args_str
+    return op, entries, func_str, args_str, win_str
