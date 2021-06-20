@@ -79,3 +79,27 @@ def test_csql_roll():
     pr.run()
 
     assert list(pr.get_table("My_table").get_series('new_column')) == [None, 3.0, 5.0]
+
+
+def test_csql_link():
+    pr = Prosto("My Prosto")
+
+    facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b']})
+    groups_df = pd.DataFrame({'A': ['a', 'b', 'c']})
+
+    facts_csql = "TABLE  Facts (A)"
+    groups_csql = "TABLE  Groups (A)"
+    link_csql = "LINK  Facts (A) -> new_column -> Groups (A)"
+
+    translate_column_sql(pr, facts_csql, lambda **m: facts_df)
+    translate_column_sql(pr, groups_csql, lambda **m: groups_df)
+
+    translate_column_sql(pr, link_csql)
+
+    assert pr.get_table("Facts")
+    assert pr.get_table("Groups")
+    assert pr.get_column("Facts", "new_column")
+
+    pr.run()
+
+    assert list(pr.get_table("Facts").get_series('new_column')) == [0, 0, 1, 1]

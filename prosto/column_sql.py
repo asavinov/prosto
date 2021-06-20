@@ -13,6 +13,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
     if op == 'TABLE':
         table = entries[0][0]
         attributes = entries[0][1:]
+
         definition = pr.populate(
             table, attributes=attributes,
             func=func, tables=None, model=args
@@ -20,7 +21,9 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
     elif op == 'CALC':
         table = entries[0][0]
         columns = entries[0][1:]
+
         name = entries[1][0]
+
         definition = pr.calculate(
             name, table,
             func=func, columns=columns, model=None if not args else args
@@ -28,14 +31,27 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
     elif op == 'ROLL':
         table = entries[0][0]
         columns = entries[0][1:]
+
         name = entries[1][0]
+
         definition = pr.roll(
             name, table,
             window=win_str, link=None,
             func=func, columns=columns, model=None if not args else args
         )
     elif op == 'LINK':
-        raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
+        table = entries[0][0]
+        columns = entries[0][1:]
+
+        name = entries[1][0]
+
+        type_table = entries[-1][0]
+        linked_columns = entries[-1][1:]
+
+        definition = pr.link(
+            name, table, type=type_table,
+            columns=columns, linked_columns=linked_columns
+        )
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
 
