@@ -13,16 +13,28 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
     if op == 'TABLE':
         table = entries[0][0]
         attributes = entries[0][1:]
-        definition = pr.populate(table, attributes=attributes, func=func, tables=None, model=args)
+        definition = pr.populate(
+            table, attributes=attributes,
+            func=func, tables=None, model=args
+        )
     elif op == 'CALC':
         table = entries[0][0]
         columns = entries[0][1:]
         name = entries[1][0]
-        definition = pr.calculate(name, table, func, columns=columns, model=None if not args else args)
+        definition = pr.calculate(
+            name, table,
+            func=func, columns=columns, model=None if not args else args
+        )
     elif op == 'ROLL':
-        raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
+        table = entries[0][0]
+        columns = entries[0][1:]
+        name = entries[1][0]
+        definition = pr.roll(
+            name, table,
+            window=win_str, link=None,
+            func=func, columns=columns, model=None if not args else args
+        )
     elif op == 'LINK':
-        # TODO: WINDOW clause need to be parsed and returned from the parser
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
@@ -31,10 +43,6 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
 
 
 def parse_column_sql(query: str):
-    # TODO: Parse names with spaces and other signs in brackets like [My bla-bla, column.]
-    #   In brackets, we may have everything - they represent name literals
-    # TODO: Parse column paths (separator as a parameter) by returning a list/tuple or special structure
-
     #
     # Operation
     #
