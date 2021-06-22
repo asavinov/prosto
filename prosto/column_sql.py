@@ -10,7 +10,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
     if args is None:
         args = args_str
 
-    if op == 'TABLE':
+    if op.lower().startswith("tabl"):
         table = entries[0][0]
         attributes = entries[0][1:]
 
@@ -18,7 +18,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             table, attributes=attributes,
             func=func, tables=None, model=args
         )
-    elif op == 'CALC':
+    elif op.lower().startswith("calc"):
         table = entries[0][0]
         columns = entries[0][1:]
 
@@ -28,7 +28,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             name, table,
             func=func, columns=columns, model=None if not args else args
         )
-    elif op == 'ROLL':
+    elif op.lower().startswith("roll"):
         table = entries[0][0]
         columns = entries[0][1:]
 
@@ -39,7 +39,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             window=win_str, link=None,
             func=func, columns=columns, model=None if not args else args
         )
-    elif op == 'LINK':
+    elif op.lower().startswith("link"):
         table = entries[0][0]
         columns = entries[0][1:]
 
@@ -52,7 +52,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             name, table, type=type_table,
             columns=columns, linked_columns=linked_columns
         )
-    elif op == 'PROJECT':
+    elif op.lower().startswith("proj"):
         table = entries[0][0]
         columns = entries[0][1:]
 
