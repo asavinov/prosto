@@ -103,3 +103,25 @@ def test_csql_link():
     pr.run()
 
     assert list(pr.get_table("Facts").get_series('new_column')) == [0, 0, 1, 1]
+
+
+def test_csql_project():
+    pr = Prosto("My Prosto")
+
+    facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b']})
+
+    facts_csql = "TABLE  Facts (A)"
+    project_csql = "PROJECT  Facts (A) -> new_column -> Groups (A)"
+
+    translate_column_sql(pr, facts_csql, lambda **m: facts_df)
+    translate_column_sql(pr, project_csql)
+
+    assert pr.get_table("Facts")
+    assert pr.get_table("Groups")
+    assert pr.get_column("Facts", "new_column")
+
+    pr.run()
+
+    assert len(pr.get_table("Groups").get_df()) == 2
+    assert len(pr.get_table("Groups").get_df().columns) == 1
+    assert list(pr.get_table("Facts").get_series('new_column')) == [0, 0, 1, 1]

@@ -52,6 +52,26 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             name, table, type=type_table,
             columns=columns, linked_columns=linked_columns
         )
+    elif op == 'PROJECT':
+        table = entries[0][0]
+        columns = entries[0][1:]
+
+        name = entries[1][0]
+
+        type_table = entries[-1][0]
+        linked_columns = entries[-1][1:]
+
+        # The operation is treated as creation of a target (project) tables with data
+        definition = pr.project(
+            table_name=type_table, attributes=linked_columns,
+            link=name,
+            tables=table
+        )
+        # This definition will be used by the project operation to get additional parameters
+        definition2 = pr.link(
+            name=name, table=table, type=type_table,
+            columns=columns, linked_columns=linked_columns
+        )
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
 
