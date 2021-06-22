@@ -35,7 +35,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
         name = entries[1][0]
 
         definition = pr.roll(
-            name, table,
+            name=name, table=table,
             window=win_str, link=None,
             func=func, columns=columns, model=None if not args else args
         )
@@ -49,7 +49,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
         linked_columns = entries[-1][1:]
 
         definition = pr.link(
-            name, table, type=type_table,
+            name=name, table=table, type=type_table,
             columns=columns, linked_columns=linked_columns
         )
     elif op.lower().startswith("proj"):
@@ -71,6 +71,20 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
         definition2 = pr.link(
             name=name, table=table, type=type_table,
             columns=columns, linked_columns=linked_columns
+        )
+    elif op.lower().startswith("aggr"):
+        fact_table = entries[0][0]
+        fact_columns = entries[0][1:]
+
+        link_path = entries[1][0]
+
+        group_table = entries[-1][0]
+        agg_column = entries[-1][1]
+
+        definition = pr.aggregate(
+            name=agg_column, table=group_table,
+            tables=fact_table, link=link_path,
+            func=func, columns=fact_columns, model=None if not args else args
         )
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")

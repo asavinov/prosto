@@ -125,3 +125,30 @@ def test_csql_project():
     assert len(pr.get_table("Groups").get_df()) == 2
     assert len(pr.get_table("Groups").get_df().columns) == 1
     assert list(pr.get_table("Facts").get_series('new_column')) == [0, 0, 1, 1]
+
+
+def test_csql_aggregate():
+    pr = Prosto("My Prosto")
+
+    facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0], 'N': [4.0, 3.0, 2.0, 1.0]})
+    groups_df = pd.DataFrame({'A': ['a', 'b', 'c']})
+
+    facts_csql = "TABLE  Facts (A, M, N)"
+    groups_csql = "TABLE  Groups (A)"
+
+    link_csql = "LINK  Facts (A) -> new_column -> Groups (A)"
+    agg_csql = "AGGREGATE  Facts (M) -> new_column -> Groups (Aggregate)"
+
+    translate_column_sql(pr, facts_csql, lambda **m: facts_df)
+    translate_column_sql(pr, groups_csql, lambda **m: groups_df)
+
+    translate_column_sql(pr, link_csql)
+    translate_column_sql(pr, agg_csql, lambda x, bias, **model: x.sum() + bias, {"bias": 0.0})
+
+    assert pr.get_table("Facts")
+    assert pr.get_table("Groups")
+    assert pr.get_column("Facts", "new_column")
+
+    pr.run()
+
+    assert list(pr.get_table("Groups").get_series('Aggregate')) == [3.0, 7.0, 0.0]
