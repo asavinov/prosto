@@ -152,3 +152,24 @@ def test_csql_aggregate():
     pr.run()
 
     assert list(pr.get_table("Groups").get_series('Aggregate')) == [3.0, 7.0, 0.0]
+
+
+def test_csql_filter():
+    pr = Prosto("My Prosto")
+
+    base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})
+
+    base_csql = "TABLE  Base (A, B)"
+    calc_csql = "CALC  Base (A, B) -> filter_column"
+    filter_csql = "FILTER Base (filter_column) -> super -> Filtered"
+
+    translate_column_sql(pr, base_csql, lambda **m: base_df)
+    translate_column_sql(pr, calc_csql, lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5})
+    translate_column_sql(pr, filter_csql)
+
+    assert pr.get_table("Base")
+    assert pr.get_table("Filtered")
+
+    pr.run()
+
+    assert list(pr.get_table("Filtered").get_series('super')) == [1]

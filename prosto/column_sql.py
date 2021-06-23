@@ -86,6 +86,18 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             tables=fact_table, link=link_path,
             func=func, columns=fact_columns, model=None if not args else args
         )
+    elif op.lower().startswith("filt"):
+        table = entries[0][0]
+        columns = entries[0][1:]
+
+        name = entries[1][0]
+
+        filtered_table = entries[-1][0]
+
+        definition = pr.filter(
+            table_name=filtered_table, attributes=[name],
+            func=None, tables=table, columns=columns
+        )
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
 
