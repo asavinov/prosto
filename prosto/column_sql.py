@@ -98,6 +98,21 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
             table_name=filtered_table, attributes=[name],
             func=None, tables=table, columns=columns
         )
+    elif op.lower().startswith("prod"):
+        sep = ";"
+
+        tables_str = entries[0][0]
+        tables = [x.strip() for x in tables_str.split(sep)]
+
+        columns_str = entries[1][0]
+        columns = [x.strip() for x in columns_str.split(sep)]
+
+        name = entries[-1][0]
+
+        definition = pr.product(
+            table_name=name, attributes=columns,
+            tables=tables
+        )
     else:
         raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
 
