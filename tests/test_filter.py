@@ -5,15 +5,15 @@ from prosto.column_sql import *
 
 
 def test_filter_table():
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
-    tbl = sch.populate(
+    tbl = ctx.populate(
         table_name="Base table", attributes=["A", "B"],
         func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
     )
 
     # This (boolean) column will be used for filtering
-    clm = sch.compute(
+    clm = ctx.compute(
         name="filter_column", table=tbl.id,
         func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
         columns=["A", "B"], model={"param": 1.5}
@@ -22,7 +22,7 @@ def test_filter_table():
     tbl.evaluate()
     clm.evaluate()
 
-    tbl = sch.filter(
+    tbl = ctx.filter(
         table_name="Filtered table", attributes=["super"],
         func=None, tables=["Base table"], columns=["filter_column"]
     )
@@ -36,7 +36,7 @@ def test_filter_table():
     #
     # Test topology
     #
-    topology = Topology(sch)
+    topology = Topology(ctx)
     topology.translate()
     layers = topology.elem_layers
 
@@ -49,32 +49,32 @@ def test_filter_table():
 
 def test_filter_inheritance():
     """Test topology augmentation. Use columns from the parent table by automatically adding the merge operation to topology."""
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
-    base_tbl = sch.populate(
+    base_tbl = ctx.populate(
         table_name="Base table", attributes=["A", "B"],
         func="lambda **m: pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})", tables=[]
     )
 
     # This (boolean) column will be used for filtering
-    clm = sch.compute(
+    clm = ctx.compute(
         name="filter_column", table=base_tbl.id,
         func="lambda x, param: (x['A'] > param) & (x['B'].str.len() < 3)",  # Return a boolean Series
         columns=["A", "B"], model={"param": 1.5}
     )
 
-    f_tbl = sch.filter(
+    f_tbl = ctx.filter(
         table_name="Filtered table", attributes=["super"],
         func=None, tables=["Base table"], columns=["filter_column"]
     )
 
     # In this calculate column, we use a column of the filtered table which actually exists only in the base table
-    clm = sch.calculate(
+    clm = ctx.calculate(
         name="My column", table=f_tbl.id,
         func="lambda x: x + 1.0", columns=["A"], model=None
     )
 
-    sch.run()
+    ctx.run()
 
     clm_data = f_tbl.get_series('My column')
 
@@ -89,7 +89,7 @@ def test_filter_inheritance():
 
 
 def test_filter_csql():
-    pr = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})
 
@@ -97,13 +97,13 @@ def test_filter_csql():
     calc_csql = "CALC  Base (A, B) -> filter_column"
     filter_csql = "FILTER Base (filter_column) -> super -> Filtered"
 
-    translate_column_sql(pr, base_csql, lambda **m: base_df)
-    translate_column_sql(pr, calc_csql, lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5})
-    translate_column_sql(pr, filter_csql)
+    translate_column_sql(ctx, base_csql, lambda **m: base_df)
+    translate_column_sql(ctx, calc_csql, lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5})
+    translate_column_sql(ctx, filter_csql)
 
-    assert pr.get_table("Base")
-    assert pr.get_table("Filtered")
+    assert ctx.get_table("Base")
+    assert ctx.get_table("Filtered")
 
-    pr.run()
+    ctx.run()
 
-    assert list(pr.get_table("Filtered").get_series('super')) == [1]
+    assert list(ctx.get_table("Filtered").get_series('super')) == [1]

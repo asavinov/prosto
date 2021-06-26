@@ -4,28 +4,28 @@ from prosto.Prosto import *
 
 
 def test_merge():
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     # Facts
-    f_tbl = sch.populate(
+    f_tbl = ctx.populate(
         table_name="Facts", attributes=["A"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
     )
 
     # Groups
-    g_tbl = sch.populate(
+    g_tbl = ctx.populate(
         table_name="Groups", attributes=["A", "B"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [1.0, 2.0, 3.0]})", tables=[]
     )
 
     # Link
-    l_clm = sch.link(
+    l_clm = ctx.link(
         name="Link", table=f_tbl.id, type=g_tbl.id,
         columns=["A"], linked_columns=["A"]
     )
 
     # Merge
-    m_clm = sch.merge("Merge", f_tbl.id, ["Link", "B"])
+    m_clm = ctx.merge("Merge", f_tbl.id, ["Link", "B"])
 
     f_tbl.evaluate()
     g_tbl.evaluate()
@@ -46,7 +46,7 @@ def test_merge():
     #
     # Test topology
     #
-    topology = Topology(sch)
+    topology = Topology(ctx)
     topology.translate()  # All data will be reset
     layers = topology.elem_layers
 
@@ -56,45 +56,45 @@ def test_merge():
     assert set([x.id for x in layers[1]]) == {"Link"}
     assert set([x.id for x in layers[2]]) == {"Merge"}
 
-    sch.run()
+    ctx.run()
 
     m_data = f_tbl.get_series("Merge")
     assert m_data.to_list() == [1.0, 1.0, 2.0, 2.0]
 
 
 def test_merge_path():
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     # Facts
-    f_tbl = sch.populate(
+    f_tbl = ctx.populate(
         table_name="Facts", attributes=["A"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
     )
 
     # Groups
-    g_tbl = sch.populate(
+    g_tbl = ctx.populate(
         table_name="Groups", attributes=["A", "B"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
     )
     # Link
-    l_clm = sch.link(
+    l_clm = ctx.link(
         name="Link", table=f_tbl.id, type=g_tbl.id,
         columns=["A"], linked_columns=["A"]
     )
 
     # SuperGroups
-    sg_tbl = sch.populate(
+    sg_tbl = ctx.populate(
         table_name="SuperGroups", attributes=["B", "C"],
         func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
     )
     # SuperLink
-    sl_clm = sch.link(
+    sl_clm = ctx.link(
         name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
         columns=["B"], linked_columns=["B"]
     )
 
     # Merge
-    m_clm = sch.merge("Merge", f_tbl.id, ["Link", "SuperLink", "C"])
+    m_clm = ctx.merge("Merge", f_tbl.id, ["Link", "SuperLink", "C"])
 
     f_tbl.evaluate()
     g_tbl.evaluate()
@@ -114,7 +114,7 @@ def test_merge_path():
     #
     # Test topology
     #
-    topology = Topology(sch)
+    topology = Topology(ctx)
     topology.translate()  # All data will be reset
     layers = topology.elem_layers
 
@@ -124,7 +124,7 @@ def test_merge_path():
     assert set([x.id for x in layers[1]]) == {"Link", "SuperLink"}
     assert set([x.id for x in layers[2]]) == {"Merge"}
 
-    sch.run()
+    ctx.run()
 
     m_data = f_tbl.get_series("Merge")
     assert m_data.to_list() == ['x', 'x', 'y', 'y']
@@ -135,40 +135,40 @@ def test_merge_path2():
     Here we do the same as previous test, but specify complex path using separators (rather than a list of simple segment names).
     So only the definition of merge operation changes.
     """
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     # Facts
-    f_tbl = sch.populate(
+    f_tbl = ctx.populate(
         table_name="Facts", attributes=["A"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b']})", tables=[]
     )
 
     # Groups
-    g_tbl = sch.populate(
+    g_tbl = ctx.populate(
         table_name="Groups", attributes=["A", "B"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [2.0, 3.0, 3.0]})", tables=[]
     )
     # Link
-    l_clm = sch.link(
+    l_clm = ctx.link(
         name="Link", table=f_tbl.id, type=g_tbl.id,
         columns=["A"], linked_columns=["A"]
     )
 
     # SuperGroups
-    sg_tbl = sch.populate(
+    sg_tbl = ctx.populate(
         table_name="SuperGroups", attributes=["B", "C"],
         func="lambda **m: pd.DataFrame({'B': [2.0, 3.0, 4.0], 'C': ['x', 'y', 'z']})", tables=[]
     )
     # SuperLink
-    sl_clm = sch.link(
+    sl_clm = ctx.link(
         name="SuperLink", table=g_tbl.id, type=sg_tbl.id,
         columns=["B"], linked_columns=["B"]
     )
 
     # Merge
-    m_clm = sch.merge("Merge", f_tbl.id, ["Link::SuperLink::C"])
+    m_clm = ctx.merge("Merge", f_tbl.id, ["Link::SuperLink::C"])
 
-    sch.run()
+    ctx.run()
 
     f_tbl_data = f_tbl.get_df()
     assert len(f_tbl_data) == 4  # Same number of rows

@@ -5,14 +5,14 @@ from prosto.column_sql import *
 
 
 def test_calculate_value():
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
-    tbl = sch.populate(
+    tbl = ctx.populate(
         table_name="My table", attributes=["A"],
         func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[]
     )
 
-    clm = sch.calculate(
+    clm = ctx.calculate(
         name="My column", table=tbl.id,
         func="lambda x: float(x)", columns=["A"], model=None
     )
@@ -35,14 +35,14 @@ def test_calculate_value():
 
 
 def test_compute():
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
-    tbl = sch.populate(
+    tbl = ctx.populate(
         table_name="My table", attributes=["A"],
         func="lambda **m: pd.DataFrame({'A': [1, 2, 3]})", tables=[]
     )
 
-    clm = sch.compute(
+    clm = ctx.compute(
         name="My column", table=tbl.id,
         func="lambda x, **model: x.shift(**model)", columns=["A"], model={"periods": -1}
     )
@@ -58,7 +58,7 @@ def test_compute():
     #
     # Test topology
     #
-    topology = Topology(sch)
+    topology = Topology(ctx)
     topology.translate()  # All data will be reset
     layers = topology.elem_layers
 
@@ -67,7 +67,7 @@ def test_compute():
     assert set([x.id for x in layers[0]]) == {"My table"}
     assert set([x.id for x in layers[1]]) == {"My column"}
 
-    sch.run()
+    ctx.run()
 
     clm_data = tbl.get_series('My column')
     assert np.isclose(clm_data[0], 2.0)
@@ -77,34 +77,34 @@ def test_compute():
 
 def test_calculate_with_path():
     """Test topology augmentation. Calculation with column paths which have to be automatically produce merge operation."""
-    sch = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     # Facts
-    f_tbl = sch.populate(
+    f_tbl = ctx.populate(
         table_name="Facts", attributes=["A", "M"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0]})", tables=[]
     )
 
     # Groups
     df = pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})
-    g_tbl = sch.populate(
+    g_tbl = ctx.populate(
         table_name="Groups", attributes=["A", "B"],
         func="lambda **m: pd.DataFrame({'A': ['a', 'b', 'c'], 'B': [3.0, 2.0, 1.0]})", tables=[]
     )
 
     # Link
-    l_clm = sch.link(
+    l_clm = ctx.link(
         name="Link", table=f_tbl.id, type=g_tbl.id,
         columns=["A"], linked_columns=["A"]
     )
 
     # Calculate
-    clm = sch.calculate(
+    clm = ctx.calculate(
         name="My column", table=f_tbl.id,
         func="lambda x: x['M'] + x['Link::B']", columns=["M", "Link::B"], model=None
     )
 
-    sch.run()
+    ctx.run()
 
     clm_data = f_tbl.get_series('My column')
     assert clm_data[0] == 4.0
@@ -117,37 +117,37 @@ def test_calc_csql():
     #
     # Test 2: function in-query
     #
-    pr = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     table_csql = "TABLE  My_table (A) FUNC lambda **m: pd.DataFrame({'A': [1, 2, 3]})"
     calc_csql = "CALC  My_table (A) -> new_column FUNC lambda x: float(x)"
 
-    translate_column_sql(pr, table_csql)
-    translate_column_sql(pr, calc_csql)
+    translate_column_sql(ctx, table_csql)
+    translate_column_sql(ctx, calc_csql)
 
-    assert pr.get_table("My_table")
-    assert pr.get_column("My_table", "new_column")
+    assert ctx.get_table("My_table")
+    assert ctx.get_column("My_table", "new_column")
 
-    pr.run()
+    ctx.run()
 
-    assert list(pr.get_table("My_table").get_series('new_column')) == [1.0, 2.0, 3.0]
+    assert list(ctx.get_table("My_table").get_series('new_column')) == [1.0, 2.0, 3.0]
 
     #
     # Test 2: function by-reference
     #
-    pr = Prosto("My Prosto")
+    ctx = Prosto("My Prosto")
 
     df = pd.DataFrame({'A': [1, 2, 3]})  # Use FUNC "lambda **m: df" (df cannot be resolved during population)
 
     table_csql = "TABLE  My_table (A)"
     calc_csql = "CALC  My_table (A) -> new_column"
 
-    translate_column_sql(pr, table_csql, lambda **m: df)
-    translate_column_sql(pr, calc_csql, lambda x: float(x))
+    translate_column_sql(ctx, table_csql, lambda **m: df)
+    translate_column_sql(ctx, calc_csql, lambda x: float(x))
 
-    assert pr.get_table("My_table")
-    assert pr.get_column("My_table", "new_column")
+    assert ctx.get_table("My_table")
+    assert ctx.get_column("My_table", "new_column")
 
-    pr.run()
+    ctx.run()
 
-    assert list(pr.get_table("My_table").get_series('new_column')) == [1.0, 2.0, 3.0]
+    assert list(ctx.get_table("My_table").get_series('new_column')) == [1.0, 2.0, 3.0]
