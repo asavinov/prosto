@@ -1,6 +1,7 @@
 import pytest
 
 from prosto.Prosto import *
+from prosto.column_sql import *
 
 
 def test_calculate_value():
@@ -111,4 +112,42 @@ def test_calculate_with_path():
     assert clm_data[2] == 5.0
     assert clm_data[3] == 6.0
 
-    pass
+
+def test_calc_csql():
+    #
+    # Test 2: function in-query
+    #
+    pr = Prosto("My Prosto")
+
+    table_csql = "TABLE  My_table (A) FUNC lambda **m: pd.DataFrame({'A': [1, 2, 3]})"
+    calc_csql = "CALC  My_table (A) -> new_column FUNC lambda x: float(x)"
+
+    translate_column_sql(pr, table_csql)
+    translate_column_sql(pr, calc_csql)
+
+    assert pr.get_table("My_table")
+    assert pr.get_column("My_table", "new_column")
+
+    pr.run()
+
+    assert list(pr.get_table("My_table").get_series('new_column')) == [1.0, 2.0, 3.0]
+
+    #
+    # Test 2: function by-reference
+    #
+    pr = Prosto("My Prosto")
+
+    df = pd.DataFrame({'A': [1, 2, 3]})  # Use FUNC "lambda **m: df" (df cannot be resolved during population)
+
+    table_csql = "TABLE  My_table (A)"
+    calc_csql = "CALC  My_table (A) -> new_column"
+
+    translate_column_sql(pr, table_csql, lambda **m: df)
+    translate_column_sql(pr, calc_csql, lambda x: float(x))
+
+    assert pr.get_table("My_table")
+    assert pr.get_column("My_table", "new_column")
+
+    pr.run()
+
+    assert list(pr.get_table("My_table").get_series('new_column')) == [1.0, 2.0, 3.0]

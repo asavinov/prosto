@@ -1,6 +1,7 @@
 import pytest
 
 from prosto.Prosto import *
+from prosto.column_sql import *
 
 
 def test_aggregate():
@@ -123,3 +124,30 @@ def test_aggregate_with_path():
     assert a_clm_data[0] == 6.0
     assert a_clm_data[1] == 4.0
     assert a_clm_data[2] == 0.0
+
+
+def test_aggregate_csql():
+    pr = Prosto("My Prosto")
+
+    facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0], 'N': [4.0, 3.0, 2.0, 1.0]})
+    groups_df = pd.DataFrame({'A': ['a', 'b', 'c']})
+
+    facts_csql = "TABLE  Facts (A, M, N)"
+    groups_csql = "TABLE  Groups (A)"
+
+    link_csql = "LINK  Facts (A) -> new_column -> Groups (A)"
+    agg_csql = "AGGREGATE  Facts (M) -> new_column -> Groups (Aggregate)"
+
+    translate_column_sql(pr, facts_csql, lambda **m: facts_df)
+    translate_column_sql(pr, groups_csql, lambda **m: groups_df)
+
+    translate_column_sql(pr, link_csql)
+    translate_column_sql(pr, agg_csql, lambda x, bias, **model: x.sum() + bias, {"bias": 0.0})
+
+    assert pr.get_table("Facts")
+    assert pr.get_table("Groups")
+    assert pr.get_column("Facts", "new_column")
+
+    pr.run()
+
+    assert list(pr.get_table("Groups").get_series('Aggregate')) == [3.0, 7.0, 0.0]

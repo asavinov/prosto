@@ -1,6 +1,7 @@
 import pytest
 
 from prosto.Prosto import *
+from prosto.column_sql import *
 
 
 def test_roll_single():
@@ -116,3 +117,22 @@ def test_groll_multiple():
     assert pd.isna(clm_data[1])
     assert np.isclose(clm_data[2], 10.0)
     assert np.isclose(clm_data[3], 10.0)
+
+
+def test_roll_csql():
+    pr = Prosto("My Prosto")
+
+    df = pd.DataFrame({'A': [1.0, 2.0, 3.0]})
+
+    table_csql = "TABLE  My_table (A)"
+    calc_csql = "ROLL  My_table (A) -> new_column WINDOW 2"
+
+    translate_column_sql(pr, table_csql, lambda **m: df)
+    translate_column_sql(pr, calc_csql, lambda x: x.sum())
+
+    assert pr.get_table("My_table")
+    assert pr.get_column("My_table", "new_column")
+
+    pr.run()
+
+    assert list(pr.get_table("My_table").get_series('new_column')) == [None, 3.0, 5.0]
