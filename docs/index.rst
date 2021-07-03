@@ -18,14 +18,21 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
 
 `Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/asavinov/prosto/tree/master/notebooks
 
+Column-SQL - NEW
+================
+
+Column-SQL is a new way to define a column-oriented data processing workflow. It is a syntactic alternative to programmatic operations. Read more here: :doc:`Column-SQL <text/column-sql>`
+
 Contents
 ========
 
 .. toctree directive should be present in the master file
 
 .. toctree::
+   :titlesonly:
    :maxdepth: 1
 
+   Column-SQL - NEW <text/column-sql>
    Quick start <text/quick_start>
    Motivation: Why Prosto? <text/why>
    Concepts behind Prosto: How it works? <text/how>
