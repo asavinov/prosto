@@ -175,7 +175,7 @@ epub_exclude_files = ['search.html']
 ### For Markdown
 ###
 
-from recommonmark.parser import CommonMarkParser
-source_parsers = {
-    '.md': CommonMarkParser,
-}
+#from recommonmark.parser import CommonMarkParser
+#source_parsers = {
+#    '.md': CommonMarkParser,
+#}
