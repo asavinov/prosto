@@ -125,10 +125,10 @@ def test_roll_csql():
     df = pd.DataFrame({'A': [1.0, 2.0, 3.0]})
 
     table_csql = "TABLE  My_table (A)"
-    calc_csql = "ROLL  My_table (A) -> new_column WINDOW 2"
+    roll_csql = "ROLL  My_table (A) -> new_column WINDOW 2"
 
     translate_column_sql(ctx, table_csql, lambda **m: df)
-    translate_column_sql(ctx, calc_csql, lambda x: x.sum())
+    translate_column_sql(ctx, roll_csql, lambda x: x.sum())
 
     assert ctx.get_table("My_table")
     assert ctx.get_column("My_table", "new_column")
