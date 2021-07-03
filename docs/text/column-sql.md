@@ -63,7 +63,7 @@ ctx.run()
 
 In the next sections, we describe operations provided by Column-SQL.
 
-## Populate table
+## POPULATE operation for importing data
 
 ```python
 df = pd.DataFrame({'A': [1, 2, 3]})
@@ -71,7 +71,7 @@ table_csql = "TABLE  My_table (A)"
 translate_column_sql(ctx, table_csql, lambda **m: df)
 ```
 
-## Calculate column (instead of map operation)
+## CALCULATE operation (instead of map operation)
 
 The purpose of the CALCULATE operation is to create a new column in a table using data in other columns in this same table.
 
@@ -101,7 +101,7 @@ This query will compute a column where each value is the sum of values in column
 
 The `COMPUTE` operation does the same as the `CALCULATE` except that its function gets whole columns rather than individual rows. The only difference is that the lambda function has to be implemented differently because its arguments are pandas Series.
 
-## Link column (instead of join)
+## LINK operation (instead of join)
 
 The purpose of a link column is to store references to records in another table. Link columns are not valuable by themsevles but they can be then used in other operations to access data from different tables. In this sense, it is a main means of connectivity analogous to joins in the relational model.
 
@@ -115,7 +115,7 @@ The `link_column` will be created in the `Facts` table by storing references to 
 
 The main use of link columns is in *column paths* which are sequences of simple column names following links between tables. For example, now we could use the column path `Facts::link_column::target_column` to reference `target_column` from table `Groups` in the context of table `Facts`. Link columns are also used as grouping criteria for aggregation.
 
-## Rolling aggregation (instead of over-partition)
+## ROLL operation (instead of over-partition)
 
 Like `CALCULATE` operation, `ROLL` operation adds a new column to the same table where input columns are. However, each value of the new column is computed from many rows of this table and not one row. Thus `ROLL` operation aggregates data in many rows in the selected columns.   
 
@@ -128,7 +128,7 @@ translate_column_sql(ctx,
 
 Each value in the `roll_column` will be computed as the sum of 2 values in the `A` column: one from this record and one from the previous record. The window length is specified in the `WINDOW` parameter. Currently, the logic of grouping logic is equivalent to that of the rolling aggregation in `pandas`. 
 
-## Aggregate column (instead of groupby)
+## AGGREGATE operation (instead of groupby)
 
 The purpose of the `AGGREGATE` operation is to create a column each value of which aggregates data in several rows of another table. In this sense, it is an analogue of the `groupby` operation in SQL. Its main difference form `groupby` is that a new aggregated column is added directly to the table with groups and no new table is created.
 
@@ -141,3 +141,31 @@ translate_column_sql(ctx,
 ```
 
 This statement adds an `Aggregate` column to the existing table `Groups`. Each value of this aggregate column is the sum of values in the `M` column for several records. All these records belonging to one group reference same record in the `Facts` table using the existing `link_column`.
+
+## FILTER operation (instead of select)
+
+This operation is intended for filtering a table. However, its main difference form the conventional `SELECT` is that a new (filtered) table does not include any columns from the original table. Instead, it it creates a link column and references the selected records from the original (base) table.
+
+In the current implementation, filter conditions are not specified in the operation itself and a boolean column in the base table is needed. The filtered table will include only records for which this column stores true values. In the `FILTER` statement, it is necessary to specify the base table name and the boolean column used for selection:
+
+```python
+translate_column_sql(ctx, "FILTER BaseTable (filter_column) -> super -> FilteredTable")
+```
+
+This operation creates a new `FilteredTable` and a link column from the `FilteredTable` to the `BaseTable`. This link column in this example is called `super` (because the filtered table is a subset of the base table). 
+
+Note that we can treat the filtered table as a subset of the base table with all the original columns although they are not copied to the new table. We say that the base table columns are inherited by filtered tables.
+
+## PRODUCT operation
+
+The purpose of the `PRODUCT` operation is to create a new table with all combinations of records from the source tables. It also will support filter which is currently not implemented. The new product table will create link columns to every of the source tables and will not contain the source columns.
+
+```python
+translate_column_sql(ctx, "PRODUCT  Table_1; Table_2 -> t1; t2 -> Product")
+```
+
+The first part of the statement (before first arrow) is a list of source tables (separated by a colon). The second part (between arrows) is a list of the link column names which will be created. The last element `Product` is a name of the product table.
+
+If columns from a source table need to be accessed in some other operation then it is done by means of the link columns as a column path like `Table_1::t1::source_column`.
+
+Although the product operation looks analogous to join, it is has much narrow application scope. It is used mainly for multidimensional analysis (OLAP) and not for connectivity like join. If it is necessary to connect tables, then LINK operation should be used. It is a conceptual difference between the concept-oriented model relying on mathematical functions and the relational model relying on mathematical sets.
