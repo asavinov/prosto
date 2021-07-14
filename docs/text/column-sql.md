@@ -16,7 +16,7 @@ Note that between arrows we use a generic syntax for specifying data elements we
 
 Note that both table name and column list could be empty and there could be single name specified treated either as column or table depending on the operation.
 
-How the data elements bewteen arrows are interpreted depends on the operation and it will be described in the next sections. Here we give only one example of how a new calculated column could be defined which derives its values from two other columns in this same table:
+How the data elements between arrows are interpreted depends on the operation and it will be described in the next sections. Here we give only one example of how a new calculated column could be defined which derives its values from two other columns in this same table:
 
     CALC  My_existing_table(A, B) -> my_new_column
 

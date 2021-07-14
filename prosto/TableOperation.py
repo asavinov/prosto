@@ -72,10 +72,7 @@ class TableOperation(Operation):
 
             # Source table link column input keys (not the link column itself)
             # Input columns of the link column operation
-            link_column_name = definition.get("link")
-            link_column_ops = self.prosto.get_column_operations(source_table_name, link_column_name)
-            link_column_op = link_column_ops[0]
-            source_keys = link_column_op.get_columns()
+            source_keys = self.get_columns()  # OR definition.get("columns")
             dependencies[source_table_name].extend(source_keys)
 
         else:
@@ -298,21 +295,11 @@ class TableOperation(Operation):
         source_table_data = source_table.get_df()
 
         #
-        # Stage 2. Find link column
-        #
-        link_column_name = definition.get("link")
-        if not link_column_name:
-            raise ValueError("Project operation must specify a link column from the input table in the 'function' field.".format())
-        link_column = source_table.get_column(link_column_name)
-
-        #
         # Stage 3. Find parameters of projection: source keys and target attribute names
         #
 
         # Find source table keys to be projected
-        link_column_ops = self.prosto.get_column_operations(source_table.id, link_column.id)
-        link_column_op = link_column_ops[0]
-        source_keys = link_column_op.get_columns()
+        source_keys = self.get_columns()
         if not all_columns_exist(source_keys, source_table_data):
             raise ValueError("Not all key columns available in the link column definition.".format())
 
@@ -320,11 +307,6 @@ class TableOperation(Operation):
         attributes = output_table.definition.get("attributes", [])
         if len(attributes) != len(source_keys):
             raise ValueError("Project table must declare one attribute for each input of the corresponding link column.".format())
-
-        # Link column can define its own target keys. We do not use them but want to check the validity because the link evaluation can fail later.
-        linked_inputs = link_column_op.definition.get("linked_inputs", [])
-        if len(linked_inputs) > 0 and set(attributes) != set(linked_inputs):
-            raise ValueError("Attributes of the project table are different from the 'linked_inputs' of the corresonding link column.".format())
 
         #
         # Stage 4. Produce all unique combinations of the input columns

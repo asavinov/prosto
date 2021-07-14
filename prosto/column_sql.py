@@ -64,8 +64,7 @@ def translate_column_sql(pr: Prosto, query: str, func=None, args=None):
         # The operation is treated as creation of a target (project) tables with data
         definition = pr.project(
             table_name=type_table, attributes=linked_columns,
-            link=name,
-            tables=table
+            tables=[table], columns=columns
         )
         # This definition will be used by the project operation to get additional parameters
         definition2 = pr.link(

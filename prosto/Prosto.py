@@ -366,18 +366,22 @@ class Prosto:
 
         return table
 
+
     def project(
             self,
             table_name, attributes,
-            link, tables
+            tables, columns=None
     ) -> Table:
         """
         Create a new project table.
 
         The output table consists of all unique combinations of the specified columns in the input table.
-        The columns to be used for projection are not listed in this definition.
-        Instead, we specify a link column and this link column lists all columns used for projection.
+        The definition is very similar to a link column definition (but without link column name
+        because it will not be created). It is an auxiliary operation not supposed to be used independently
+        (like merge).
         """
+
+        # TODO: Attributes are optional. If absent, then use source columns.
 
         # Create a table definition
         table_def = {
@@ -388,14 +392,15 @@ class Prosto:
         self.add_table(table)
 
         # Create operation definition
-        operation_def = {
+        operation_def = {  # Project table
             "id": None,
-            "operation": "project",
+            "operation": "project_table",
 
-            "outputs": [table_name],
+            "outputs": [table_name],  # Target table
+            "linked_columns": attributes,
 
-            "tables": tables,
-            "link": link,
+            "tables": tables,  # Source table
+            "columns": columns,
         }
         operation = TableOperation(self, operation_def)
         self.operations.append(operation)

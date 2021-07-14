@@ -16,8 +16,7 @@ def test_one_key():
     # Groups
     g_tbl = ctx.project(
         table_name="Groups", attributes=["X"],
-        link="Link",
-        tables=["Facts"]
+        tables=["Facts"], columns=["A"]
     )
 
     # Link
@@ -67,8 +66,7 @@ def test_two_keys():
     # Groups
     g_tbl = ctx.project(
         table_name="Groups", attributes=["X", "Y"],
-        link="Link",
-        tables=["Facts"]
+        tables=["Facts"], columns=["A", "B"]
     )
 
     # Link
