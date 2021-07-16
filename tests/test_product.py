@@ -76,14 +76,9 @@ def test_product_csql():
     t1_df = pd.DataFrame({'A': [1.0, 2.0, 3.0]})
     t2_df = pd.DataFrame({'B': ['x', 'y', 'z']})
 
-    t1_csql = "TABLE  Table_1 (A)"
-    t2_csql = "TABLE  Table_2 (B)"
-    product_csql = "PRODUCT  Table_1; Table_2 -> t1; t2 -> Product"
-
-    translate_column_sql(ctx, t1_csql, lambda **m: t1_df)
-    translate_column_sql(ctx, t2_csql, lambda **m: t2_df)
-
-    translate_column_sql(ctx, product_csql)
+    ctx.column_sql("TABLE  Table_1 (A)", lambda **m: t1_df)
+    ctx.column_sql("TABLE  Table_2 (B)", lambda **m: t2_df)
+    ctx.column_sql("PRODUCT  Table_1; Table_2 -> t1; t2 -> Product")
 
     assert ctx.get_table("Product")
 

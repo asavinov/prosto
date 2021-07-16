@@ -6,6 +6,7 @@ from prosto.Column import *
 from prosto.TableOperation import *
 from prosto.ColumnOperation import *
 from prosto.Topology import *
+from prosto.column_sql import *
 
 import logging
 log = logging.getLogger("prosto")
@@ -683,6 +684,126 @@ class Prosto:
         self.operations.append(operation)
 
         return column
+
+    #
+    # Column-SQL
+    #
+
+    def column_sql(self, query: str, func=None, args=None):
+        # Parse query and extract parameters
+        op, entries, func_str, args_str, win_str = parse_column_sql(query)
+
+        if func is None:
+            func = func_str
+        if args is None:
+            args = args_str
+
+        if op.lower().startswith("tabl"):
+            table = entries[0][0]
+            attributes = entries[0][1:]
+
+            definition = self.populate(
+                table, attributes=attributes,
+                func=func, tables=None, model=args
+            )
+        elif op.lower().startswith("calc"):
+            table = entries[0][0]
+            columns = entries[0][1:]
+
+            name = entries[1][0]
+
+            definition = self.calculate(
+                name, table,
+                func=func, columns=columns, model=None if not args else args
+            )
+        elif op.lower().startswith("roll"):
+            table = entries[0][0]
+            columns = entries[0][1:]
+
+            name = entries[1][0]
+
+            definition = self.roll(
+                name=name, table=table,
+                window=win_str, link=None,
+                func=func, columns=columns, model=None if not args else args
+            )
+        elif op.lower().startswith("link"):
+            table = entries[0][0]
+            columns = entries[0][1:]
+
+            name = entries[1][0]
+
+            type_table = entries[-1][0]
+            linked_columns = entries[-1][1:]
+
+            definition = self.link(
+                name=name, table=table, type=type_table,
+                columns=columns, linked_columns=linked_columns
+            )
+        elif op.lower().startswith("proj"):
+            table = entries[0][0]
+            columns = entries[0][1:]
+
+            name = entries[1][0]
+
+            type_table = entries[-1][0]
+            linked_columns = entries[-1][1:]
+
+            # The operation is treated as creation of a target (project) tables with data
+            definition = self.project(
+                table_name=type_table, attributes=linked_columns,
+                tables=[table], columns=columns
+            )
+            # This definition will be used by the project operation to get additional parameters
+            definition2 = self.link(
+                name=name, table=table, type=type_table,
+                columns=columns, linked_columns=linked_columns
+            )
+        elif op.lower().startswith("aggr"):
+            fact_table = entries[0][0]
+            fact_columns = entries[0][1:]
+
+            link_path = entries[1][0]
+
+            group_table = entries[-1][0]
+            agg_column = entries[-1][1]
+
+            definition = self.aggregate(
+                name=agg_column, table=group_table,
+                tables=fact_table, link=link_path,
+                func=func, columns=fact_columns, model=None if not args else args
+            )
+        elif op.lower().startswith("filt"):
+            table = entries[0][0]
+            columns = entries[0][1:]
+
+            name = entries[1][0]
+
+            filtered_table = entries[-1][0]
+
+            definition = self.filter(
+                table_name=filtered_table, attributes=[name],
+                func=None, tables=table, columns=columns
+            )
+        elif op.lower().startswith("prod"):
+            sep = ";"
+
+            tables_str = entries[0][0]
+            tables = [x.strip() for x in tables_str.split(sep)]
+
+            columns_str = entries[1][0]
+            columns = [x.strip() for x in columns_str.split(sep)]
+
+            name = entries[-1][0]
+
+            definition = self.product(
+                table_name=name, attributes=columns,
+                tables=tables
+            )
+        else:
+            raise NotImplementedError(f"Column-SQL operation {op} not implemented or not known.")
+
+        return definition
 
     #
     # Execution

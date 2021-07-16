@@ -118,11 +118,8 @@ def test_csql_project():
 
     facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b']})
 
-    facts_csql = "TABLE  Facts (A)"
-    project_csql = "PROJECT  Facts (A) -> new_column -> Groups (A)"
-
-    translate_column_sql(ctx, facts_csql, lambda **m: facts_df)
-    translate_column_sql(ctx, project_csql)
+    ctx.column_sql("TABLE  Facts (A)", lambda **m: facts_df)
+    ctx.column_sql("PROJECT  Facts (A) -> new_column -> Groups (A)")
 
     assert ctx.get_table("Facts")
     assert ctx.get_table("Groups")

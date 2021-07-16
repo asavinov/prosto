@@ -116,14 +116,9 @@ def test_link_csql():
     facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b']})
     groups_df = pd.DataFrame({'A': ['a', 'b', 'c']})
 
-    facts_csql = "TABLE  Facts (A)"
-    groups_csql = "TABLE  Groups (A)"
-    link_csql = "LINK  Facts (A) -> new_column -> Groups (A)"
-
-    translate_column_sql(ctx, facts_csql, lambda **m: facts_df)
-    translate_column_sql(ctx, groups_csql, lambda **m: groups_df)
-
-    translate_column_sql(ctx, link_csql)
+    ctx.column_sql("TABLE  Facts (A)", lambda **m: facts_df)
+    ctx.column_sql("TABLE  Groups (A)", lambda **m: groups_df)
+    ctx.column_sql("LINK  Facts (A) -> new_column -> Groups (A)")
 
     assert ctx.get_table("Facts")
     assert ctx.get_table("Groups")

@@ -93,13 +93,9 @@ def test_filter_csql():
 
     base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})
 
-    base_csql = "TABLE  Base (A, B)"
-    calc_csql = "CALC  Base (A, B) -> filter_column"
-    filter_csql = "FILTER Base (filter_column) -> super -> Filtered"
-
-    translate_column_sql(ctx, base_csql, lambda **m: base_df)
-    translate_column_sql(ctx, calc_csql, lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5})
-    translate_column_sql(ctx, filter_csql)
+    ctx.column_sql("TABLE  Base (A, B)", lambda **m: base_df)
+    ctx.column_sql("CALCULATE  Base (A, B) -> filter_column", lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5})
+    ctx.column_sql("FILTER Base (filter_column) -> super -> Filtered")
 
     assert ctx.get_table("Base")
     assert ctx.get_table("Filtered")

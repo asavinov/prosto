@@ -119,11 +119,8 @@ def test_calc_csql():
     #
     ctx = Prosto("My Prosto")
 
-    table_csql = "TABLE  My_table (A) FUNC lambda **m: pd.DataFrame({'A': [1, 2, 3]})"
-    calc_csql = "CALC  My_table (A) -> new_column FUNC lambda x: float(x)"
-
-    translate_column_sql(ctx, table_csql)
-    translate_column_sql(ctx, calc_csql)
+    ctx.column_sql("TABLE  My_table (A) FUNC lambda **m: pd.DataFrame({'A': [1, 2, 3]})")
+    ctx.column_sql("CALCULATE  My_table (A) -> new_column FUNC lambda x: float(x)")
 
     assert ctx.get_table("My_table")
     assert ctx.get_column("My_table", "new_column")
@@ -139,11 +136,8 @@ def test_calc_csql():
 
     df = pd.DataFrame({'A': [1, 2, 3]})  # Use FUNC "lambda **m: df" (df cannot be resolved during population)
 
-    table_csql = "TABLE  My_table (A)"
-    calc_csql = "CALC  My_table (A) -> new_column"
-
-    translate_column_sql(ctx, table_csql, lambda **m: df)
-    translate_column_sql(ctx, calc_csql, lambda x: float(x))
+    ctx.column_sql("TABLE  My_table (A)", lambda **m: df)
+    ctx.column_sql("CALCULATE My_table (A) -> new_column", lambda x: float(x))
 
     assert ctx.get_table("My_table")
     assert ctx.get_column("My_table", "new_column")

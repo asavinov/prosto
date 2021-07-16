@@ -18,15 +18,15 @@ Note that both table name and column list could be empty and there could be sing
 
 How the data elements between arrows are interpreted depends on the operation and it will be described in the next sections. Here we give only one example of how a new calculated column could be defined which derives its values from two other columns in this same table:
 
-    CALC  My_existing_table(A, B) -> my_new_column
+    CALCULATE  My_existing_table(A, B) -> my_new_column
 
 This statement will add a new column to the `My_existing_table` by processing data in columns `A` and `B`. Note that the arrow here means that data from these two source columns flows to the new target column. In this case, this flow is very simply (each output value is computed from two input values) but other operations allows us to link tables and aggregate data from other tables.
 
 According to the concept-oriented model of data, column-orientation means using mathematcial *functions* for representing the data and inferring new data. In particular, this means that how exactly we compute values of new columns is specified by functions. In Prosto, functions needed to compute columns are Python functions which are associated with each Column-SQL statement. Attaching a (Python) function is performed when we add a statement to the Prosto context:
 
 ```python
-translate_column_sql(ctx, 
-    "CALC  My_existing_table(A, B) -> my_new_column", 
+ctx.column_sql(
+    "CALCULATE  My_existing_table(A, B) -> my_new_column",
     lambda x: x['A'] + x['B']
 )
 ```
@@ -36,16 +36,16 @@ The Python function passed to this statement expects a row with two fields in it
 Alternatively, the function can be passed within Column-SQL statement after the `FUNC` keyword:
 
 ```python
-translate_column_sql(ctx, 
-    "CALC  My_existing_table(A, B) -> my_new_column FUNC lambda x: x['A'] + x['B']" 
+ctx.column_sql(
+    "CALC  My_existing_table(A, B) -> my_new_column FUNC lambda x: x['A'] + x['B']"
 )
 ```
 
 Functions may take an additional (static) argument which can be as simple as one number and as complex as a neural network (trained) model for computing forecasts:
 
 ```python
-translate_column_sql(ctx, 
-    "CALC  My_existing_table(A, B) -> my_new_column", 
+ctx.column_sql(
+    "CALC  My_existing_table(A, B) -> my_new_column",
     lambda x, **m: x['A'] + x['B'] + param,
     {'param': 1.0}
 )
@@ -67,19 +67,18 @@ In the next sections, we describe operations provided by Column-SQL.
 
 ```python
 df = pd.DataFrame({'A': [1, 2, 3]})
-table_csql = "TABLE  My_table (A)"
-translate_column_sql(ctx, table_csql, lambda **m: df)
+ctx.column_sql("TABLE  My_table (A)", lambda **m: df)
 ```
 
 ## CALCULATE operation (instead of map operation)
 
 The purpose of the CALCULATE operation is to create a new column in a table using data in other columns in this same table.
 
-In this example, a `new_column_name` will be created and attached to the existing `My_table`: 
+In this example, a `new_column_name` will be created and attached to the existing `My_table`:
 
 ```python
-translate_column_sql(ctx, 
-    "CALC  My_table (A) -> new_column", 
+ctx.column_sql(
+    "CALCULATE  My_table (A) -> new_column",
     lambda x: float(x)
 )
 ```
@@ -89,9 +88,9 @@ Note that we specify the input column `A` for our function and its value will be
 We can specify more input columns for calculating values of the new output column. In addition, it is possible to pass an object with parameters to the function:
 
 ```python
-translate_column_sql(ctx, 
-    "CALC  My_table (A, B) -> new_column", 
-    lambda x, **m: x['A']+x['B']+param, model={"param": 5}
+ctx.column_sql(
+    "CALCULATE  My_table (A, B) -> new_column",
+    lambda x, **m: x['A'] + x['B'] + param, model={"param": 5}
 )
 ```
 
@@ -108,7 +107,7 @@ The purpose of a link column is to store references to records in another table.
 Given two existing tables `Facts` and `Groups`, we can define a link from the first one to the second one as follows:
 
 ```python
-translate_column_sql(ctx, "LINK  Facts (A) -> link_column -> Groups (A)")
+ctx.column_sql("LINK  Facts (A) -> link_column -> Groups (A)")
 ```
 
 The `link_column` will be created in the `Facts` table by storing references to the records in the `Groups` table. The criterion of matching records is equality of columns `A` in these two tables.
@@ -117,11 +116,11 @@ The main use of link columns is in *column paths* which are sequences of simple 
 
 ## ROLL operation (instead of over-partition)
 
-Like `CALCULATE` operation, `ROLL` operation adds a new column to the same table where input columns are. However, each value of the new column is computed from many rows of this table and not one row. Thus `ROLL` operation aggregates data in many rows in the selected columns.   
+Like `CALCULATE` operation, `ROLL` operation adds a new column to the same table where input columns are. However, each value of the new column is computed from many rows of this table and not one row. Thus `ROLL` operation aggregates data in many rows in the selected columns.
 
 ```python
-translate_column_sql(ctx, 
-    "ROLL  My_table (A) -> roll_column WINDOW 2", 
+ctx.column_sql(
+    "ROLL  My_table (A) -> roll_column WINDOW 2",
     lambda x: x.sum()
 )
 ```
@@ -133,7 +132,7 @@ Each value in the `roll_column` will be computed as the sum of 2 values in the `
 The purpose of the `AGGREGATE` operation is to create a column each value of which aggregates data in several rows of another table. In this sense, it is an analogue of the `groupby` operation in SQL. Its main difference form `groupby` is that a new aggregated column is added directly to the table with groups and no new table is created.
 
 ```python
-translate_column_sql(ctx,
+ctx.column_sql(
     "AGGREGATE  Facts (M) -> link_column -> Groups (Aggregate)",
     lambda x, bias, **model: x.sum() + bias,
     {"bias": 0.0}
@@ -149,7 +148,7 @@ This operation is intended for filtering a table. However, its main difference f
 In the current implementation, filter conditions are not specified in the operation itself and a boolean column in the base table is needed. The filtered table will include only records for which this column stores true values. In the `FILTER` statement, it is necessary to specify the base table name and the boolean column used for selection:
 
 ```python
-translate_column_sql(ctx, "FILTER BaseTable (filter_column) -> super -> FilteredTable")
+ctx.column_sql("FILTER BaseTable (filter_column) -> super -> FilteredTable")
 ```
 
 This operation creates a new `FilteredTable` and a link column from the `FilteredTable` to the `BaseTable`. This link column in this example is called `super` (because the filtered table is a subset of the base table). 
@@ -161,7 +160,7 @@ Note that we can treat the filtered table as a subset of the base table with all
 The purpose of the `PRODUCT` operation is to create a new table with all combinations of records from the source tables. It also will support filter which is currently not implemented. The new product table will create link columns to every of the source tables and will not contain the source columns.
 
 ```python
-translate_column_sql(ctx, "PRODUCT  Table_1; Table_2 -> t1; t2 -> Product")
+ctx.column_sql("PRODUCT  Table_1; Table_2 -> t1; t2 -> Product")
 ```
 
 The first part of the statement (before first arrow) is a list of source tables (separated by a colon). The second part (between arrows) is a list of the link column names which will be created. The last element `Product` is a name of the product table.

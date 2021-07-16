@@ -132,17 +132,11 @@ def test_aggregate_csql():
     facts_df = pd.DataFrame({'A': ['a', 'a', 'b', 'b'], 'M': [1.0, 2.0, 3.0, 4.0], 'N': [4.0, 3.0, 2.0, 1.0]})
     groups_df = pd.DataFrame({'A': ['a', 'b', 'c']})
 
-    facts_csql = "TABLE  Facts (A, M, N)"
-    groups_csql = "TABLE  Groups (A)"
+    ctx.column_sql("TABLE  Facts (A, M, N)", lambda **m: facts_df)
+    ctx.column_sql("TABLE  Groups (A)", lambda **m: groups_df)
 
-    link_csql = "LINK  Facts (A) -> new_column -> Groups (A)"
-    agg_csql = "AGGREGATE  Facts (M) -> new_column -> Groups (Aggregate)"
-
-    translate_column_sql(ctx, facts_csql, lambda **m: facts_df)
-    translate_column_sql(ctx, groups_csql, lambda **m: groups_df)
-
-    translate_column_sql(ctx, link_csql)
-    translate_column_sql(ctx, agg_csql, lambda x, bias, **model: x.sum() + bias, {"bias": 0.0})
+    ctx.column_sql("LINK  Facts (A) -> new_column -> Groups (A)")
+    ctx.column_sql("AGGREGATE  Facts (M) -> new_column -> Groups (Aggregate)", lambda x, bias, **model: x.sum() + bias, {"bias": 0.0})
 
     assert ctx.get_table("Facts")
     assert ctx.get_table("Groups")
