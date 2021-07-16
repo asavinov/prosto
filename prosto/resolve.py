@@ -21,9 +21,10 @@ def resolve_full_name(full_name):
     Fully qualified name consists of module name and function name separated by a colon, for example:  'mod1.mod2.mod3:class1.class2.func1.func2'.
     """
 
-    if not full_name:
+    if full_name is None:
         return None
 
+    # If function, return the function
     elif isinstance(full_name, (types.FunctionType, types.BuiltinFunctionType, functools.partial)):
         return full_name
 

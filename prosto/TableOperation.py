@@ -134,11 +134,15 @@ class TableOperation(Operation):
         # Stage 1. Resolve the function
         #
         func_name = definition.get("function")
-        if not func_name:
+        if func_name is None:
             raise ValueError("Table function '{}' is not specified. Skip table definition.".format(func_name))
 
-        func = resolve_full_name(func_name)
-        if not func:
+        # If data, return a function returning this data
+        if isinstance(func_name, pd.DataFrame):
+            func = lambda **m: func_name
+        else:
+            func = resolve_full_name(func_name)
+        if func is None:
             raise ValueError("Cannot resolve user-defined function '{}'. Skip table definition.".format(func_name))
 
         #

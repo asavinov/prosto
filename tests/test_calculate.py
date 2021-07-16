@@ -136,7 +136,7 @@ def test_calc_csql():
 
     df = pd.DataFrame({'A': [1, 2, 3]})  # Use FUNC "lambda **m: df" (df cannot be resolved during population)
 
-    ctx.column_sql("TABLE  My_table (A)", lambda **m: df)
+    ctx.column_sql("TABLE  My_table (A)", df)
     ctx.column_sql("CALCULATE My_table (A) -> new_column", lambda x: float(x))
 
     assert ctx.get_table("My_table")
