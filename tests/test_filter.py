@@ -94,8 +94,31 @@ def test_filter_csql():
     base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})
 
     ctx.column_sql("TABLE  Base (A, B)", lambda **m: base_df)
-    ctx.column_sql("CALCULATE  Base (A, B) -> filter_column", lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5})
+    ctx.column_sql(
+        "CALCULATE  Base (A, B) -> filter_column",
+        lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5}
+    )
     ctx.column_sql("FILTER Base (filter_column) -> super -> Filtered")
+
+    assert ctx.get_table("Base")
+    assert ctx.get_table("Filtered")
+
+    ctx.run()
+
+    assert list(ctx.get_table("Filtered").get_series('super')) == [1]
+
+    #
+    # Filter with a preciate function and no explicit calculate column
+    #
+    ctx = Prosto("My Prosto")
+
+    base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})
+
+    ctx.column_sql("TABLE  Base (A, B)", base_df)
+    ctx.column_sql(
+        "FILTER Base (A, B) -> super -> Filtered",
+        lambda x, param: (x['A'] > param) & (len(x['B']) < 3), {"param": 1.5}
+    )
 
     assert ctx.get_table("Base")
     assert ctx.get_table("Filtered")

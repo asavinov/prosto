@@ -781,10 +781,23 @@ class Prosto:
 
             filtered_table = entries[-1][0]
 
-            definition = self.filter(
-                table_name=filtered_table, attributes=[name],
-                func=None, tables=table, columns=columns
-            )
+            if not func:
+                # Assume that the (only) base column is a boolean column for the filter (e.g., resulted from a predicate function)
+                definition = self.filter(
+                    table_name=filtered_table, attributes=[name],
+                    func=None, tables=table, columns=columns
+                )
+            else:
+                # The predicate function is provided and hence we add a calculate operation which materializes it as a boolean column
+                filter_column_name = "__" + filtered_table + "__"
+                definition = self.calculate(
+                    name=filter_column_name, table=table,
+                    func=func, columns=columns, model=None if not args else args
+                )
+                definition = self.filter(
+                    table_name=filtered_table, attributes=[name],
+                    func=None, tables=table, columns=filter_column_name
+                )
         elif op.lower().startswith("prod"):
             sep = ";"
 
