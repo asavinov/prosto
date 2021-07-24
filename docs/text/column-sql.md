@@ -37,7 +37,7 @@ Alternatively, the function can be passed within Column-SQL statement after the 
 
 ```python
 ctx.column_sql(
-    "CALC  My_existing_table(A, B) -> my_new_column FUNC lambda x: x['A'] + x['B']"
+    "CALCULATE  My_existing_table(A, B) -> my_new_column FUNC lambda x: x['A'] + x['B']"
 )
 ```
 
@@ -45,7 +45,7 @@ Functions may take an additional (static) argument which can be as simple as one
 
 ```python
 ctx.column_sql(
-    "CALC  My_existing_table(A, B) -> my_new_column",
+    "CALCULATE  My_existing_table(A, B) -> my_new_column",
     lambda x, **m: x['A'] + x['B'] + param,
     {'param': 1.0}
 )

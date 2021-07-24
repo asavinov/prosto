@@ -32,8 +32,9 @@ Contents
    :titlesonly:
    :maxdepth: 1
 
+   Quick start (Column-SQL) - NEW <text/quick_start_column-sql>
+   Quick start (programmatic) <text/quick_start_programmatic>
    Column-SQL - NEW <text/column-sql>
-   Quick start <text/quick_start>
    Motivation: Why Prosto? <text/why>
    Concepts behind Prosto: How it works? <text/how>
    Workflow and operations <text/workflow>
