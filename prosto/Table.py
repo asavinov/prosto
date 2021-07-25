@@ -59,6 +59,59 @@ class Table:
         """Get a list of all columns of this table."""
         return self.prosto.get_columns(self.id)
 
+    def resolve_column_to_path(self, column_name) -> List[str]:
+        """
+        Find the specified (simple) column name in this table as well as all its base (parent) tables
+        and return a column path to it. A base table is used in filter and product tables.
+        The last segment in the returned path is equal to the column argument.
+        """
+        table_name = self.id
+
+        # 1. Check the existence in the current node, if found, then return it, if not then
+        is_attribute = self.prosto.has_attribute(table_name, column_name)
+        if is_attribute:  # Found
+            return [column_name]
+
+        column = self.prosto.get_column(table_name, column_name)
+        column_ops = self.prosto.get_column_operations(table_name, column_name)
+        if column and column_ops:  # Found a column with definition
+            return [column_name]
+
+        # No such column/attribute in this table
+
+        # 2. Find a list of all direct links and their parent (type tables)
+        table_ops = self.prosto.get_table_operations(table_name)
+        if len(table_ops) > 1:
+            raise ValueError("Several operations generate one table '{}'".format(table_name))
+        if len(table_ops) == 0:
+            raise ValueError("No operations found that generates this table '{}'".format(table_name))
+        table_op = table_ops[0] if len(table_ops) > 0 else None
+
+        if table_op.operation.lower().startswith("filt") or table_op.operation.lower().startswith("prod"):
+            base_attribute_names = self.definition.get("attributes", [])
+
+            # Find its parent tables (where we will search for our missing column)
+            base_table_names = table_op.get_tables()
+            if not base_table_names:
+                raise ValueError("Table filter operation must specify one base table in the 'tables' field.".format())
+            #base_tables = self.prosto.get_tables(base_table_names)
+
+            if len(base_attribute_names) != len(base_table_names):
+                raise ValueError("Table '{}' has different number of base attributes and base tables in its definition.".format(table_name))
+
+        else:
+            return []
+
+        # 3. Call this same function by passing one of these parent tables in a loop
+        for i, base_table_name in enumerate(base_table_names):
+            base_table = self.prosto.get_table(base_table_name)
+            rest_path = base_table.resolve_column_to_path(column_name)
+            if rest_path:  # Found
+                # TODO: Here we return the first path found, but maybe we should detect conflicts if more than one path found
+                return [base_attribute_names[i]] + rest_path
+
+        return []
+
     def evaluate(self) -> None:
         """Find a table operation which generates this table and execute it."""
         tab_ops = self.prosto.get_table_operations(self.id)

@@ -108,7 +108,7 @@ def test_filter_csql():
     assert list(ctx.get_table("Filtered").get_series('super')) == [1]
 
     #
-    # Filter with a preciate function and no explicit calculate column
+    # Filter with a appreciate function and no explicit calculate column
     #
     ctx = Prosto("My Prosto")
 
