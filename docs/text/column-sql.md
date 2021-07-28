@@ -168,3 +168,13 @@ The first part of the statement (before first arrow) is a list of source tables 
 If columns from a source table need to be accessed in some other operation then it is done by means of the link columns as a column path like `Table_1::t1::source_column`.
 
 Although the product operation looks analogous to join, it is has much narrow application scope. It is used mainly for multidimensional analysis (OLAP) and not for connectivity like join. If it is necessary to connect tables, then LINK operation should be used. It is a conceptual difference between the concept-oriented model relying on mathematical functions and the relational model relying on mathematical sets.
+
+## PROJECT operation
+
+The main purpose of the `project` operation is to create a new table with unique combinations of attributes from the source table. For example, given a source table `Facts` with attributes `A` and `B` we can produce a new table `Groups` with all unique combinations of these attributes:
+
+```python
+ctx.column_sql("LINK  Facts (A, B) -> link_column -> Groups (A, B)")
+```
+
+In addition to a new project table, this operation automatically creates a new link column in the source table which links records of the new project table. This link column can be then used for aggregation.
