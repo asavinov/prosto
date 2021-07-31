@@ -139,7 +139,7 @@ class Prosto:
                 pass
 
         else:
-            raise ValueError("Name'{}'  not found. It is neither column nor attribute".format(column_name))
+            raise ValueError("Name '{}' not found. It is neither column nor attribute".format(column_name))
 
         return type_table_name
 
@@ -195,6 +195,9 @@ class Prosto:
         table = self.get_table(table_name)
         if not table:
             return False
+        # In case of no attributes, we assume that attributes will be populated during execution and the specified attribute will be there
+        if not table.definition.get("attributes"):
+            return True
         attributes = table.definition.get("attributes", [])
         return attribute_name in attributes
 
