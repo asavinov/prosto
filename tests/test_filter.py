@@ -108,7 +108,7 @@ def test_filter_csql():
     assert list(ctx.get_table("Filtered").get_series('super')) == [1]
 
     #
-    # Filter with a appreciate function and no explicit calculate column
+    # Filter with a predicate function and no explicit calculate column
     #
     ctx = Prosto("My Prosto")
 
@@ -126,3 +126,43 @@ def test_filter_csql():
     ctx.run()
 
     assert list(ctx.get_table("Filtered").get_series('super')) == [1]
+
+
+def test_filter_calculate():
+    """
+    Test resolution of inherited attributes which do not exist in the filtered table but must be automatically merged from the base table.
+    Scenario: populate, filter, calculate column in filtered table using column in base table (which has to be inherited)
+    """
+    ctx = Prosto("My Prosto")
+
+    base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0], 'B': ['x', 'yy', 'zzz']})
+
+    ctx.column_sql("TABLE  Base (A, B)", lambda **m: base_df)
+    ctx.column_sql("FILTER Base (A) -> super -> Filtered", lambda x: x < 3.0)
+    ctx.column_sql(
+        "CALCULATE  Filtered (B) -> filter_column",  # <-- Here we use columns A and B which exist only in the base table
+        lambda x: len(x)
+    )
+
+    ctx.run()
+
+    assert ctx.get_table("Filtered").get_series('filter_column').to_list() == [1, 2]
+
+
+def test_filter_project():
+    """
+    Test resolution of inherited attributes which do not exist in the filtered table but must be automatically merged from the base table.
+    Scenario: populate, filter, project the filtered table using a column in the base table (which has to be inherited)
+    """
+    ctx = Prosto("My Prosto")
+
+    base_df = pd.DataFrame({'A': [1.0, 2.0, 3.0, 4.0], 'B': ['x', 'x', 'y', 'zzz']})
+
+    ctx.column_sql("TABLE  Base(A, B)", lambda **m: base_df)
+    ctx.column_sql("FILTER Base (A, B) -> super -> Filtered", lambda x: x['A'] < 4.0)
+    ctx.column_sql("FILTER Filtered (A) -> super -> Filtered_2", lambda x: x < 3.0)
+    ctx.column_sql("PROJECT Filtered_2 (B) -> new_column -> Groups(C)")  # <-- Here we use columns which exist only in the base table
+
+    ctx.run()
+
+    assert ctx.get_table("Groups").get_series('C').to_list() == ['x']
