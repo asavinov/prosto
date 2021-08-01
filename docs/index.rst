@@ -40,6 +40,8 @@ Contents
    Workflow and operations <text/workflow>
    Table operations <text/tables>
    Column operations <text/columns>
+   Column paths <text/column-paths>
+   Design <text/design>
    Install and test <text/install>
 
 Indices and tables
