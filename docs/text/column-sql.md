@@ -2,7 +2,7 @@
 
 ## What is Column-SQL
 
-Column-SQL is a query language based on the principles of column-orientation where both columns and tables are main elements of data representation and processing (rather than only tables in the relational and other set-oriented models). In Column-SQL, we process data by mainly deriving new columns from the data stroed in other columns in this or other tables. This approach is simpler and more natural than set-oriented query langauges where we derive tables from other tables. The main problem with traditional set-oriented query languages is that we frequently do not need to derive new tables at all and do it just because there is no choice.
+Column-SQL is a query language based on the principles of column-orientation where both columns and tables are main elements of data representation and processing (rather than only tables in the relational and other set-oriented models). In Column-SQL, we process data by mainly deriving new columns from the data stored in other columns in this or other tables. This approach is simpler and more natural than set-oriented query languages where we derive tables from other tables. The main problem with traditional set-oriented query languages is that we frequently do not need to derive new tables at all and do it just because there is no choice.
 
 ## Column-SQL structure
 
@@ -10,13 +10,13 @@ Column-SQL syntax at high level is intended for describing a flow of data from s
 
     <OPERATION NAME> <TABLE NAME> ( <COLUMN NAME>, ...) -> <TABLE NAME> ( <COLUMN NAME>, ...) ->
 
-Note that between arrows we use a generic syntax for specifying data elements we want to process which is a table name followed by a sequence of its column names in parantheses:
+Note that between arrows we use a generic syntax for specifying data elements we want to process which is a table name followed by a sequence of its column names in parentheses:
 
     <TABLE NAME> ( <COLUMN NAME 1>, <COLUMN NAME 2>, ...)
 
 Note that both table name and column list could be empty and there could be single name specified treated either as column or table depending on the operation.
 
-How the data elements between arrows are interpreted depends on the operation and it will be described in the next sections. Here we give only one example of how a new calculated column could be defined which derives its values from two other columns in this same table:
+How the data elements between arrows are interpreted depends on the operation, and it will be described in the next sections. Here we give only one example of how a new calculated column could be defined which derives its values from two other columns in this same table:
 
     CALCULATE  My_existing_table(A, B) -> my_new_column
 
