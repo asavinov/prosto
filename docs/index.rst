@@ -17,7 +17,9 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
    :align: center
 
 `Prosto` provides two ways to define its operations:
+
 * *Programmatically* by calling function with parameters specifying an operation
+
 * *Column-SQL* by means of syntactic statements with all operation parameters. Column-SQL is a new way to define a column-oriented data processing workflow. It is a syntactic alternative to programmatic operations. Read more here: :doc:`Column-SQL <text/column-sql>`
 
 `Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/asavinov/prosto/tree/master/notebooks
