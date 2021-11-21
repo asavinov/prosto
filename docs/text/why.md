@@ -4,7 +4,13 @@
 
 In traditional approaches to data processing, we frequently need to produce a new table even though we need to define a new attribute. For example, in SQL, a new relation has to be produced even if we want to define a new calculated attribute. We also need to produce a new relation (using join) if we want to add a column with data from another table. Data aggregation by means of groupby operation produces a new relation too, although the goal is to compute a new attribute.
 
-Thus in many quite important cases, processing data using *only* set operations is counter-intuitive. In particular, this is why map-reduce, join-groupby (including SQL) and similar approaches require high expertise and are error-prone. The main unique novel feature of `Prosto` is that it adds mathematical *functions* (implemented as columns) to its model by significantly simplifying data processing and analysis. Now, if we want to define a new attribute then we can do it directly without defining a new unnecessary table, collection or relation.
+> In many important cases, processing data using *only* set operations is counter-intuitive, and this is why map-reduce, join-groupby (including SQL) and similar set-oriented approaches require high expertise and are error-prone
+
+The main unique novel feature of `Prosto` is that it relies on a different formal basis:
+
+> `Prosto` adds mathematical *functions* (implemented as columns) to its model by significantly simplifying data processing and analysis
+
+Now, if we want to define a new attribute then we can do it directly without defining new unnecessary tables, collections or relations. New columns are defined in terms of other columns (in different tables) and this makes this model similar to how spreadsheets work but instead of cells we use columns. For comparison, if in spreadsheets we could define a new cell as `A1=B2+C3`, then in `Prosto` we could define a new column as `Column1=Column2+Column3`. The main theoretical challange is in introducing a set of column operations between columns in *multiple* tables in such a way that these operations effectively replace relational operations (join and groupby) and cover most important use cases. How it is done is described in [[2]](#1). `Prosto` with `Column-SQL` is one possible implementation of this model.
 
 Below we describe three use cases where applying set operations is an unnecessary and counter-intuitive step. The example data model shown in this diagram is used for demonstration purposes. (Note however that it does not exactly corresponds to the use cases.)
 

@@ -2,7 +2,7 @@
 
 ## What is Column-SQL
 
-Column-SQL is a query language based on the principles of column-orientation where both columns and tables are main elements of data representation and processing (rather than only tables in the relational and other set-oriented models). In Column-SQL, we process data by mainly deriving new columns from the data stored in other columns in this or other tables. This approach is simpler and more natural than set-oriented query languages where we derive tables from other tables. The main problem with traditional set-oriented query languages is that we frequently do not need to derive new tables at all and do it just because there is no choice.
+Column-SQL is a query language based on the principles of column-orientation where both columns and tables are main elements of data representation and processing (as opposed to using only tables in the relational and other set-oriented models). In Column-SQL, we process data by mainly deriving new columns from the data stored in other columns in this or other tables. This approach is simpler and more natural than set-oriented query languages where we derive tables from other tables. The main problem with traditional set-oriented query languages is that we frequently do not need to derive new tables at all and do it just because there is no choice.
 
 ## Column-SQL structure
 
