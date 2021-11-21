@@ -1,6 +1,10 @@
 # Change Log
 
-* v0.6.0.dev - in progress
+* v0.6.0 (2021-11-21)
+  * Column-SQL basic implementation
+  * Improvements to filter operation (predicate functions) and inheritance
+  * Refactor column path resolution logic
+  * Redesign project operation by making it independent of the link definition
 
 * v0.5.0 (2021-05-08)
   * bug fixes, improvements and renamings
