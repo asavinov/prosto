@@ -21,7 +21,7 @@
 
 • [**Why Prosto?**](#why-prosto) • [**Quick start**](#quick-start) • [**How to use**](#how-to-use) • [**References**](#references) •
 
-`Prosto` is a Python data processing toolkit to author and execute complex data processing workflows. Conceptually, it is an alternative to purely *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
+`Prosto` is a Python data processing toolkit to (programmatically or using `Column-SQL`) author and execute complex data processing workflows. Conceptually, it is an alternative to purely *set-oriented* approaches to data processing like map-reduce, relational algebra, SQL or data-frame-based tools like `pandas`.
 
 `Prosto` radically changes the way data is processed by relying on a novel data processing paradigm: *concept-oriented model* of data [[2]](#1). It treats columns (modelled via mathematical functions) as first-class elements of the data processing pipeline having the same rights as tables. If a traditional data processing graph consists of only set operations than the `Prosto` workflow consists of two types of operations:
 
@@ -34,10 +34,12 @@ An example of such a `Prosto` workflow consisting of 3 column operations is show
 ![Data processing workflow](docs/images/fig_1.png)
 
 `Prosto` provides two ways to define its operations:
-* Programmatically by calling function with parameters specifying an operation
-* Column-SQL by means of syntactic statements with all operation parameters
+* *Programmatically* by calling function with parameters specifying an operation
+* *Column-SQL* by means of syntactic statements with all operation parameters. Column-SQL is a new way to define a column-oriented data processing workflow. It is a syntactic alternative to programmatic operations. Read more here: [Column-SQL](https://prosto.readthedocs.io/en/latest/text/column-sql.html)
 
 `Prosto` operations are demonstrated in notebooks which can be found in the "notebooks" folder in the main repo. Do your own experiments by tweaking them and playing around with the code: https://github.com/asavinov/prosto/tree/master/notebooks
+
+The column-oriented approach was used in the Intelligent Trading Bot for deriving new features: https://github.com/asavinov/intelligent-trading-bot
 
 More detailed information can be found in the documentation: http://prosto.readthedocs.io 
 
@@ -47,27 +49,33 @@ More detailed information can be found in the documentation: http://prosto.readt
 
 In traditional approaches to data processing, we frequently need to produce a new table even though we need to define a new attribute. For example, in SQL, a new relation has to be produced even if we want to define a new calculated attribute. We also need to produce a new relation (using join) if we want to add a column with data from another table. Data aggregation by means of groupby operation produces a new relation too, although the goal is to compute a new attribute.
 
-Thus in many quite important cases, processing data using *only* set operations is counter-intuitive. In particular, this is why map-reduce, join-groupby (including SQL) and similar approaches require high expertise and are error-prone. The main unique novel feature of `Prosto` is that it adds mathematical *functions* (implemented as columns) to its model by significantly simplifying data processing and analysis. Now, if we want to define a new attribute then we can do it directly without defining a new unnecessary table, collection or relation.
+> In many important cases, processing data using *only* set operations is counter-intuitive, and this is why map-reduce, join-groupby (including SQL) and similar set-oriented approaches require high expertise and are error-prone
+
+The main unique novel feature of `Prosto` is that it relies on a different formal basis:
+
+> `Prosto` adds mathematical *functions* (implemented as columns) to its model by significantly simplifying data processing and analysis
+
+Now, if we want to define a new attribute then we can do it directly without defining new unnecessary tables, collections or relations. New columns are defined in terms of other columns (in different tables) and this makes this model similar to how spreadsheets work but instead of cells we use columns. For comparison, if in spreadsheets we could define a new cell as `A1=B2+C3`, then in `Prosto` we could define a new column as `Column1=Column2+Column3`. The main theoretical challange is in introducing a set of column operations between columns in *multiple* tables in such a way that these operations effectively replace relational operations (join and groupby) and cover most important use cases. How it is done is described in [[2]](#1). `Prosto` with `Column-SQL` is one possible implementation of this model.
 
 More info: [Why functions and column-orientation?](https://prosto.readthedocs.io/en/latest/text/why.html#why-functions-and-column-orientation)
 
-## Benefits of Prosto 
+## Unique features and benefits of Prosto 
 
 `Prosto` provides the following unique features and benefits:
 
-* Easily processing data in multiple tables. New derived columns are added directly to tables  without creating multiple intermediate tables
+* Easily processing data in *multiple tables*. New derived columns are added directly to tables  without creating multiple intermediate tables
 
-* Getting rid of join and group-by. Column definitions such as link columns and aggregate columns are used instead of join and groupby set operations
+* Getting rid of join and group-by. Column definitions such as *link columns* and *aggregate columns* are used instead of join and groupby set operations
 
-* Flexibility and modularization via user-defined functions. UDFs describe what needs to be done with the data only in this operation using arbitrary Python code. If UDF for an operation changes then it is not necessary to update other operations
+* Flexibility and modularization via Python *user-defined functions* (UDF). UDFs describe what needs to be done with the data only in this operation using arbitrary Python code. If UDF for an operation changes then it is not necessary to update other operations
 
-* Parameterization of operations by a model object. A model can be as simple as one value and as complex as a trained deep neural network. This feature leads to a novel view of how data analysis should be organized by combining feature engineering and machine learning so that both model training and model use (predictions or transformations) are part of one data processing workflow. Currently models are supported only as static parameters but in future there will be a possibility to train model within the same workflow
+* Parameterization of operations by a *model object*. A model can be as simple as one value and as complex as a trained deep neural network. This feature leads to a novel view of how data analysis should be organized by combining feature engineering and machine learning so that both model training and model use (predictions or transformations) are part of one data processing workflow. Currently models are supported only as static parameters but in future there will be a possibility to train model within the same workflow
 
 * Future directions. Incremental evaluation and data dictionary
 
 More info: [Benefits of Prosto](https://prosto.readthedocs.io/en/latest/text/why.html#benefits-of-prosto)
 
-# Quick start
+# Quick start (using Column-SQL)
 
 ## Creating a workflow
 
@@ -149,7 +157,7 @@ print(df)
 
 The `amount` column was derived from the data in other columns. If we change input data, then we can again run this workflow and the derived column will contain updated results.
 
-The full power of `Prosto` comes from the ability to process data in multiple tables by definining derived links (instead of joins) and then aggregating data based on these links (without groupby). Note that both linking and aggregation do not require and will not produce new tables: only columns are defined and evaluated. For example, we might use column paths like `my_derived_link::my_column` in operations in order to access data in other tables.
+The full power of `Prosto` comes from the ability to process data in *multiple* tables by definining derived links (instead of joins) and then aggregating data based on these links (without groupby). Note that both linking and aggregation do not require and will not produce new tables: only columns are defined and evaluated. For example, we might use column paths like `my_derived_link::my_column` in operations in order to access data in other tables.
 
 More info: [Column-SQL](https://prosto.readthedocs.io/en/latest/text/column-sql.html)
 
